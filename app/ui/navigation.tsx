@@ -1,44 +1,43 @@
-// import EducationIcon from "/public/svg/books.svg";
-// import PFPlansIcon from "/public/svg/customer.svg";
-// import ExercisesIcon from "/public/svg/footsteps.svg";
-// import WorkoutsIcon from "/public/svg/head-idea-setting.svg";
-// import PatientsIcon from "/public/svg/patients.svg";
-
-import { LayoutGrid } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import DashboardIcon from "./icons/dashboard_icon";
+import EducationIcon from "./icons/education_icon";
+import ExerciseIcon from "./icons/exercise_icon";
+import PatientIcon from "./icons/patient_icon";
+import PFPlanIcon from "./icons/pfplan_icon";
+import WorkoutIcon from "./icons/workout_icon";
 
 export default function Navigation() {
   const navItems = [
     {
       title: "Dashboard",
       url: "/dashboard",
-      icon: <LayoutGrid className="icon-fill text-neutral-400" />,
+      icon: <DashboardIcon />,
     },
     {
       title: "Patients",
       url: "/patients",
-      icon: <LayoutGrid className="icon-fill text-neutral-400" />,
+      icon: <PatientIcon />,
     },
     {
       title: "Exercises",
       url: "/exercises",
-      icon: <LayoutGrid className="icon-fill text-neutral-400" />,
+      icon: <ExerciseIcon />,
     },
     {
       title: "Workouts",
       url: "/workouts",
-      icon: <LayoutGrid className="icon-fill text-neutral-400" />,
+      icon: <WorkoutIcon />,
     },
     {
       title: "PF Plans",
       url: "/pf-plans",
-      icon: <LayoutGrid className="icon-fill text-neutral-400" />,
+      icon: <PFPlanIcon />,
     },
     {
       title: "Education",
       url: "/education",
-      icon: <LayoutGrid className="icon-fill text-neutral-400" />,
+      icon: <EducationIcon />,
     },
   ];
 
@@ -56,7 +55,7 @@ export default function Navigation() {
           <Link
             key={index}
             href={url}
-            className="nav-link flex items-center py-5 pl-9 hover:bg-primary-100 hover:border-r-4 hover:border-primary-500"
+            className="nav-link flex items-center py-5 pl-9 hover:bg-primary-100 hover:border-r-4 hover:border-primary-500 group"
           >
             <span className="mr-3">{icon}</span>
             <span className="text-neutral-600 font-medium">{title}</span>
