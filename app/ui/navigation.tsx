@@ -1,5 +1,10 @@
+"use client";
+
+import clsx from "clsx";
+import { LogOut } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import DashboardIcon from "./icons/dashboard_icon";
 import EducationIcon from "./icons/education_icon";
 import ExerciseIcon from "./icons/exercise_icon";
@@ -8,41 +13,43 @@ import PFPlanIcon from "./icons/pfplan_icon";
 import WorkoutIcon from "./icons/workout_icon";
 
 export default function Navigation() {
+  const pathname = usePathname();
+
   const navItems = [
     {
       title: "Dashboard",
       url: "/dashboard",
-      icon: <DashboardIcon />,
+      icon: <DashboardIcon activeUrl="/dashboard" />,
     },
     {
       title: "Patients",
       url: "/patients",
-      icon: <PatientIcon />,
+      icon: <PatientIcon activeUrl="/patients" />,
     },
     {
       title: "Exercises",
       url: "/exercises",
-      icon: <ExerciseIcon />,
+      icon: <ExerciseIcon activeUrl="/exercises" />,
     },
     {
       title: "Workouts",
       url: "/workouts",
-      icon: <WorkoutIcon />,
+      icon: <WorkoutIcon activeUrl="/workouts" />,
     },
     {
       title: "PF Plans",
       url: "/pf-plans",
-      icon: <PFPlanIcon />,
+      icon: <PFPlanIcon activeUrl="/pf-plans" />,
     },
     {
       title: "Education",
       url: "/education",
-      icon: <EducationIcon />,
+      icon: <EducationIcon activeUrl="/education" />,
     },
   ];
 
   return (
-    <aside className="w-[350px] shadow-xl">
+    <aside className="w-[350px] shadow-xl flex flex-col h-screen">
       <Image
         src="/images/logo.jpg"
         alt="Logo"
@@ -55,13 +62,20 @@ export default function Navigation() {
           <Link
             key={index}
             href={url}
-            className="nav-link flex items-center py-5 pl-9 hover:bg-primary-100 hover:border-r-4 hover:border-primary-500 group"
+            className={clsx(
+              "flex items-center py-5 pl-9 hover:bg-primary-50 hover:border-r-4 hover:border-primary-500 group",
+              pathname === url && "bg-primary-100 border-r-4 border-primary-500"
+            )}
           >
             <span className="mr-3">{icon}</span>
             <span className="text-neutral-600 font-medium">{title}</span>
           </Link>
         ))}
       </nav>
+      <div className="flex items-center mt-auto mb-10 pl-9 space-x-2 text-red-400 cursor-pointer">
+        <LogOut size={16} />
+        <p>Logout</p>
+      </div>
     </aside>
   );
 }

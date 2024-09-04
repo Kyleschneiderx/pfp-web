@@ -1,4 +1,4 @@
-import { Button } from "@/app/ui/elements/Button";
+import Button from "@/app/ui/elements/Button";
 import InputField from "@/app/ui/elements/InputField";
 import ArrowLeft from "@/public/svg/arrow-left.svg";
 import { Circle } from "lucide-react";
@@ -32,11 +32,11 @@ export default function Page() {
         <div className="mt-1 text-neutral-600">
           <p className="text-xs">Your password must contain</p>
           <div className="flex items-center">
-            <Circle size={16} className="text-neutral-400 mr-1"/>
+            <Circle size={16} className="text-neutral-400 mr-1" />
             <p className="text-sm ">At least 8 characters</p>
           </div>
           <div className="flex items-center">
-            <Circle size={16} className="text-neutral-400 mr-1"/>
+            <Circle size={16} className="text-neutral-400 mr-1" />
             <p className="text-sm">
               At least 1 letter, 1 number and 1 special characters
             </p>
@@ -52,7 +52,7 @@ export default function Page() {
             required
           />
         </div>
-        <Button className="w-full mt-12">Reset Password</Button>
+        <Button label="Reset Password" className="w-full mt-12" />
       </form>
     </>
   );

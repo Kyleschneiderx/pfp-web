@@ -1,4 +1,4 @@
-import { Button } from "@/app/ui/elements/Button";
+import Button from "@/app/ui/elements/Button";
 import InputField from "@/app/ui/elements/InputField";
 import ArrowLeft from "@/public/svg/arrow-left.svg";
 import Image from "next/image";
@@ -24,7 +24,7 @@ export default function Page() {
           placeholder="Your Email"
           required
         />
-        <Button className="w-full">Reset Password</Button>
+        <Button label="Reset Password" className="w-full" />
       </form>
     </>
   );

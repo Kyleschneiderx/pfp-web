@@ -1,4 +1,4 @@
-import { Button } from "@/app/ui/elements/Button";
+import Button from "@/app/ui/elements/Button";
 import InputField from "@/app/ui/elements/InputField";
 import Image from "next/image";
 import Link from "next/link";
@@ -28,7 +28,7 @@ export default function Page() {
           placeholder="Password"
           required
         />
-        <Button className="w-full">Sign In</Button>
+        <Button label="Sign In" className="w-full" />
         <Link href="/forgot-password">
           <p className="text-center mt-7">Forgot Password?</p>
         </Link>

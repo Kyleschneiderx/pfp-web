@@ -8,6 +8,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      dropShadow: {
+        'center': "0 0px 2px rgba(0,0,0,0.20)"
+      },
       colors: {
         neutral: {
           50: "#FFFCFF",
