@@ -30,7 +30,7 @@ export default function Page() {
             type="text"
             name="search"
             placeholder="Search patient"
-            showIcon
+            icon="Search"
           />
         </div>
         <FilterSort options={filterOptions} label="Filter" />

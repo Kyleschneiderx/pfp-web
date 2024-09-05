@@ -3,11 +3,28 @@
 import Button from "@/app/ui/elements/Button";
 import InputField from "@/app/ui/elements/InputField";
 import ArrowLeft from "@/public/svg/arrow-left.svg";
+import EyeOff from "@/public/svg/eye-off.svg";
+import Eye from "@/public/svg/eye.svg";
 import clsx from "clsx";
 import { Circle, CircleCheck } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+
+const PasswordToggleIcon = ({
+  isVisible,
+  onToggle,
+}: {
+  isVisible: boolean;
+  onToggle: () => void;
+}) => (
+  <Image
+    onClick={onToggle}
+    src={isVisible ? Eye : EyeOff}
+    alt={isVisible ? "Hide password" : "Show password"}
+    className="absolute ml-3 right-4 top-1/2 transform -translate-y-1/2 w-5 text-neutral-600 cursor-pointer"
+  />
+);
 
 export default function Page() {
   const [newPassword, setNewPassword] = useState<string>("");
@@ -15,6 +32,8 @@ export default function Page() {
   const [firstPass, setFirstPass] = useState<boolean>(false);
   const [secondPass, setSecondPass] = useState<boolean>(false);
   const [passwordMatch, setPasswordMatch] = useState<boolean>(true);
+  const [showNewPass, setShowNewPass] = useState<boolean>(false);
+  const [showConfirmPass, setShowConfirmPass] = useState<boolean>(false);
 
   const passwordChange = (data: React.ChangeEvent<HTMLInputElement>) => {
     const value = data.target.value;
@@ -34,6 +53,14 @@ export default function Page() {
     setPasswordMatch(value === newPassword);
   };
 
+  const onShowNewPass = () => {
+    setShowNewPass((prev) => !prev);
+  };
+
+  const onShowConfirmPass = () => {
+    setShowConfirmPass((prev) => !prev);
+  };
+
   return (
     <>
       <Link href="/forgot-password">
@@ -51,10 +78,16 @@ export default function Page() {
           <p className="text-sm font-medium mb-2">Password</p>
           <InputField
             id="password"
-            type="password"
+            type={showNewPass ? "text" : "password"}
             name="password"
             placeholder="Enter your new password"
             required
+            icon={
+              <PasswordToggleIcon
+                isVisible={showNewPass}
+                onToggle={onShowNewPass}
+              />
+            }
             onChange={passwordChange}
           />
         </div>
@@ -95,10 +128,16 @@ export default function Page() {
           <p className="text-sm font-medium mb-2">Confirm Password</p>
           <InputField
             id="confirm-password"
-            type="password"
+            type={showConfirmPass ? "text" : "password"}
             name="confirm-password"
             placeholder="Re-enter password"
             required
+            icon={
+              <PasswordToggleIcon
+                isVisible={showConfirmPass}
+                onToggle={onShowConfirmPass}
+              />
+            }
             onChange={confirmPassChange}
             className={clsx(
               newPassword &&
