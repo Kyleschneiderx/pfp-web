@@ -3,6 +3,7 @@ import { Search } from "lucide-react";
 
 interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   showIcon?: boolean;
+  className?: string;
 }
 
 export default function Button({
@@ -18,7 +19,8 @@ export default function Button({
         className={clsx(
           "w-full rounded-md border border-gray-200 py-3 pl-4",
           { "pr-10": showIcon, "pr-4": !showIcon },
-          "placeholder:text-neutral-400 focus:border-neutral-600 focus:outline-none"
+          "placeholder:text-neutral-400 focus:border-neutral-600 focus:outline-none",
+          className
         )}
       />
       {showIcon && (

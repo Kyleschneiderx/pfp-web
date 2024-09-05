@@ -50,14 +50,16 @@ export default function FilterSort({ label, options = [] }: Props) {
             <ul className="space-y-3">
               {options.map((option, index) => (
                 <li>
-                  <input
-                    key={index}
-                    id={`id${index}`}
-                    type="checkbox"
-                    value={option.value}
-                    className="mr-2 cursor-pointer"
-                  />
-                  <label htmlFor={`id${index}`} className="cursor-pointer">
+                  <label
+                    htmlFor={`id${index}`}
+                    className="flex items-center cursor-pointer"
+                  >
+                    <input
+                      id={`id${index}`}
+                      type="checkbox"
+                      value={option.value}
+                      className="mr-2 cursor-pointer"
+                    />
                     {option.label}
                   </label>
                 </li>
