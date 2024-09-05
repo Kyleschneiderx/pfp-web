@@ -2,12 +2,25 @@ import { samplePatients } from "@/app/lib/sample-data";
 import { formatDateToLocal } from "@/app/lib/utils";
 import Button from "@/app/ui/elements/Button";
 import Card from "@/app/ui/elements/Card";
+import FilterSort from "@/app/ui/elements/FilterSort";
 import InputField from "@/app/ui/elements/InputField";
 import clsx from "clsx";
-import { ChevronDown, EllipsisVertical, Mail, PhoneCall } from "lucide-react";
+import { EllipsisVertical, Mail, PhoneCall } from "lucide-react";
 import Image from "next/image";
 
 export default function Page() {
+  const filterOptions = [
+    { label: "All", value: "all" },
+    { label: "Active", value: "active" },
+    { label: "Inactive", value: "inactive" },
+  ];
+
+  const sortOptions = [
+    { label: "Alphabetical (A-Z)", value: "asc" },
+    { label: "Alphabetical (Z-A)", value: "desc" },
+    { label: "Latest to Oldest Log-in", value: "latest-login" },
+    { label: "Oldest to Latest Log-in", value: "oldest-login" },
+  ];
   return (
     <>
       <div className="flex items-center mb-8">
@@ -20,12 +33,8 @@ export default function Page() {
             showIcon
           />
         </div>
-        <div className="flex text-sm font-medium">
-          <p className="ml-7 mr-1">Filter</p>
-          <ChevronDown size={20} className="cursor-pointer" />
-          <p className="ml-10 mr-1">Sort</p>
-          <ChevronDown size={20} className="cursor-pointer" />
-        </div>
+        <FilterSort options={filterOptions} label="Filter" />
+        <FilterSort options={sortOptions} label="Sort" />
         <Button label="Add Patients" showIcon className="ml-auto" />
       </div>
       <div className="flex flex-wrap">
