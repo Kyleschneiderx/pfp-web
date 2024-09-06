@@ -1,17 +1,17 @@
 import clsx from "clsx";
 import { Search } from "lucide-react";
 
-interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   icon?: React.ReactNode;
   className?: string;
 }
 
-export default function InputField({
+export default function Input({
   icon,
   children,
   className,
   ...rest
-}: InputFieldProps) {
+}: Props) {
   return (
     <div className="relative">
       <input

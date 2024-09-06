@@ -1,5 +1,5 @@
 import Button from "@/app/components/elements/Button";
-import InputField from "@/app/components/elements/InputField";
+import Input from "@/app/components/elements/Input";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -14,14 +14,14 @@ export default function Page() {
         className="mx-auto"
       />
       <form className="space-y-5 mt-8">
-        <InputField
+        <Input
           id="email"
           type="email"
           name="email"
           placeholder="Email"
           required
         />
-        <InputField
+        <Input
           id="password"
           type="password"
           name="password"

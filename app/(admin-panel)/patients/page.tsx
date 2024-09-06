@@ -1,7 +1,7 @@
 import Button from "@/app/components/elements/Button";
 import Card from "@/app/components/elements/Card";
 import FilterSort from "@/app/components/elements/FilterSort";
-import InputField from "@/app/components/elements/InputField";
+import Input from "@/app/components/elements/Input";
 import { samplePatients } from "@/app/lib/sample-data";
 import { formatDateToLocal } from "@/app/lib/utils";
 import clsx from "clsx";
@@ -26,7 +26,7 @@ export default function Page() {
     <>
       <div className="flex items-center mb-8">
         <div className="w-[540px]">
-          <InputField
+          <Input
             id="search"
             type="text"
             name="search"

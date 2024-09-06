@@ -1,5 +1,5 @@
 import Button from "@/app/components/elements/Button";
-import InputField from "@/app/components/elements/InputField";
+import Input from "@/app/components/elements/Input";
 import ArrowLeft from "@/public/svg/arrow-left.svg";
 import Image from "next/image";
 import Link from "next/link";
@@ -17,7 +17,7 @@ export default function Page() {
         Please enter your email to reset the password.
       </p>
       <form className="space-y-5 mt-6">
-        <InputField
+        <Input
           id="email"
           type="email"
           name="email"

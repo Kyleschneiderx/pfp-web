@@ -1,7 +1,7 @@
 "use client";
 
 import Button from "@/app/components/elements/Button";
-import InputField from "@/app/components/elements/InputField";
+import Input from "@/app/components/elements/Input";
 import ArrowLeft from "@/public/svg/arrow-left.svg";
 import EyeOff from "@/public/svg/eye-off.svg";
 import Eye from "@/public/svg/eye.svg";
@@ -76,7 +76,7 @@ export default function Page() {
       <form className="mt-6">
         <div>
           <p className="text-sm font-medium mb-2">Password</p>
-          <InputField
+          <Input
             id="password"
             type={showNewPass ? "text" : "password"}
             name="password"
@@ -126,7 +126,7 @@ export default function Page() {
         </div>
         <div className="mt-3">
           <p className="text-sm font-medium mb-2">Confirm Password</p>
-          <InputField
+          <Input
             id="confirm-password"
             type={showConfirmPass ? "text" : "password"}
             name="confirm-password"
