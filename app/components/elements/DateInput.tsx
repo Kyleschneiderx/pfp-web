@@ -26,6 +26,9 @@ export default function DateInput({
         "w-full rounded-md border border-gray-200 py-[10px] pl-4 placeholder:text-neutral-400 placeholder:font-light focus:border-neutral-600 focus:outline-none",
         className
       )}
+      showMonthDropdown
+      showYearDropdown
+      dropdownMode="select"
       dateFormat={dateFormat}
       placeholderText={placeholderText}
       {...rest}
