@@ -1,7 +1,7 @@
 "use client";
 
-import Button from "@/app/ui/elements/Button";
-import InputField from "@/app/ui/elements/InputField";
+import Button from "@/app/components/elements/Button";
+import InputField from "@/app/components/elements/InputField";
 import ArrowLeft from "@/public/svg/arrow-left.svg";
 import EyeOff from "@/public/svg/eye-off.svg";
 import Eye from "@/public/svg/eye.svg";

@@ -1,5 +1,5 @@
-import Header from "@/app/ui/header";
-import Navigation from "@/app/ui/navigation";
+import Header from "@/app/components/header";
+import Navigation from "@/app/components/navigation";
 import { ReactNode } from "react";
 
 export default function RootLayout({ children }: { children: ReactNode }) {

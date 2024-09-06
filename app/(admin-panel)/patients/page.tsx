@@ -1,9 +1,9 @@
+import Button from "@/app/components/elements/Button";
+import Card from "@/app/components/elements/Card";
+import FilterSort from "@/app/components/elements/FilterSort";
+import InputField from "@/app/components/elements/InputField";
 import { samplePatients } from "@/app/lib/sample-data";
 import { formatDateToLocal } from "@/app/lib/utils";
-import Button from "@/app/ui/elements/Button";
-import Card from "@/app/ui/elements/Card";
-import FilterSort from "@/app/ui/elements/FilterSort";
-import InputField from "@/app/ui/elements/InputField";
 import clsx from "clsx";
 import { EllipsisVertical, Mail, PhoneCall } from "lucide-react";
 import Image from "next/image";

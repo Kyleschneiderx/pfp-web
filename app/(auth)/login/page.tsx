@@ -1,5 +1,5 @@
-import Button from "@/app/ui/elements/Button";
-import InputField from "@/app/ui/elements/InputField";
+import Button from "@/app/components/elements/Button";
+import InputField from "@/app/components/elements/InputField";
 import Image from "next/image";
 import Link from "next/link";
 

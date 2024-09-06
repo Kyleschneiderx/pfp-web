@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import Card from "../ui/elements/Card";
+import Card from "../components/elements/Card";
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
