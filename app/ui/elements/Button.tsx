@@ -19,7 +19,7 @@ export default function Button({
     <button
       {...rest}
       className={clsx(
-        "flex justify-center items-center py-3 px-5 rounded-md",
+        "flex justify-center items-center py-3 px-4 rounded-md",
         secondary
           ? "bg-white text-black hover:bg-neutral-100 active:bg-primary-200 drop-shadow"
           : "bg-primary-500 text-white hover:bg-primary-300 active:bg-primary-500",

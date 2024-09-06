@@ -8,7 +8,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <Navigation />
       <div className="flex flex-col w-full">
         <Header />
-        <main className="bg-primary-50 h-full relative main-inner-left-shadow p-7 overflow-auto">
+        <main className="bg-primary-50 h-full relative main-inner-left-shadow p-6 overflow-auto">
           {children}
         </main>
       </div>

@@ -3,7 +3,7 @@ import { Patients } from "../models/patients";
 export const samplePatients: Patients[] = [
   {
     id: 1,
-    email: "michael.edano@guerilla360.com",
+    email: "Lura20@hotmail.com",
     last_login_at: null,
     verified_at: null,
     created_at: "2024-08-29T03:49:42.000Z",

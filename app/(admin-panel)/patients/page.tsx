@@ -24,7 +24,7 @@ export default function Page() {
   ];
   return (
     <>
-      <div className="flex items-center mb-9">
+      <div className="flex items-center mb-8">
         <div className="w-[540px]">
           <InputField
             id="search"
@@ -44,7 +44,7 @@ export default function Page() {
         {samplePatients.map((patient) => (
           <Card
             key={patient.id}
-            className="p-5 w-[390px] flex mr-9 mb-9 text-neutral-900"
+            className="p-4 pr-3 w-[351px] flex mr-7 mb-7 text-neutral-900"
           >
             <Image
               src="/images/user.png"
@@ -53,7 +53,7 @@ export default function Page() {
               alt="Profile pic"
               className="self-start"
             />
-            <div className="px-4 w-[300px]">
+            <div className="pl-4 pr-2 w-[300px]">
               <p className="text-lg font-semibold mb-1">
                 {patient.user_profile.name}
               </p>
@@ -61,7 +61,7 @@ export default function Page() {
                 Last Log-in a month ago
               </p>
               <div className="flex text-sm mb-1">
-                <p className="mr-2 text-neutral-800 w-[100px] font-medium">
+                <p className="mr-2 text-neutral-800 w-[90px] font-medium">
                   Date of Birth
                 </p>
                 <p className="text-neutral-700">
@@ -69,7 +69,7 @@ export default function Page() {
                 </p>
               </div>
               <div className="flex text-sm mb-1">
-                <p className="mr-2 text-neutral-800 w-[100px] font-medium">
+                <p className="mr-2 text-neutral-800 w-[90px] font-medium">
                   Other info
                 </p>
                 <p

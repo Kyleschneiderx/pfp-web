@@ -49,7 +49,7 @@ export default function Navigation() {
   ];
 
   return (
-    <aside className="w-[350px] shadow-xl flex flex-col h-screen">
+    <aside className="w-[280px] shadow-xl flex flex-col h-screen">
       <Image
         src="/images/logo.jpg"
         alt="Logo"
@@ -63,7 +63,7 @@ export default function Navigation() {
             key={index}
             href={url}
             className={clsx(
-              "flex items-center py-5 pl-9 hover:bg-primary-50 hover:border-r-4 hover:border-primary-500 group",
+              "flex items-center py-4 pl-[35px] hover:bg-primary-50 hover:border-r-4 hover:border-primary-500 group",
               pathname.startsWith(url) && "bg-primary-100 border-r-4 border-primary-500"
             )}
           >
