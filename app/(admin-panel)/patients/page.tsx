@@ -7,6 +7,7 @@ import InputField from "@/app/ui/elements/InputField";
 import clsx from "clsx";
 import { EllipsisVertical, Mail, PhoneCall } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Page() {
   const filterOptions = [
@@ -23,7 +24,7 @@ export default function Page() {
   ];
   return (
     <>
-      <div className="flex items-center mb-8">
+      <div className="flex items-center mb-9">
         <div className="w-[540px]">
           <InputField
             id="search"
@@ -35,7 +36,9 @@ export default function Page() {
         </div>
         <FilterSort options={filterOptions} label="Filter" />
         <FilterSort options={sortOptions} label="Sort" />
-        <Button label="Add Patients" showIcon className="ml-auto" />
+        <Link href="/patients/create" className="ml-auto">
+          <Button label="Add Patients" showIcon />
+        </Link>
       </div>
       <div className="flex flex-wrap">
         {samplePatients.map((patient) => (

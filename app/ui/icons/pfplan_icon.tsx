@@ -13,7 +13,7 @@ export default function PFPlanIcon({ activeUrl }: Props) {
     <svg
       className={clsx(
         "w-6 h-6 text-neutral-400 group-hover:text-primary-500",
-        pathname == activeUrl && "text-primary-500"
+        pathname.startsWith(activeUrl) && "text-primary-500"
       )}
       width="24"
       height="24"

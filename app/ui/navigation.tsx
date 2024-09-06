@@ -64,7 +64,7 @@ export default function Navigation() {
             href={url}
             className={clsx(
               "flex items-center py-5 pl-9 hover:bg-primary-50 hover:border-r-4 hover:border-primary-500 group",
-              pathname === url && "bg-primary-100 border-r-4 border-primary-500"
+              pathname.startsWith(url) && "bg-primary-100 border-r-4 border-primary-500"
             )}
           >
             <span className="mr-3">{icon}</span>
