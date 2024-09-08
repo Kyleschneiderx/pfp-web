@@ -2,15 +2,21 @@
 
 import Button from "@/app/components/elements/Button";
 import Card from "@/app/components/elements/Card";
+import DateInput from "@/app/components/elements/DateInput";
 import Input from "@/app/components/elements/Input";
+import Select from "@/app/components/elements/Select";
+import Textarea from "@/app/components/elements/Textarea";
+import ToggleSwitch from "@/app/components/elements/ToggleSwitch";
 import countryCodes from "@/app/lib/country-codes.json";
 import { useState } from "react";
-import DateInput from "../elements/DateInput";
-import Select from "../elements/select";
-import Textarea from "../elements/textarea";
 
 export default function CreatePatientForm() {
   const [birthdate, setBirthdate] = useState<Date | null>(null);
+  const [accountType, setAccountType] = useState<string>("Free")
+
+  const handleToggle = (label: string) => {
+    setAccountType(label);
+  }
 
   return (
     <form>
@@ -23,7 +29,7 @@ export default function CreatePatientForm() {
           </p>
         </div>
         <div className="flex ml-auto space-x-3">
-          <Button label="Cancel" secondary />
+          <Button label="Cancel" secondary type="button" />
           <Button label="Save" type="submit" />
         </div>
       </div>
@@ -31,7 +37,15 @@ export default function CreatePatientForm() {
       <div className="flex mt-8 space-x-8">
         <Card className="w-[636px] p-[22px] space-y-4">
           <div>
-            <p className="font-medium mb-2">Patient Name</p>
+            <div className="flex justify-between items-end mb-2">
+              <p className="font-medium">Patient Name</p>
+              <ToggleSwitch
+                label1="Free"
+                label2="Premium"
+                active={accountType}
+                onToggle={handleToggle}
+              />
+            </div>
             <Input
               id="name"
               type="text"
@@ -80,21 +94,11 @@ export default function CreatePatientForm() {
             </div>
             <div>
               <p className="font-medium mb-2">Other Info</p>
-              <Input
-                id="other1"
-                type="text"
-                name="other1"
-                placeholder="0"
-              />
+              <Input id="other1" type="text" name="other1" placeholder="0" />
             </div>
             <div>
               <p className="font-medium mb-2">Other Info</p>
-              <Input
-                id="other2"
-                type="text"
-                name="other2"
-                placeholder="0"
-              />
+              <Input id="other2" type="text" name="other2" placeholder="0" />
             </div>
           </div>
           <div>
