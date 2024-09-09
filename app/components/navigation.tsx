@@ -49,7 +49,7 @@ export default function Navigation() {
   ];
 
   return (
-    <aside className="w-[280px] shadow-xl flex flex-col h-screen">
+    <aside className="min-w-[245px] shadow-xl flex flex-col h-screen">
       <Image
         src="/images/logo.jpg"
         alt="Logo"
