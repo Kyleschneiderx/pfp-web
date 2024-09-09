@@ -7,8 +7,8 @@ import Input from "@/app/components/elements/Input";
 import Select from "@/app/components/elements/Select";
 import Textarea from "@/app/components/elements/Textarea";
 import ToggleSwitch from "@/app/components/elements/ToggleSwitch";
+import UploadCmp from "@/app/components/elements/UploadCmp";
 import countryCodes from "@/app/lib/country-codes.json";
-import { Upload } from "lucide-react";
 import { useState } from "react";
 
 export default function CreatePatientForm() {
@@ -113,22 +113,7 @@ export default function CreatePatientForm() {
             />
           </div>
         </Card>
-        <Card className="w-[446px] h-[292px] p-[22px]">
-          <p className="font-medium mb-2">Upload a Photo</p>
-          <div className="flex flex-col items-center justify-center border border-dashed border-neutral-200 rounded-md h-[215px] bg-neutral-100">
-            <div className="p-2 border rounded-full w-fit h-fit bg-white">
-              <Upload size={20} className="text-primary-500" />
-            </div>
-            <div className="text-neutral-700 text-center mt-2">
-              <p>
-                <span className="text-primary-500">Click to upload</span> or
-                drag and drop
-              </p>
-              <p className="mt-2">MP4, MOV, WMV, AVI or MKV</p>
-              <p className="text-sm">(Max file size: 25GB)</p>
-            </div>
-          </div>
-        </Card>
+        <UploadCmp />
       </div>
     </form>
   );
