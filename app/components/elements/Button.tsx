@@ -5,6 +5,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   label: String;
   showIcon?: boolean;
   secondary?: boolean;
+  className?: string;
 }
 
 export default function Button({

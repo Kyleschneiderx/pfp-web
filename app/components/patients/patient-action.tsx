@@ -27,6 +27,8 @@ export default function PatientAction({ patient }: Props) {
         onDeleteClick={handleOpenModal}
       />
       <ConfirmModal
+        title="Are you sure you want to delete this account?"
+        subTitle="Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum been."
         isOpen={modalOpen}
         onConfirm={handleConfirm}
         onClose={handleCloseModal}
