@@ -2,6 +2,7 @@
 
 import Button from "@/app/components/elements/Button";
 import Card from "@/app/components/elements/Card";
+import ConfirmModal from "@/app/components/elements/ConfirmModal";
 import DateInput from "@/app/components/elements/DateInput";
 import Input from "@/app/components/elements/Input";
 import Select from "@/app/components/elements/Select";
@@ -28,9 +29,17 @@ export default function PatientForm({ action, patient }: Props) {
   const [desc, setDesc] = useState<string | undefined>(
     patient?.user_profile.description
   );
+  const [modalOpen, setModalOpen] = useState(false);
 
   const handleToggle = (label: string) => {
     setAccountType(label);
+  };
+
+  const handleOpenModal = () => setModalOpen(true);
+  const handleCloseModal = () => setModalOpen(false);
+
+  const handleConfirm = () => {
+    setModalOpen(false);
   };
 
   return (
@@ -47,7 +56,7 @@ export default function PatientForm({ action, patient }: Props) {
           <Link href="/patients">
             <Button label="Cancel" secondary />
           </Link>
-          <Button label="Save" />
+          <Button label="Save" onClick={handleOpenModal} />
         </div>
       </div>
       <hr />
@@ -136,6 +145,18 @@ export default function PatientForm({ action, patient }: Props) {
           </div>
         </Card>
         <UploadCmp />
+        <ConfirmModal
+          title={`Are you sure you want to ${
+            action === "Create"
+              ? "create this Patient's account?"
+              : "save this changes?"
+          } `}
+          subTitle="Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum been."
+          isOpen={modalOpen}
+          confirmBtnLabel="Save"
+          onConfirm={handleConfirm}
+          onClose={handleCloseModal}
+        />
       </div>
     </>
   );

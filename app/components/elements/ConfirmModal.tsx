@@ -7,6 +7,7 @@ interface Props {
   title: string;
   subTitle?: string;
   isOpen: boolean;
+  confirmBtnLabel: string;
   onClose: () => void;
   onConfirm: () => void;
 }
@@ -15,6 +16,7 @@ export default function ConfirmModal({
   title,
   subTitle,
   isOpen,
+  confirmBtnLabel,
   onClose,
   onConfirm,
 }: Props) {
@@ -25,7 +27,7 @@ export default function ConfirmModal({
         <p className="text-neutral-600 mb-[40px]">{subTitle}</p>
         <div className="flex justify-center space-x-3">
           <Button label="Cancel" secondary onClick={onClose} className="px-[50px]" />
-          <Button label="Delete" onClick={onConfirm} className="px-[50px]"/>
+          <Button label={confirmBtnLabel} onClick={onConfirm} className="px-[50px]"/>
         </div>
       </div>
     </ModalCmp>
