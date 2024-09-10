@@ -4,7 +4,7 @@ import Button from "@/app/components/elements/Button";
 import Card from "@/app/components/elements/Card";
 import DateInput from "@/app/components/elements/DateInput";
 import Input from "@/app/components/elements/Input";
-import Select from "@/app/components/elements/Select";
+import Select from "@/app/components/elements/temp-select";
 import Textarea from "@/app/components/elements/Textarea";
 import ToggleSwitch from "@/app/components/elements/ToggleSwitch";
 import UploadCmp from "@/app/components/elements/UploadCmp";
