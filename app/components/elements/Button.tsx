@@ -18,6 +18,7 @@ export default function Button({
   return (
     <button
       {...rest}
+      type="button"
       className={clsx(
         "flex justify-center items-center py-3 px-4 rounded-md",
         secondary

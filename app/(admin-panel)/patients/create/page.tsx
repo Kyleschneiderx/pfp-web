@@ -1,7 +1,7 @@
-import CreatePatientForm from "@/app/components/patients/create-patient-form";
+import PatientForm from "@/app/components/patients/patient-form";
 
 export default function Page() {
   return (
-    <CreatePatientForm />
+    <PatientForm action="Create" />
   );
 }

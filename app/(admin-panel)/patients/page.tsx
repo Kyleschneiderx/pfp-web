@@ -2,10 +2,11 @@ import Button from "@/app/components/elements/Button";
 import Card from "@/app/components/elements/Card";
 import FilterSort from "@/app/components/elements/FilterSort";
 import Input from "@/app/components/elements/Input";
+import PatientAction from "@/app/components/patients/patient-action";
 import { samplePatients } from "@/app/lib/sample-data";
 import { formatDateToLocal } from "@/app/lib/utils";
 import clsx from "clsx";
-import { EllipsisVertical, Mail, PhoneCall } from "lucide-react";
+import { Mail, PhoneCall } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -92,7 +93,7 @@ export default function Page() {
                 </div>
               </div>
             </div>
-            <EllipsisVertical className="text-neutral-900 ml-auto" />
+            <PatientAction patient={patient} />
           </Card>
         ))}
       </div>

@@ -4,7 +4,7 @@ import { ReactNode } from "react";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex h-screen">
+    <div id="main" className="flex h-screen">
       <Navigation />
       <div className="flex flex-col w-full">
         <Header />

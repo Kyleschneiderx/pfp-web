@@ -9,29 +9,45 @@ import Textarea from "@/app/components/elements/Textarea";
 import ToggleSwitch from "@/app/components/elements/ToggleSwitch";
 import UploadCmp from "@/app/components/elements/UploadCmp";
 import countryCodes from "@/app/lib/country-codes.json";
+import { Patients } from "@/app/models/patients";
+import Link from "next/link";
 import { useState } from "react";
 
-export default function CreatePatientForm() {
-  const [birthdate, setBirthdate] = useState<Date | null>(null);
-  const [accountType, setAccountType] = useState<string>("Free");
+interface Props {
+  action: "Create" | "Edit";
+  patient?: Patients;
+}
+
+export default function PatientForm({ action, patient }: Props) {
+  const [birthdate, setBirthdate] = useState<Date | null>(
+    patient ? new Date(patient.user_profile.birthdate) : null
+  );
+  const [accountType, setAccountType] = useState<string>(
+    patient ? patient.user_type.value : "Free"
+  );
+  const [desc, setDesc] = useState<string | undefined>(
+    patient?.user_profile.description
+  );
 
   const handleToggle = (label: string) => {
     setAccountType(label);
   };
 
   return (
-    <form>
+    <>
       <div className="flex items-center mb-7">
         <div>
-          <h1 className="text-2xl font-semibold">Add Patients</h1>
+          <h1 className="text-2xl font-semibold">{action} Patients</h1>
           <p className="text-sm text-neutral-600">
             Lorem ipsum dolor sit amet, consectetur adipiscing elit ante ipsum
             primis in faucibus.
           </p>
         </div>
         <div className="flex ml-auto space-x-3">
-          <Button label="Cancel" secondary type="button" />
-          <Button label="Save" type="submit" />
+          <Link href="/patients">
+            <Button label="Cancel" secondary />
+          </Link>
+          <Button label="Save" />
         </div>
       </div>
       <hr />
@@ -53,38 +69,43 @@ export default function CreatePatientForm() {
               name="name"
               placeholder="Enter patient name"
               required
+              value={patient?.user_profile?.name}
             />
           </div>
-          <div>
-            <p className="font-medium mb-2">Email Address</p>
-            <Input
-              id="email"
-              type="email"
-              name="email"
-              placeholder="Enter patient's email address"
-              required
-            />
-          </div>
-          <div>
-            <p className="font-medium mb-2">Contact Number</p>
-            <div className="flex space-x-3">
-              <Select id="country_code" name="country_code">
-                {countryCodes.map((country) => (
-                  <option key={country.code} value={country.dial_code}>
-                    {country.dial_code}
-                  </option>
-                ))}
-              </Select>
-              <Input
-                id="contact"
-                type="text"
-                name="contact"
-                placeholder="xxx xxx xxx"
-                required
-                className="w-[482px]"
-              />
-            </div>
-          </div>
+          {action === "Create" && (
+            <>
+              <div>
+                <p className="font-medium mb-2">Email Address</p>
+                <Input
+                  id="email"
+                  type="email"
+                  name="email"
+                  placeholder="Enter patient's email address"
+                  required
+                />
+              </div>
+              <div>
+                <p className="font-medium mb-2">Contact Number</p>
+                <div className="flex space-x-3">
+                  <Select id="country_code" name="country_code">
+                    {countryCodes.map((country) => (
+                      <option key={country.code} value={country.dial_code}>
+                        {country.dial_code}
+                      </option>
+                    ))}
+                  </Select>
+                  <Input
+                    id="contact"
+                    type="text"
+                    name="contact"
+                    placeholder="xxx xxx xxx"
+                    required
+                    className="w-[482px]"
+                  />
+                </div>
+              </div>
+            </>
+          )}
           <div className="flex space-x-3">
             <div>
               <p className="font-medium mb-2">Date of Birth</p>
@@ -110,11 +131,12 @@ export default function CreatePatientForm() {
               placeholder="Enter the exercise's description"
               rows={3}
               required
+              value={desc}
             />
           </div>
         </Card>
         <UploadCmp />
       </div>
-    </form>
+    </>
   );
 }
