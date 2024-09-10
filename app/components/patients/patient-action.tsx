@@ -1,6 +1,6 @@
 "use client";
 
-import ActionMenu from "@/app/components/elements/action-menu";
+import ActionMenu from "@/app/components/elements/ActionMenu";
 import { Patients } from "@/app/models/patients";
 import { useState } from "react";
 import ConfirmModal from "../elements/ConfirmModal";

@@ -5,7 +5,7 @@ import Card from "@/app/components/elements/Card";
 import DateInput from "@/app/components/elements/DateInput";
 import Input from "@/app/components/elements/Input";
 import Select from "@/app/components/elements/temp-select";
-import Textarea from "@/app/components/elements/Textarea";
+import Textarea from "@/app/components/elements/test-textarea";
 import ToggleSwitch from "@/app/components/elements/ToggleSwitch";
 import UploadCmp from "@/app/components/elements/UploadCmp";
 import countryCodes from "@/app/lib/country-codes.json";
