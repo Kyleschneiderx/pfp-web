@@ -1,9 +1,11 @@
 "use client";
 
 import Card from "@/app/components/elements/Card";
+import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import clsx from "clsx";
 import { Upload } from "lucide-react";
-import { useState } from "react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 
 interface Props {
@@ -11,33 +13,63 @@ interface Props {
 }
 
 export default function UploadCmp({ className }: Props) {
-  const [fileName, setFileName] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const { showSnackBar } = useSnackBar();
 
   const onDrop = (acceptedFiles: File[]) => {
     // Get the name of the first file
     if (acceptedFiles.length > 0) {
-      setFileName(acceptedFiles[0].name);
+      const file = acceptedFiles[0];
+      const imageUrl = URL.createObjectURL(file);
+      setImagePreview(imageUrl);
     }
+  };
+
+  const onDropRejected = (fileRejections: any) => {
+    const error = fileRejections[0]?.errors[0];
+    if (error.code === "file-invalid-type") {
+      showSnackBar({
+        message: "Only JPEG, JPG, and PNG files are allowed.",
+        success: false,
+      });
+    } else if (error.code === "file-too-large") {
+      showSnackBar({
+        message: "File size exceeds the 5MB limit.",
+        success: false,
+      });
+    } else {
+      showSnackBar({ message: "File upload failed.", success: false });
+    }
+    setImagePreview(null);
   };
 
   const { getRootProps, getInputProps, isDragActive, isDragReject } =
     useDropzone({
       onDrop,
+      onDropRejected,
       accept: {
         "image/jpeg": [".jpeg", ".jpg"],
         "image/png": [".png"],
       },
-      maxSize: 26214400, //25 mb
+      maxSize: 5242880, //5 mb
       multiple: false,
     });
 
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
+
   return (
-    <Card className={clsx("w-[446px] h-[292px] p-[22px]", className)}>
+    <Card className={clsx("w-[446px] h-fit p-[22px]", className)}>
       <p className="font-medium mb-2">Upload a Photo</p>
       <div
         {...getRootProps()}
         className={clsx(
-          "flex flex-col items-center justify-center border-2 border-dashed rounded-md h-[215px] bg-neutral-100 cursor-pointer",
+          "flex flex-col items-center py-8 justify-center border-2 border-dashed rounded-md bg-neutral-100 cursor-pointer",
           {
             "border-primary-500": isDragActive,
             "border-red-500": isDragReject,
@@ -54,11 +86,11 @@ export default function UploadCmp({ className }: Props) {
             and drop
           </p>
           <p className="mt-2">JPEG, JPG or PNG</p>
-          <p className="text-sm">(Max file size: 25MB)</p>
-          {fileName && (
-            <p className="text-sm text-primary-500 mt-2">
-              Uploaded: {fileName}
-            </p>
+          <p className="text-sm">(Max file size: 5MB)</p>
+          {imagePreview && (
+            <div className="mt-2 flex justify-center">
+              <Image src={imagePreview} alt="Preview" width={70} height={70} />
+            </div>
           )}
         </div>
       </div>
