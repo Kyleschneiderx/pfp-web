@@ -8,6 +8,8 @@ interface Props {
   onChange: (date: Date | null) => void;
   placeholderText?: string;
   dateFormat?: string;
+  maxDate?: Date;
+  invalid?: boolean;
 }
 
 export default function DateInput({
@@ -16,6 +18,8 @@ export default function DateInput({
   onChange,
   dateFormat = "MM/dd/yyyy",
   placeholderText = "mm/dd/yyyy",
+  maxDate,
+  invalid,
   ...rest
 }: Props) {
   return (
@@ -23,7 +27,10 @@ export default function DateInput({
       selected={selected}
       onChange={onChange}
       className={clsx(
-        "w-full rounded-md border border-gray-200 py-[10px] pl-4 placeholder:text-neutral-400 placeholder:font-light focus:border-neutral-600 focus:outline-none",
+        "w-full rounded-md border py-[10px] pl-4 placeholder:text-neutral-400 placeholder:font-light focus:outline-none",
+        invalid
+          ? "border-error-400 focus:border-error-600 bg-error-25"
+          : "border-gray-200 focus:border-neutral-600 ",
         className
       )}
       showMonthDropdown
@@ -31,6 +38,7 @@ export default function DateInput({
       dropdownMode="select"
       dateFormat={dateFormat}
       placeholderText={placeholderText}
+      maxDate={maxDate}
       {...rest}
     />
   );

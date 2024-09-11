@@ -12,4 +12,9 @@ export const formatDateToLocal = (dateStr: string) => {
 export const validateEmail = (email: string): boolean => {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return re.test(email);
-}
+};
+
+export const validateName = (name: string): boolean => {
+  const re = /^[a-zA-Z\s'-.]+$/;
+  return re.test(name);
+};

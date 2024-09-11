@@ -12,10 +12,10 @@ import ToggleSwitch from "@/app/components/elements/ToggleSwitch";
 import UploadCmp from "@/app/components/elements/UploadCmp";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import countryCodes from "@/app/lib/country-codes.json";
-import { validateEmail } from "@/app/lib/utils";
 import { Patients } from "@/app/models/patients";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { validateForm, ValidationError } from "./validation";
 
 interface Props {
   action: "Create" | "Edit";
@@ -31,9 +31,7 @@ export default function PatientForm({ action, patient }: Props) {
   const [birthdate, setBirthdate] = useState<Date | null>(null);
   const [accountType, setAccountType] = useState<string>("Free");
   const [description, setDescription] = useState<string | undefined>();
-  const [errors, setErrors] = useState<
-    { fieldName: string; message: string }[]
-  >([]);
+  const [errors, setErrors] = useState<ValidationError[]>([]);
 
   useEffect(() => {
     if (action === "Edit" && patient) {
@@ -56,35 +54,9 @@ export default function PatientForm({ action, patient }: Props) {
   const handleCloseModal = () => setModalOpen(false);
 
   const isValid = () => {
-    const newErrors = [];
-
-    if (name.trim() === "") {
-      newErrors.push({
-        fieldName: "name",
-        message: "Patient name is required.",
-      });
-    }
-    if (email.trim() === "") {
-      newErrors.push({
-        fieldName: "email",
-        message: "Email address is required.",
-      });
-    }
-    if (contact.trim() === "") {
-      newErrors.push({
-        fieldName: "contact",
-        message: "Contact number is required.",
-      });
-    }
-    if (email.trim() !== "" && !validateEmail(email)) {
-      newErrors.push({
-        fieldName: "email",
-        message: "Email address is invalid.",
-      });
-    }
-
-    setErrors(newErrors);
-    return newErrors.length === 0;
+    const validationErrors = validateForm(name, email, contact, birthdate);
+    setErrors(validationErrors);
+    return validationErrors.length === 0;
   };
 
   useEffect(() => {
@@ -194,6 +166,8 @@ export default function PatientForm({ action, patient }: Props) {
               </p>
               <DateInput
                 selected={birthdate}
+                invalid={hasError("birthdate")}
+                maxDate={new Date()}
                 onChange={(date) => setBirthdate(date)}
               />
             </div>
