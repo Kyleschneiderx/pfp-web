@@ -1,3 +1,5 @@
+"use client";
+
 import Button from "@/app/components/elements/Button";
 import Input from "@/app/components/elements/Input";
 import ArrowLeft from "@/public/svg/arrow-left.svg";
@@ -18,11 +20,10 @@ export default function Page() {
       </p>
       <form className="space-y-5 mt-6">
         <Input
-          id="email"
           type="email"
-          name="email"
           placeholder="Your Email"
           required
+          onChange={() => {}}
         />
         <Button label="Reset Password" className="w-full" />
       </form>

@@ -1,8 +1,8 @@
 import Button from "@/app/components/elements/Button";
 import Card from "@/app/components/elements/Card";
 import FilterSort from "@/app/components/elements/FilterSort";
-import Input from "@/app/components/elements/Input";
 import PatientAction from "@/app/components/patients/patient-action";
+import SearchPatient from "@/app/components/patients/search-patient";
 import { samplePatients } from "@/app/lib/sample-data";
 import { formatDateToLocal } from "@/app/lib/utils";
 import clsx from "clsx";
@@ -26,15 +26,7 @@ export default function Page() {
   return (
     <>
       <div className="flex items-center mb-8">
-        <div className="w-[540px]">
-          <Input
-            id="search"
-            type="text"
-            name="search"
-            placeholder="Search patient"
-            icon="Search"
-          />
-        </div>
+        <SearchPatient />
         <FilterSort options={filterOptions} label="Filter" />
         <FilterSort options={sortOptions} label="Sort" />
         <Link href="/patients/create" className="ml-auto">

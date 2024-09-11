@@ -1,3 +1,5 @@
+"use client";
+
 import Button from "@/app/components/elements/Button";
 import Input from "@/app/components/elements/Input";
 import Image from "next/image";
@@ -15,18 +17,16 @@ export default function Page() {
       />
       <form className="space-y-5 mt-8">
         <Input
-          id="email"
           type="email"
-          name="email"
           placeholder="Email"
           required
+          onChange={() => {}}
         />
         <Input
-          id="password"
           type="password"
-          name="password"
           placeholder="Password"
           required
+          onChange={() => {}}
         />
         <Button label="Sign In" className="w-full" />
         <Link href="/forgot-password">
