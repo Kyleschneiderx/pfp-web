@@ -12,6 +12,7 @@ import ToggleSwitch from "@/app/components/elements/ToggleSwitch";
 import UploadCmp from "@/app/components/elements/UploadCmp";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import countryCodes from "@/app/lib/country-codes.json";
+import { validateEmail } from "@/app/lib/utils";
 import { Patients } from "@/app/models/patients";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -54,10 +55,6 @@ export default function PatientForm({ action, patient }: Props) {
   const handleOpenModal = () => setModalOpen(true);
   const handleCloseModal = () => setModalOpen(false);
 
-  const handleConfirm = () => {
-    setModalOpen(false);
-  };
-
   const isValid = () => {
     const newErrors = [];
 
@@ -79,6 +76,12 @@ export default function PatientForm({ action, patient }: Props) {
         message: "Contact number is required.",
       });
     }
+    if (email.trim() !== "" && !validateEmail(email)) {
+      newErrors.push({
+        fieldName: "email",
+        message: "Email address is invalid.",
+      });
+    }
 
     setErrors(newErrors);
     return newErrors.length === 0;
@@ -90,6 +93,11 @@ export default function PatientForm({ action, patient }: Props) {
       showSnackBar({ message: errorMessages, success: false });
     }
   }, [errors]);
+
+  const handleConfirm = () => {
+    setModalOpen(false);
+    showSnackBar({ message: "Patient successfully created.", success: true });
+  };
 
   const onSave = () => {
     if (isValid()) {

@@ -8,3 +8,8 @@ export const formatDateToLocal = (dateStr: string) => {
 
   return formatter.format(date);
 };
+
+export const validateEmail = (email: string): boolean => {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(email);
+}
