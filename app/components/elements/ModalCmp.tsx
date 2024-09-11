@@ -1,7 +1,7 @@
 
 import Modal from 'react-modal';
 
-Modal.setAppElement("#main"); // Important for accessibility, especially with Next.js
+Modal.setAppElement("#modal"); // Important for accessibility, especially with Next.js
 
 interface Props {
   isOpen: boolean;

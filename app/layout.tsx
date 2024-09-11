@@ -1,3 +1,4 @@
+import { SnackBarProvider } from "@/app/contexts/SnackBarContext";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
@@ -16,7 +17,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <SnackBarProvider>
+          <div id="modal"></div>
+          {children}
+        </SnackBarProvider>
+      </body>
     </html>
   );
 }

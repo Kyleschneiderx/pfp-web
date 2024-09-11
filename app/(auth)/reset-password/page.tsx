@@ -139,12 +139,9 @@ export default function Page() {
               />
             }
             onChange={confirmPassChange}
-            className={clsx(
-              newPassword &&
-                confirmPassword &&
-                !passwordMatch &&
-                "border-error-600 focus:border-error-600 bg-error-50"
-            )}
+            invalid={
+              newPassword !== "" && confirmPassword !== "" && !passwordMatch
+            }
           />
           {newPassword && confirmPassword && !passwordMatch && (
             <p className="text-sm text-error-600 mt-2">

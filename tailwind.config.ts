@@ -68,6 +68,7 @@ const config: Config = {
           900: "#053D26",
         },
         error: {
+          25: "#FDF2F2",
           50: "#FDECEC",
           100: "#FAC5C5",
           200: "#F8A9A9",

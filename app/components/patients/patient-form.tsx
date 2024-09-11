@@ -5,14 +5,16 @@ import Card from "@/app/components/elements/Card";
 import ConfirmModal from "@/app/components/elements/ConfirmModal";
 import DateInput from "@/app/components/elements/DateInput";
 import Input from "@/app/components/elements/Input";
+import ReqIndicator from "@/app/components/elements/ReqIndicator";
 import Select from "@/app/components/elements/Select";
 import Textarea from "@/app/components/elements/Textarea";
 import ToggleSwitch from "@/app/components/elements/ToggleSwitch";
 import UploadCmp from "@/app/components/elements/UploadCmp";
+import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import countryCodes from "@/app/lib/country-codes.json";
 import { Patients } from "@/app/models/patients";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface Props {
   action: "Create" | "Edit";
@@ -20,15 +22,29 @@ interface Props {
 }
 
 export default function PatientForm({ action, patient }: Props) {
-  const [birthdate, setBirthdate] = useState<Date | null>(
-    patient ? new Date(patient.user_profile.birthdate) : null
-  );
-  const [accountType, setAccountType] = useState<string>(
-    patient ? patient.user_type.value : "Free"
-  );
-  const [desc, setDesc] = useState<string | undefined>(
-    patient?.user_profile.description
-  );
+  const { showSnackBar } = useSnackBar();
+
+  const [name, setName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [contact, setContact] = useState<string>("");
+  const [birthdate, setBirthdate] = useState<Date | null>(null);
+  const [accountType, setAccountType] = useState<string>("Free");
+  const [description, setDescription] = useState<string | undefined>();
+  const [errors, setErrors] = useState<
+    { fieldName: string; message: string }[]
+  >([]);
+
+  useEffect(() => {
+    if (action === "Edit" && patient) {
+      setName(patient.user_profile?.name);
+      setEmail(patient.email);
+      setContact(patient.user_profile?.contact_number);
+      setBirthdate(new Date(patient.user_profile.birthdate));
+      setAccountType(patient.account_type?.value);
+      setDescription(patient.user_profile?.description);
+    }
+  }, [patient]);
+
   const [modalOpen, setModalOpen] = useState(false);
 
   const handleToggle = (label: string) => {
@@ -40,6 +56,49 @@ export default function PatientForm({ action, patient }: Props) {
 
   const handleConfirm = () => {
     setModalOpen(false);
+  };
+
+  const isValid = () => {
+    const newErrors = [];
+
+    if (name.trim() === "") {
+      newErrors.push({
+        fieldName: "name",
+        message: "Patient name is required.",
+      });
+    }
+    if (email.trim() === "") {
+      newErrors.push({
+        fieldName: "email",
+        message: "Email address is required.",
+      });
+    }
+    if (contact.trim() === "") {
+      newErrors.push({
+        fieldName: "contact",
+        message: "Contact number is required.",
+      });
+    }
+
+    setErrors(newErrors);
+    return newErrors.length === 0;
+  };
+
+  useEffect(() => {
+    if (errors.length > 0) {
+      const errorMessages = errors.map((error) => error.message).join("\n");
+      showSnackBar({ message: errorMessages, success: false });
+    }
+  }, [errors]);
+
+  const onSave = () => {
+    if (isValid()) {
+      handleOpenModal();
+    }
+  };
+
+  const hasError = (fieldName: string) => {
+    return errors.some((error) => error.fieldName === fieldName);
   };
 
   return (
@@ -56,7 +115,7 @@ export default function PatientForm({ action, patient }: Props) {
           <Link href="/patients">
             <Button label="Cancel" secondary />
           </Link>
-          <Button label="Save" onClick={handleOpenModal} />
+          <Button label="Save" onClick={onSave} />
         </div>
       </div>
       <hr />
@@ -64,7 +123,9 @@ export default function PatientForm({ action, patient }: Props) {
         <Card className="w-[636px] p-[22px] space-y-4">
           <div>
             <div className="flex justify-between items-end mb-2">
-              <p className="font-medium">Patient Name</p>
+              <p className="font-medium">
+                Patient Name <ReqIndicator />
+              </p>
               <ToggleSwitch
                 label1="Free"
                 label2="Premium"
@@ -73,28 +134,31 @@ export default function PatientForm({ action, patient }: Props) {
               />
             </div>
             <Input
-              id="name"
               type="text"
-              name="name"
               placeholder="Enter patient name"
-              required
-              value={patient?.user_profile?.name}
+              value={name}
+              invalid={hasError("name")}
+              onChange={(e) => setName(e.target.value)}
             />
           </div>
           {action === "Create" && (
             <>
               <div>
-                <p className="font-medium mb-2">Email Address</p>
+                <p className="font-medium mb-2">
+                  Email Address <ReqIndicator />
+                </p>
                 <Input
-                  id="email"
                   type="email"
-                  name="email"
                   placeholder="Enter patient's email address"
-                  required
+                  value={email}
+                  invalid={hasError("email")}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
               <div>
-                <p className="font-medium mb-2">Contact Number</p>
+                <p className="font-medium mb-2">
+                  Contact Number <ReqIndicator />
+                </p>
                 <div className="flex space-x-3">
                   <Select id="country_code" name="country_code">
                     {countryCodes.map((country) => (
@@ -104,12 +168,12 @@ export default function PatientForm({ action, patient }: Props) {
                     ))}
                   </Select>
                   <Input
-                    id="contact"
                     type="text"
-                    name="contact"
                     placeholder="xxx xxx xxx"
-                    required
                     className="w-[482px]"
+                    value={contact}
+                    invalid={hasError("contact")}
+                    onChange={(e) => setContact(e.target.value)}
                   />
                 </div>
               </div>
@@ -117,7 +181,9 @@ export default function PatientForm({ action, patient }: Props) {
           )}
           <div className="flex space-x-3">
             <div>
-              <p className="font-medium mb-2">Date of Birth</p>
+              <p className="font-medium mb-2">
+                Date of Birth <ReqIndicator />
+              </p>
               <DateInput
                 selected={birthdate}
                 onChange={(date) => setBirthdate(date)}
@@ -125,22 +191,20 @@ export default function PatientForm({ action, patient }: Props) {
             </div>
             <div>
               <p className="font-medium mb-2">Other Info</p>
-              <Input id="other1" type="text" name="other1" placeholder="0" />
+              <Input type="text" placeholder="0" onChange={() => {}} />
             </div>
             <div>
               <p className="font-medium mb-2">Other Info</p>
-              <Input id="other2" type="text" name="other2" placeholder="0" />
+              <Input type="text" placeholder="0" onChange={() => {}} />
             </div>
           </div>
           <div>
             <p className="font-medium mb-2">Description</p>
             <Textarea
-              id="description"
-              name="description"
               placeholder="Enter the exercise's description"
               rows={3}
-              required
-              value={desc}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
             />
           </div>
         </Card>
