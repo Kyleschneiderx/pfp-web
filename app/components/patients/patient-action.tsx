@@ -1,12 +1,12 @@
 "use client";
 
 import ActionMenu from "@/app/components/elements/ActionMenu";
-import { Patients } from "@/app/models/patients";
+import { PatientModel } from "@/app/models/patient_model";
 import { useState } from "react";
 import ConfirmModal from "../elements/ConfirmModal";
 
 interface Props {
-  patient: Patients;
+  patient: PatientModel;
 }
 
 export default function PatientAction({ patient }: Props) {

@@ -1,17 +1,13 @@
 import { validateEmail, validateName } from "@/app/lib/utils";
-
-export interface ValidationError {
-  fieldName: string;
-  message: string;
-}
+import { ValidationErrorModel } from "@/app/models/validation_error_model";
 
 export const validateForm = (
   name: string,
   email: string,
   contact: string,
   birthdate: Date | null
-): ValidationError[] => {
-  const errors: ValidationError[] = [];
+): ValidationErrorModel[] => {
+  const errors: ValidationErrorModel[] = [];
 
   if (!name.trim()) {
     errors.push({ fieldName: "name", message: "Patient name is required." });

@@ -1,4 +1,4 @@
-export type Patients = {
+export type PatientModel = {
   id: number;
   email: string;
   last_login_at: string | null;

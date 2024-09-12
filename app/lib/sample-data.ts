@@ -1,6 +1,6 @@
-import { Patients } from "../models/patients";
+import { PatientModel } from "../models/patient_model";
 
-export const samplePatients: Patients[] = [
+export const samplePatients: PatientModel[] = [
   {
     id: 1,
     email: "Lura20@hotmail.com",
