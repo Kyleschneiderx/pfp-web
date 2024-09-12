@@ -1,11 +1,11 @@
 "use client";
 
+import { useLogout } from "@/app/hooks/useLogout";
 import clsx from "clsx";
-import Cookies from "js-cookie";
 import { LogOut } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import DashboardIcon from "./icons/dashboard_icon";
 import EducationIcon from "./icons/education_icon";
 import ExerciseIcon from "./icons/exercise_icon";
@@ -14,7 +14,7 @@ import PFPlanIcon from "./icons/pfplan_icon";
 import WorkoutIcon from "./icons/workout_icon";
 
 export default function Navigation() {
-  const router = useRouter();
+  const logout = useLogout();
   const pathname = usePathname();
 
   const navItems = [
@@ -50,11 +50,6 @@ export default function Navigation() {
     },
   ];
 
-  const handleLogout = () => {
-    Cookies.remove("token");
-    router.push("/login");
-  };
-
   return (
     <aside className="min-w-[245px] shadow-xl flex flex-col h-screen">
       <Image
@@ -81,7 +76,7 @@ export default function Navigation() {
         ))}
       </nav>
       <div
-        onClick={handleLogout}
+        onClick={logout}
         className="flex items-center mt-auto mb-10 pl-9 space-x-2 text-red-400 cursor-pointer"
       >
         <LogOut size={16} />

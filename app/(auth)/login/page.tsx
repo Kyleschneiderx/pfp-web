@@ -40,7 +40,7 @@ export default function Page() {
       try {
         const response: LoginModel = await login(email, password);
         Cookies.set("token", response.token.access, {
-          expires: 1,
+          expires: 1 / 24, // expires in 1 hour
           // secure: true, // enable this if the server is already https
           sameSite: "Strict",
         });
@@ -71,6 +71,7 @@ export default function Page() {
       />
       <div className="space-y-5 mt-8">
         <Input
+          name="email"
           type="email"
           placeholder="Email"
           required
@@ -78,6 +79,7 @@ export default function Page() {
           onChange={(e) => setEmail(e.target.value)}
         />
         <Input
+          name="password"
           type="password"
           placeholder="Password"
           required

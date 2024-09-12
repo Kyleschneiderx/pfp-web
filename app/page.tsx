@@ -1,9 +1,11 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 export default function Home() {
-  const isAuthenticated = true; // Example: await getSession() or check a cookie/token
+  const cookieStore = cookies();
+  const token = cookieStore.get("token")?.value;
 
-  if (!isAuthenticated) {
+  if (!token) {
     redirect("/login");
   } else {
     redirect("/dashboard");
