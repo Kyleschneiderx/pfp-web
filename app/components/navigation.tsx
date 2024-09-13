@@ -58,6 +58,7 @@ export default function Navigation() {
         width={172}
         height={80}
         className="ml-9 my-10"
+        priority
       />
       <nav>
         {navItems.map(({ title, url, icon }, index) => (

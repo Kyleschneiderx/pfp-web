@@ -68,6 +68,7 @@ export default function Page() {
         width={172}
         height={80}
         className="mx-auto"
+        priority
       />
       <div className="space-y-5 mt-8">
         <Input
