@@ -20,7 +20,7 @@ const SnackBar: React.FC<Props> = ({
     if (isVisible) {
       const timer = setTimeout(() => {
         onClose();
-      }, 3000);
+      }, 5000);
 
       return () => clearTimeout(timer);
     }

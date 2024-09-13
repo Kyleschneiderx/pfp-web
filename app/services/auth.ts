@@ -10,3 +10,19 @@ export const login = async (
   const url = `${API_BASE_URL}/auths/login/admin`;
   return apiClient<LoginModel>(url, "POST", { email, password });
 };
+
+
+export const forgotPassword = async (
+  email: string,
+): Promise<{msg: string}> => {
+  const url = `${API_BASE_URL}/forgot-password/admin`;
+  return apiClient<{msg: string}>(url, "POST", { email });
+};
+
+export const resetPassword = async (
+  password: string,
+  token: string,
+): Promise<{msg: string}> => {
+  const url = `${API_BASE_URL}/forgot-password/reset`;
+  return apiClient<{msg: string}>(url, "POST", { password, token });
+};

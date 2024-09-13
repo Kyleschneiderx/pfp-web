@@ -3,7 +3,7 @@ import { ValidationErrorModel } from "@/app/models/validation_error_model";
 
 export const validateForm = (
   email: string,
-  password: string
+  password?: string,
 ): ValidationErrorModel[] => {
   const errors: ValidationErrorModel[] = [];
 
@@ -13,7 +13,7 @@ export const validateForm = (
     errors.push({ fieldName: "email", message: "Email address is invalid." });
   }
 
-  if (!password.trim()) {
+  if (password?.trim() === "") {
     errors.push({ fieldName: "password", message: "Please enter password." });
   }
 

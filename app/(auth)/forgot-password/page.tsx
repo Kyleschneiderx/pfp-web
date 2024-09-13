@@ -2,11 +2,48 @@
 
 import Button from "@/app/components/elements/Button";
 import Input from "@/app/components/elements/Input";
+import { validateForm } from "@/app/components/login/validation";
+import { useSnackBar } from "@/app/contexts/SnackBarContext";
+import { ErrorModel } from "@/app/models/error_model";
+import { ValidationErrorModel } from "@/app/models/validation_error_model";
+import { forgotPassword } from "@/app/services/auth";
 import ArrowLeft from "@/public/svg/arrow-left.svg";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function Page() {
+  const [email, setEmail] = useState<string>("");
+  const [errors, setErrors] = useState<ValidationErrorModel[]>([]);
+  const { showSnackBar } = useSnackBar();
+
+  const isValid = () => {
+    const validationErrors = validateForm(email);
+    setErrors(validationErrors);
+    return validationErrors.length === 0;
+  };
+
+  useEffect(() => {
+    if (errors.length > 0) {
+      showSnackBar({ message: errors[0]?.message, success: false });
+    }
+  }, [errors]);
+
+  const handleSubmit = async () => {
+    if (isValid()) {
+      try {
+        const response = await forgotPassword(email);
+        showSnackBar({ message: response.msg, success: true });
+      } catch (error) {
+        const apiError = error as ErrorModel;
+
+        if (apiError && apiError.msg) {
+          showSnackBar({ message: apiError.msg, success: false });
+        }
+      }
+    }
+  };
+
   return (
     <>
       <Link href="/login">
@@ -18,15 +55,20 @@ export default function Page() {
       <p className="text-neutral-600">
         Please enter your email to reset the password.
       </p>
-      <form className="space-y-5 mt-6">
+      <div className="space-y-5 mt-6">
         <Input
           type="email"
           placeholder="Your Email"
           required
-          onChange={() => {}}
+          invalid={errors.length > 0}
+          onChange={(e) => setEmail(e.target.value)}
         />
-        <Button label="Reset Password" className="w-full" />
-      </form>
+        <Button
+          label="Reset Password"
+          className="w-full"
+          onClick={handleSubmit}
+        />
+      </div>
     </>
   );
 }

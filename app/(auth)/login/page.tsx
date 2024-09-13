@@ -48,6 +48,7 @@ export default function Page() {
         router.push("/dashboard");
       } catch (error) {
         const apiError = error as ErrorModel;
+        console.log(error);
 
         if (apiError && apiError.msg) {
           showSnackBar({ message: apiError.msg, success: false });
