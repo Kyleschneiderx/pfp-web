@@ -46,6 +46,7 @@ export default function Page({ params }: Props) {
   const [showConfirmPass, setShowConfirmPass] = useState<boolean>(false);
   const [disabled, setDisabled] = useState<boolean>(true);
   const [success, setSuccess] = useState<boolean>(false);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   const token = params.token;
   const { showSnackBar } = useSnackBar();
@@ -90,16 +91,17 @@ export default function Page({ params }: Props) {
   };
 
   const handleSubmit = async () => {
-    if (!disabled) {
+    if (!disabled && !isProcessing) {
       try {
+        setIsProcessing(true);
         await resetPassword(newPassword, token);
-        console.log("successful");
         setSuccess(true);
       } catch (error) {
         const apiError = error as ErrorModel;
         if (apiError && apiError.msg) {
           showSnackBar({ message: apiError.msg, success: false });
         }
+        setIsProcessing(false);
       }
     }
   };
@@ -206,6 +208,7 @@ export default function Page({ params }: Props) {
               label="Reset Password"
               className="w-full mt-10"
               disabled={disabled}
+              isProcessing={isProcessing}
               onClick={handleSubmit}
             />
           </div>

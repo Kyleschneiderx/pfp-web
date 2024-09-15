@@ -10,9 +10,15 @@ import { useDropzone } from "react-dropzone";
 
 interface Props {
   className?: string;
+  onFileSelect: (file: File | null) => void;
+  clearImagePreview: boolean;
 }
 
-export default function UploadCmp({ className }: Props) {
+export default function UploadCmp({
+  className,
+  onFileSelect,
+  clearImagePreview,
+}: Props) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { showSnackBar } = useSnackBar();
 
@@ -22,6 +28,8 @@ export default function UploadCmp({ className }: Props) {
       const file = acceptedFiles[0];
       const imageUrl = URL.createObjectURL(file);
       setImagePreview(imageUrl);
+
+      onFileSelect(file);
     }
   };
 
@@ -41,6 +49,7 @@ export default function UploadCmp({ className }: Props) {
       showSnackBar({ message: "File upload failed.", success: false });
     }
     setImagePreview(null);
+    onFileSelect(null);
   };
 
   const { getRootProps, getInputProps, isDragActive, isDragReject } =
@@ -54,6 +63,12 @@ export default function UploadCmp({ className }: Props) {
       maxSize: 5242880, //5 mb
       multiple: false,
     });
+
+  useEffect(() => {
+    if (clearImagePreview) {
+      setImagePreview(null);
+    }
+  }, [clearImagePreview]);
 
   useEffect(() => {
     return () => {

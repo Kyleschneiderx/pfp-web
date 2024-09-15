@@ -15,8 +15,8 @@ export type UserProfile = {
   name: string;
   birthdate: string;
   contact_number: string;
-  description: string;
-  photo: string;
+  description: string | null;
+  photo: string | null;
 };
 
 export type AccountType = {

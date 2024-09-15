@@ -4,7 +4,7 @@ import { ValidationErrorModel } from "@/app/models/validation_error_model";
 export const validateForm = (
   name: string,
   email: string,
-  contact: string,
+  contactNo: string,
   birthdate: Date | null
 ): ValidationErrorModel[] => {
   const errors: ValidationErrorModel[] = [];
@@ -21,8 +21,8 @@ export const validateForm = (
     errors.push({ fieldName: "email", message: "Email address is invalid." });
   }
 
-  if (!contact.trim()) {
-    errors.push({ fieldName: "contact", message: "Contact number is required." });
+  if (!contactNo.trim()) {
+    errors.push({ fieldName: "contactNo", message: "Contact number is required." });
   }
 
   if (!birthdate) {

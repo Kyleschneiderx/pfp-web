@@ -1,4 +1,11 @@
-export const formatDateToLocal = (dateStr: string) => {
+// return format: 1988-11-23
+export const formatDate = (date: Date): string => {
+  return date.toISOString().split('T')[0];
+};
+
+
+// return format: December 25, 1998
+export const formatDateToLocal = (dateStr: string | Date) => {
   const date = new Date(dateStr);
   const formatter = new Intl.DateTimeFormat("en-US", {
     year: "numeric",

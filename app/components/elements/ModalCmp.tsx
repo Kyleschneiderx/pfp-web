@@ -5,7 +5,7 @@ Modal.setAppElement("#modal"); // Important for accessibility, especially with N
 
 interface Props {
   isOpen: boolean;
-  onClose: () => void;
+  onClose?: () => void;
   contentLabel: string;
   children: React.ReactNode;
 }

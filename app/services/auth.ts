@@ -8,21 +8,32 @@ export const login = async (
   password: string
 ): Promise<LoginModel> => {
   const url = `${API_BASE_URL}/auths/login/admin`;
-  return apiClient<LoginModel>(url, "POST", { email, password });
+  return apiClient<LoginModel>({
+    url: url,
+    method: "POST",
+    body: { email, password },
+  });
 };
 
-
 export const forgotPassword = async (
-  email: string,
-): Promise<{msg: string}> => {
+  email: string
+): Promise<{ msg: string }> => {
   const url = `${API_BASE_URL}/forgot-password/admin`;
-  return apiClient<{msg: string}>(url, "POST", { email });
+  return apiClient<{ msg: string }>({
+    url: url,
+    method: "POST",
+    body: { email },
+  });
 };
 
 export const resetPassword = async (
   password: string,
-  token: string,
-): Promise<{msg: string}> => {
+  token: string
+): Promise<{ msg: string }> => {
   const url = `${API_BASE_URL}/forgot-password/reset`;
-  return apiClient<{msg: string}>(url, "POST", { password, token });
+  return apiClient<{ msg: string }>({
+    url: url,
+    method: "POST",
+    body: { password, token },
+  });
 };

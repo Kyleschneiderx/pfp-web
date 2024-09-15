@@ -18,6 +18,7 @@ export default function Page() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [errors, setErrors] = useState<ValidationErrorModel[]>([]);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   const { showSnackBar } = useSnackBar();
   const router = useRouter();
@@ -36,23 +37,23 @@ export default function Page() {
   }, [errors]);
 
   const handleLogin = async () => {
-    if (isValid()) {
+    if (isValid() && !isProcessing) {
       try {
+        setIsProcessing(true);
         const response: LoginModel = await login(email, password);
         Cookies.set("token", response.token.access, {
           expires: 1 / 24, // expires in 1 hour
           // secure: true, // enable this if the server is already https
           sameSite: "Strict",
         });
-
         router.push("/dashboard");
       } catch (error) {
         const apiError = error as ErrorModel;
-        console.log(error);
 
         if (apiError && apiError.msg) {
           showSnackBar({ message: apiError.msg, success: false });
         }
+        setIsProcessing(false);
       }
     }
   };
@@ -88,7 +89,12 @@ export default function Page() {
           invalid={hasError("password")}
           onChange={(e) => setPassword(e.target.value)}
         />
-        <Button label="Sign In" className="w-full" onClick={handleLogin} />
+        <Button
+          label="Sign In"
+          className="w-full"
+          onClick={handleLogin}
+          isProcessing={isProcessing}
+        />
         <Link href="/forgot-password">
           <p className="text-center mt-7">Forgot Password?</p>
         </Link>

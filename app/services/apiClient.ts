@@ -1,20 +1,35 @@
+import Cookies from "js-cookie";
 import { ErrorModel } from "../models/error_model";
 
-export const apiClient = async <T>(
-  url: string,
-  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
-  body?: Record<string, any>
-): Promise<T> => {
+interface Props {
+  url: string;
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  body?: Record<string, any>;
+  contentType?: string;
+}
+
+export const apiClient = async <T>({
+  url,
+  method,
+  body,
+  contentType,
+}: Props): Promise<T> => {
   try {
+    const token = Cookies.get("token");
+
     const options: RequestInit = {
       method,
       headers: {
-        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+        ...(body &&
+          !(body instanceof FormData) && {
+            "Content-Type": contentType ?? "application/json",
+          }),
       },
     };
 
     if (body) {
-      options.body = JSON.stringify(body);
+      options.body = body instanceof FormData ? body : JSON.stringify(body);
     }
 
     const response = await fetch(url, options);

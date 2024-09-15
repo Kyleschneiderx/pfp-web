@@ -12,8 +12,11 @@ import ToggleSwitch from "@/app/components/elements/ToggleSwitch";
 import UploadCmp from "@/app/components/elements/UploadCmp";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import countryCodes from "@/app/lib/country-codes.json";
+import { formatDate } from "@/app/lib/utils";
+import { ErrorModel } from "@/app/models/error_model";
 import { PatientModel } from "@/app/models/patient_model";
 import { ValidationErrorModel } from "@/app/models/validation_error_model";
+import { createPatient } from "@/app/services/patients";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { validateForm } from "./validation";
@@ -28,34 +31,44 @@ export default function PatientForm({ action, patient }: Props) {
 
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
-  const [contact, setContact] = useState<string>("");
+  const [contactNo, setContactNo] = useState<string>("");
   const [birthdate, setBirthdate] = useState<Date | null>(null);
-  const [accountType, setAccountType] = useState<string>("Free");
-  const [description, setDescription] = useState<string | undefined>();
+  const [userType, setUserType] = useState<number>(1);
+  const [description, setDescription] = useState<string>("");
+  const [photo, setPhoto] = useState<File | null>(null);
   const [errors, setErrors] = useState<ValidationErrorModel[]>([]);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   useEffect(() => {
     if (action === "Edit" && patient) {
       setName(patient.user_profile?.name);
       setEmail(patient.email);
-      setContact(patient.user_profile?.contact_number);
-      setBirthdate(new Date(patient.user_profile.birthdate));
-      setAccountType(patient.account_type?.value);
-      setDescription(patient.user_profile?.description);
+      setContactNo(patient.user_profile?.contact_number ?? "");
+      setBirthdate(
+        patient.user_profile.birthdate
+          ? new Date(patient.user_profile.birthdate)
+          : null
+      );
+      setUserType(patient.user_type?.id);
+      setDescription(patient.user_profile?.description ?? "");
     }
   }, [patient]);
 
   const [modalOpen, setModalOpen] = useState(false);
 
   const handleToggle = (label: string) => {
-    setAccountType(label);
+    setUserType(label === "Free" ? 1 : 2);
   };
 
   const handleOpenModal = () => setModalOpen(true);
-  const handleCloseModal = () => setModalOpen(false);
+  const handleCloseModal = () => {
+    if (!isProcessing) {
+      setModalOpen(false);
+    }
+  };
 
   const isValid = () => {
-    const validationErrors = validateForm(name, email, contact, birthdate);
+    const validationErrors = validateForm(name, email, contactNo, birthdate);
     setErrors(validationErrors);
     return validationErrors.length === 0;
   };
@@ -67,9 +80,40 @@ export default function PatientForm({ action, patient }: Props) {
     }
   }, [errors]);
 
-  const handleConfirm = () => {
-    setModalOpen(false);
-    showSnackBar({ message: "Patient successfully created.", success: true });
+  const handleFileSelect = (file: File | null) => {
+    setPhoto(file);
+  };
+
+  const handleConfirm = async () => {
+    if (!isProcessing) {
+      try {
+        setIsProcessing(true);
+        await createPatient({
+          name: name,
+          email: email,
+          contactNo: contactNo,
+          birthdate: birthdate ? formatDate(birthdate) : "",
+          description: description,
+          userType: userType,
+          photo: photo,
+        });
+        setIsProcessing(false);
+        showSnackBar({
+          message: "Patient successfully created.",
+          success: true,
+        });
+        setModalOpen(false);
+        clearData();
+      } catch (error) {
+        const apiError = error as ErrorModel;
+
+        if (apiError && apiError.msg) {
+          showSnackBar({ message: apiError.msg, success: false });
+        }
+        setIsProcessing(false);
+        setModalOpen(false);
+      }
+    }
   };
 
   const onSave = () => {
@@ -80,6 +124,16 @@ export default function PatientForm({ action, patient }: Props) {
 
   const hasError = (fieldName: string) => {
     return errors.some((error) => error.fieldName === fieldName);
+  };
+
+  const clearData = () => {
+    setName("");
+    setEmail("");
+    setContactNo("");
+    setBirthdate(null);
+    setUserType(1);
+    setDescription("");
+    setPhoto(null);
   };
 
   return (
@@ -110,7 +164,7 @@ export default function PatientForm({ action, patient }: Props) {
               <ToggleSwitch
                 label1="Free"
                 label2="Premium"
-                active={accountType}
+                active={userType === 1 ? "Free" : "Premium"}
                 onToggle={handleToggle}
               />
             </div>
@@ -122,44 +176,40 @@ export default function PatientForm({ action, patient }: Props) {
               onChange={(e) => setName(e.target.value)}
             />
           </div>
-          {action === "Create" && (
-            <>
-              <div>
-                <p className="font-medium mb-2">
-                  Email Address <ReqIndicator />
-                </p>
-                <Input
-                  type="email"
-                  placeholder="Enter patient's email address"
-                  value={email}
-                  invalid={hasError("email")}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <div>
-                <p className="font-medium mb-2">
-                  Contact Number <ReqIndicator />
-                </p>
-                <div className="flex space-x-3">
-                  <Select id="country_code" name="country_code">
-                    {countryCodes.map((country) => (
-                      <option key={country.code} value={country.dial_code}>
-                        {country.dial_code}
-                      </option>
-                    ))}
-                  </Select>
-                  <Input
-                    type="text"
-                    placeholder="xxx xxx xxx"
-                    className="w-[482px]"
-                    value={contact}
-                    invalid={hasError("contact")}
-                    onChange={(e) => setContact(e.target.value)}
-                  />
-                </div>
-              </div>
-            </>
-          )}
+          <div>
+            <p className="font-medium mb-2">
+              Email Address <ReqIndicator />
+            </p>
+            <Input
+              type="email"
+              placeholder="Enter patient's email address"
+              value={email}
+              invalid={hasError("email")}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          <div>
+            <p className="font-medium mb-2">
+              Contact Number <ReqIndicator />
+            </p>
+            <div className="flex space-x-3">
+              <Select id="country_code" name="country_code">
+                {countryCodes.map((country) => (
+                  <option key={country.code} value={country.dial_code}>
+                    {country.dial_code}
+                  </option>
+                ))}
+              </Select>
+              <Input
+                type="text"
+                placeholder="xxx xxx xxx"
+                className="w-[482px]"
+                value={contactNo}
+                invalid={hasError("contactNo")}
+                onChange={(e) => setContactNo(e.target.value)}
+              />
+            </div>
+          </div>
           <div className="flex space-x-3">
             <div>
               <p className="font-medium mb-2">
@@ -191,7 +241,10 @@ export default function PatientForm({ action, patient }: Props) {
             />
           </div>
         </Card>
-        <UploadCmp />
+        <UploadCmp
+          onFileSelect={handleFileSelect}
+          clearImagePreview={photo === null}
+        />
         <ConfirmModal
           title={`Are you sure you want to ${
             action === "Create"
@@ -201,6 +254,7 @@ export default function PatientForm({ action, patient }: Props) {
           subTitle="Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum been."
           isOpen={modalOpen}
           confirmBtnLabel="Save"
+          isProcessing={isProcessing}
           onConfirm={handleConfirm}
           onClose={handleCloseModal}
         />

@@ -16,6 +16,7 @@ export default function Page() {
   const [email, setEmail] = useState<string>("");
   const [errors, setErrors] = useState<ValidationErrorModel[]>([]);
   const { showSnackBar } = useSnackBar();
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   const isValid = () => {
     const validationErrors = validateForm(email);
@@ -30,16 +31,19 @@ export default function Page() {
   }, [errors]);
 
   const handleSubmit = async () => {
-    if (isValid()) {
+    if (isValid() && !isProcessing) {
       try {
+        setIsProcessing(true);
         const response = await forgotPassword(email);
         showSnackBar({ message: response.msg, success: true });
+        setIsProcessing(false);
       } catch (error) {
         const apiError = error as ErrorModel;
 
         if (apiError && apiError.msg) {
           showSnackBar({ message: apiError.msg, success: false });
         }
+        setIsProcessing(false);
       }
     }
   };
@@ -58,6 +62,7 @@ export default function Page() {
       <div className="space-y-5 mt-6">
         <Input
           type="email"
+          name="email"
           placeholder="Your Email"
           required
           invalid={errors.length > 0}
@@ -67,6 +72,7 @@ export default function Page() {
           label="Reset Password"
           className="w-full"
           onClick={handleSubmit}
+          isProcessing={isProcessing}
         />
       </div>
     </>
