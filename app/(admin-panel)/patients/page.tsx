@@ -1,46 +1,51 @@
 import Button from "@/app/components/elements/Button";
 import Card from "@/app/components/elements/Card";
-import FilterSort from "@/app/components/elements/FilterSort";
 import PatientAction from "@/app/components/patients/patient-action";
+import PatientFilterSort from "@/app/components/patients/patient-filter-sort";
 import SearchPatient from "@/app/components/patients/search-patient";
-import { samplePatients } from "@/app/lib/sample-data";
 import { formatDateToLocal } from "@/app/lib/utils";
+import { PatientModel } from "@/app/models/patient_model";
+import { getPatients } from "@/app/services/server_side/patients";
 import clsx from "clsx";
 import { Mail, PhoneCall } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
-export default function Page() {
-  const filterOptions = [
-    { label: "All", value: "all" },
-    { label: "Active", value: "active" },
-    { label: "Inactive", value: "inactive" },
-  ];
+export default async function Page({
+  searchParams,
+}: {
+  searchParams?: {
+    page: string;
+    name?: string;
+    sort?: string;
+  };
+}) {
+  const page = Number(searchParams?.page) || 1;
+  const name = searchParams?.name || "";
+  const sort = searchParams?.sort || "ASC";
+  console.log(searchParams)
 
-  const sortOptions = [
-    { label: "Alphabetical (A-Z)", value: "asc" },
-    { label: "Alphabetical (Z-A)", value: "desc" },
-    { label: "Latest to Oldest Log-in", value: "latest-login" },
-    { label: "Oldest to Latest Log-in", value: "oldest-login" },
-  ];
+  const response = await getPatients(`page=1&name=${name}&sort[]=${sort}&page_items=50`);
+  const patientList: PatientModel[] = response.data;
+  console.log(patientList.length);
+
   return (
     <>
       <div className="flex items-center mb-8">
         <SearchPatient />
-        <FilterSort options={filterOptions} label="Filter" />
-        <FilterSort options={sortOptions} label="Sort" />
+        <PatientFilterSort />
         <Link href="/patients/create" className="ml-auto">
           <Button label="Add Patients" showIcon />
         </Link>
       </div>
       <div className="flex flex-wrap">
-        {samplePatients.map((patient) => (
+        {patientList.map((patient) => (
           <Card
             key={patient.id}
             className="p-4 pr-3 w-[351px] flex mr-7 mb-7 text-neutral-900"
           >
             <Image
-              src="/images/user.png"
+              src={patient.user_profile.photo || "/images/avatar.png"}
               width={50}
               height={50}
               alt="Profile pic"

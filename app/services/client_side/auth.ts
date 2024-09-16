@@ -1,5 +1,5 @@
-import { LoginModel } from "../models/login_model";
-import { apiClient } from "./apiClient";
+import { LoginModel } from "@/app/models/login_model";
+import { apiClient } from "@/app/services/apiClient";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 

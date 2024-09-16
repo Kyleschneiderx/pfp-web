@@ -5,7 +5,7 @@ import Input from "@/app/components/elements/Input";
 import ResetSuccess from "@/app/components/login/reset-success";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import { ErrorModel } from "@/app/models/error_model";
-import { resetPassword } from "@/app/services/auth";
+import { resetPassword } from "@/app/services/client_side/auth";
 import ArrowLeft from "@/public/svg/arrow-left.svg";
 import EyeOff from "@/public/svg/eye-off.svg";
 import Eye from "@/public/svg/eye.svg";

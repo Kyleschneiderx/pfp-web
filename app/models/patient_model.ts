@@ -1,4 +1,4 @@
-export type PatientModel = {
+export interface PatientModel {
   id: number;
   email: string;
   last_login_at: string | null;
@@ -11,7 +11,7 @@ export type PatientModel = {
   status: Status;
 };
 
-export type UserProfile = {
+interface UserProfile {
   name: string;
   birthdate: string;
   contact_number: string;
@@ -19,17 +19,24 @@ export type UserProfile = {
   photo: string | null;
 };
 
-export type AccountType = {
+interface AccountType {
   id: number;
   value: string;
 }
 
-export type UserType = {
+interface UserType {
   id: number;
   value: string;
 }
 
-export type Status = {
+interface Status {
   id: number;
   value: string;
+}
+
+export interface PatientsResponse {
+  data: PatientModel[];
+  page: number;
+  page_items: number;
+  max_page: number;
 }

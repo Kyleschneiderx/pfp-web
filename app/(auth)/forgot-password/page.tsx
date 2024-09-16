@@ -6,7 +6,7 @@ import { validateForm } from "@/app/components/login/validation";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import { ErrorModel } from "@/app/models/error_model";
 import { ValidationErrorModel } from "@/app/models/validation_error_model";
-import { forgotPassword } from "@/app/services/auth";
+import { forgotPassword } from "@/app/services/client_side/auth";
 import ArrowLeft from "@/public/svg/arrow-left.svg";
 import Image from "next/image";
 import Link from "next/link";

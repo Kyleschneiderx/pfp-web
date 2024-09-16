@@ -7,7 +7,7 @@ import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import { ErrorModel } from "@/app/models/error_model";
 import { LoginModel } from "@/app/models/login_model";
 import { ValidationErrorModel } from "@/app/models/validation_error_model";
-import { login } from "@/app/services/auth";
+import { login } from "@/app/services/client_side/auth";
 import Cookies from "js-cookie";
 import Image from "next/image";
 import Link from "next/link";
@@ -63,7 +63,7 @@ export default function Page() {
   };
 
   return (
-    <>
+    <form>
       <Image
         src="/images/logo.jpg"
         alt="Logo"
@@ -99,6 +99,6 @@ export default function Page() {
           <p className="text-center mt-7">Forgot Password?</p>
         </Link>
       </div>
-    </>
+    </form>
   );
 }

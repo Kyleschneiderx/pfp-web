@@ -7,15 +7,23 @@ import Card from "./Card";
 interface Props {
   label: string;
   options: Array<{ label: string; value: string }>;
+  onSelect: (selectedValue: string) => void;
 }
 
-export default function FilterSort({ label, options = [] }: Props) {
+export default function FilterSort({ label, options = [], onSelect }: Props) {
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [selectedValue, setSelectedValue] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
   };
+
+  const handleSelect = (value: string) => {
+    const newValue = value === selectedValue ? "" : value;
+    setSelectedValue(newValue || null);
+    onSelect(newValue);
+  }
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -57,7 +65,8 @@ export default function FilterSort({ label, options = [] }: Props) {
                     <input
                       id={`id${index}`}
                       type="checkbox"
-                      value={option.value}
+                      checked={selectedValue === option.value}
+                      onChange={() => handleSelect(option.value)}
                       className="mr-2 cursor-pointer"
                     />
                     {option.label}

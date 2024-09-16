@@ -16,7 +16,7 @@ import { formatDate } from "@/app/lib/utils";
 import { ErrorModel } from "@/app/models/error_model";
 import { PatientModel } from "@/app/models/patient_model";
 import { ValidationErrorModel } from "@/app/models/validation_error_model";
-import { createPatient } from "@/app/services/patients";
+import { createPatient } from "@/app/services/client_side/patients";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { validateForm } from "./validation";
