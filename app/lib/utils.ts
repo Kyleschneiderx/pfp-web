@@ -25,3 +25,41 @@ export const validateName = (name: string): boolean => {
   const re = /^[a-zA-Z\s'-.]+$/;
   return re.test(name);
 };
+
+export const onPhoneNumKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  // Allow only numbers, hypen, backspace, delete and arrow keys
+  if (
+    !/[0-9]/.test(e.key) &&
+    e.key !== 'Backspace' &&
+    e.key !== 'Delete' &&
+    e.key !== 'ArrowLeft' &&
+    e.key !== 'ArrowRight'
+  ) {
+    e.preventDefault();
+  }
+}
+
+export const getLastLoginStatus = (dateString: string): string => {
+  const givenDate = new Date(dateString);
+  const currentDate = new Date();
+  
+  // Calculate the difference in time
+  const diffTime = currentDate.getTime() - givenDate.getTime();
+  
+  // Convert difference to days
+  const diffDays = diffTime / (1000 * 3600 * 24);
+  
+  // Return "Active" if within the last 31 days
+  if (diffDays < 31) {
+    return "Active";
+  }
+
+  // Calculate the difference in months
+  const diffMonths = Math.floor(diffDays / 30); // Rough approximation for months
+
+  if (diffMonths === 1) {
+    return "Last login a month ago";
+  } else {
+    return `Last login ${diffMonths} months ago`;
+  }
+}

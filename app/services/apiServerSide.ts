@@ -31,6 +31,7 @@ export const apiServerSide = async <T>({
 
     if (body) {
       options.body = body instanceof FormData ? body : JSON.stringify(body);
+      // options.body = body instanceof FormData ? body : JSON.parse(JSON.stringify(body));
     }
 
     const response = await fetch(url, options);

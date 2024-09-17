@@ -12,11 +12,15 @@ import ToggleSwitch from "@/app/components/elements/ToggleSwitch";
 import UploadCmp from "@/app/components/elements/UploadCmp";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import countryCodes from "@/app/lib/country-codes.json";
-import { formatDate } from "@/app/lib/utils";
+import { revalidatePage } from "@/app/lib/revalidate";
+import { formatDate, onPhoneNumKeyDown } from "@/app/lib/utils";
 import { ErrorModel } from "@/app/models/error_model";
 import { PatientModel } from "@/app/models/patient_model";
 import { ValidationErrorModel } from "@/app/models/validation_error_model";
-import { createPatient } from "@/app/services/client_side/patients";
+import {
+  createPatient,
+  updatePatient,
+} from "@/app/services/client_side/patients";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { validateForm } from "./validation";
@@ -26,7 +30,7 @@ interface Props {
   patient?: PatientModel;
 }
 
-export default function PatientForm({ action, patient }: Props) {
+export default function PatientForm({ action = "Create", patient }: Props) {
   const { showSnackBar } = useSnackBar();
 
   const [name, setName] = useState<string>("");
@@ -88,18 +92,34 @@ export default function PatientForm({ action, patient }: Props) {
     if (!isProcessing) {
       try {
         setIsProcessing(true);
-        await createPatient({
-          name: name,
-          email: email,
-          contactNo: contactNo,
-          birthdate: birthdate ? formatDate(birthdate) : "",
-          description: description,
-          userType: userType,
-          photo: photo,
-        });
+        if (action === "Create") {
+          await createPatient({
+            name: name,
+            email: email,
+            contactNo: contactNo,
+            birthdate: birthdate ? formatDate(birthdate) : "",
+            description: description,
+            userType: userType,
+            photo: photo,
+          });
+        } else {
+          await updatePatient({
+            id: patient?.id,
+            name: name,
+            email: email,
+            contactNo: contactNo,
+            birthdate: birthdate ? formatDate(birthdate) : "",
+            description: description,
+            userType: userType,
+            photo: photo,
+          });
+        }
+        await revalidatePage("/patients");
         setIsProcessing(false);
         showSnackBar({
-          message: "Patient successfully created.",
+          message: `Patient successfully ${
+            action === "Create" ? "created" : "updated"
+          }.`,
           success: true,
         });
         setModalOpen(false);
@@ -207,6 +227,7 @@ export default function PatientForm({ action, patient }: Props) {
                 value={contactNo}
                 invalid={hasError("contactNo")}
                 onChange={(e) => setContactNo(e.target.value)}
+                onKeyDown={onPhoneNumKeyDown}
               />
             </div>
           </div>
