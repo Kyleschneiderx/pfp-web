@@ -54,7 +54,7 @@ export default function PatientList({
   useEffect(() => {
     setPatients(initialList);
     setPage(1);
-  }, [sort, name, status_id]);
+  }, [sort, name, status_id, initialList]);
 
   return (
     <>
