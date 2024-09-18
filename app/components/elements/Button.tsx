@@ -5,6 +5,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   label: String;
   showIcon?: boolean;
   secondary?: boolean;
+  outlined?: boolean;
   className?: string;
   disabled?: boolean;
   isProcessing?: boolean;
@@ -14,6 +15,7 @@ export default function Button({
   label,
   showIcon = false,
   secondary,
+  outlined,
   children,
   className,
   disabled = false,
@@ -25,11 +27,13 @@ export default function Button({
       {...rest}
       type="button"
       className={clsx(
-        "flex justify-center items-center py-3 px-4 rounded-md",
+        "flex justify-center items-center py-3 px-6 rounded-md font-medium",
         disabled || isProcessing
           ? "bg-neutral-300 cursor-default text-white"
           : secondary
           ? "bg-white text-black hover:bg-neutral-100 active:bg-white drop-shadow"
+          : outlined
+          ? "border border-primary-600 text-primary-500 hover:bg-primary-500 hover:text-white"
           : "bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-500",
         className
       )}

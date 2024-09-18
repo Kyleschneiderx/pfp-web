@@ -19,9 +19,11 @@ import { PatientModel } from "@/app/models/patient_model";
 import { ValidationErrorModel } from "@/app/models/validation_error_model";
 import {
   createPatient,
-  updatePatient,
+  deletePatient,
+  updatePatient
 } from "@/app/services/client_side/patients";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { validateForm } from "./validation";
 
@@ -32,6 +34,7 @@ interface Props {
 
 export default function PatientForm({ action = "Create", patient }: Props) {
   const { showSnackBar } = useSnackBar();
+  const router = useRouter();
 
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
@@ -59,15 +62,16 @@ export default function PatientForm({ action = "Create", patient }: Props) {
   }, [patient]);
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const handleToggle = (label: string) => {
     setUserType(label === "Free" ? 1 : 2);
   };
 
-  const handleOpenModal = () => setModalOpen(true);
   const handleCloseModal = () => {
     if (!isProcessing) {
       setModalOpen(false);
+      setDeleteModalOpen(false);
     }
   };
 
@@ -138,7 +142,32 @@ export default function PatientForm({ action = "Create", patient }: Props) {
 
   const onSave = () => {
     if (isValid()) {
-      handleOpenModal();
+      setModalOpen(true);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!isProcessing && action === "Edit") {
+      try {
+        setIsProcessing(true);
+        await deletePatient(patient!.id);
+        await revalidatePage("/patients");
+        setIsProcessing(false);
+        showSnackBar({
+          message: `Patient successfully deleted.`,
+          success: true,
+        });
+        setModalOpen(false);
+        router.push("/patients");
+      } catch (error) {
+        const apiError = error as ErrorModel;
+
+        if (apiError && apiError.msg) {
+          showSnackBar({ message: apiError.msg, success: false });
+        }
+        setIsProcessing(false);
+        setDeleteModalOpen(false);
+      }
     }
   };
 
@@ -262,10 +291,20 @@ export default function PatientForm({ action = "Create", patient }: Props) {
             />
           </div>
         </Card>
-        <UploadCmp
-          onFileSelect={handleFileSelect}
-          clearImagePreview={photo === null}
-        />
+        <div>
+          <UploadCmp
+            onFileSelect={handleFileSelect}
+            clearImagePreview={photo === null}
+          />
+          {action === "Edit" && (
+            <Button
+              label="Delete"
+              outlined
+              className="mt-5 ml-auto"
+              onClick={() => setDeleteModalOpen(true)}
+            />
+          )}
+        </div>
         <ConfirmModal
           title={`Are you sure you want to ${
             action === "Create"
@@ -279,6 +318,17 @@ export default function PatientForm({ action = "Create", patient }: Props) {
           onConfirm={handleConfirm}
           onClose={handleCloseModal}
         />
+        {action === "Edit" && (
+          <ConfirmModal
+            title="Are you sure you want to delete this account?"
+            subTitle="Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum been."
+            isOpen={deleteModalOpen}
+            confirmBtnLabel="Delete"
+            isProcessing={isProcessing}
+            onConfirm={handleDeleteConfirm}
+            onClose={handleCloseModal}
+          />
+        )}
       </div>
     </>
   );
