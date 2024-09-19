@@ -1,8 +1,8 @@
 import Button from "@/app/components/elements/Button";
+import SearchCmp from "@/app/components/elements/SearchCmp";
 import { fetchPatients } from "@/app/components/patients/actions";
 import PatientFilterSort from "@/app/components/patients/patient-filter-sort";
 import PatientList from "@/app/components/patients/patient-list";
-import SearchPatient from "@/app/components/patients/search-patient";
 import { PatientModel } from "@/app/models/patient_model";
 import Link from "next/link";
 
@@ -39,7 +39,7 @@ export default async function Page({
   return (
     <>
       <div className="flex items-center mb-8">
-        <SearchPatient />
+        <SearchCmp placeholder="Search patients" />
         <PatientFilterSort />
         <Link href="/patients/create" className="ml-auto">
           <Button label="Add Patients" showIcon />
