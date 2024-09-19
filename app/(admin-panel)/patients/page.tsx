@@ -3,6 +3,7 @@ import SearchCmp from "@/app/components/elements/SearchCmp";
 import { fetchPatients } from "@/app/components/patients/actions";
 import PatientFilterSort from "@/app/components/patients/patient-filter-sort";
 import PatientList from "@/app/components/patients/patient-list";
+import { validateName } from "@/app/lib/utils";
 import { PatientModel } from "@/app/models/patient_model";
 import Link from "next/link";
 
@@ -28,10 +29,20 @@ export default async function Page({
     return <p className="text-center mx-auto mt-[300px]">{msg}</p>;
   };
 
+  if (name && !validateName(name)) {
+    errorMessage = "Invalid search of patient name";
+  }
+
   try {
-    const {patientList, max_page} = await fetchPatients({ name, sort, status_id });
-    patients = patientList;
-    maxPage = max_page;
+    if (!errorMessage) {
+      const { patientList, max_page } = await fetchPatients({
+        name,
+        sort,
+        status_id,
+      });
+      patients = patientList;
+      maxPage = max_page;
+    }
   } catch (error) {
     errorMessage = (error as Error).message;
   }
