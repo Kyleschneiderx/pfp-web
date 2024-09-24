@@ -10,14 +10,12 @@ interface Props {
   onFileSelect: (file: File | null) => void;
   clearImagePreview: boolean;
   type: "image" | "video";
-  previewType: "image" | "filename";
 }
 
 export default function UploadCmp({
   onFileSelect,
   clearImagePreview,
   type,
-  previewType,
 }: Props) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -115,7 +113,7 @@ export default function UploadCmp({
       <p className="font-medium mb-2">
         Upload a {type === "image" ? "Photo" : "Video"}
       </p>
-      {previewType === "filename" && fileName && fileType && (
+      {fileName && fileType && (
         <div className="flex items-center mb-4">
           <FileImage size={20} className="text-neutral-300 mr-2" />
           <div>

@@ -429,7 +429,6 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
             onFileSelect={handlePhotoSelect}
             clearImagePreview={photo === null}
             type="image"
-            previewType="filename"
           />
         </Card>
         <div>
@@ -448,7 +447,6 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
               onFileSelect={handleVideoSelect}
               clearImagePreview={video === null}
               type="video"
-              previewType="filename"
             />
           </Card>
           {action === "Edit" && (

@@ -297,7 +297,6 @@ export default function PatientForm({ action = "Create", patient }: Props) {
               onFileSelect={handleFileSelect}
               clearImagePreview={photo === null}
               type="image"
-              previewType="image"
             />
           </Card>
           {action === "Edit" && (
