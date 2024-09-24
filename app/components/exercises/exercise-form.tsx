@@ -87,18 +87,6 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
     useState(false);
   const [renameCatModalOpen, setRenameCatModalOpen] = useState(false);
 
-  console.log("====================");
-  console.log(name);
-  console.log(category);
-  console.log(sets);
-  console.log(reps);
-  console.log(hold);
-  console.log(description);
-  console.log(howTo);
-  console.log(photo);
-  console.log(video);
-  console.log("====================");
-
   useEffect(() => {
     if (action === "Edit" && exercise) {
       setName(exercise.name);
@@ -106,7 +94,11 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
         label: exercise.exercise_category.value,
         value: exercise.exercise_category.id.toString(),
       });
+      setSets(exercise.sets);
+      setReps(exercise.reps);
+      setHold(exercise.hold);
       setDescription(exercise.description ?? "");
+      setHowTo(exercise.how_to ?? "");
     }
   }, [exercise]);
 
@@ -502,7 +494,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
         />
         {action === "Edit" && (
           <ConfirmModal
-            title="Are you sure you want to delete this account?"
+            title="Are you sure you want to delete this exercise?"
             subTitle="Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum been."
             isOpen={deleteModalOpen}
             confirmBtnLabel="Delete"
