@@ -64,8 +64,7 @@ export default function ExerciseList({
           >
             <div className="relative h-[200px]">
               <Image
-                // src={exercise.photo || ""}
-                src="/images/exercise-banner.jpg"
+                src={exercise.photo || "/images/exercise-banner.jpg"}
                 alt="Exercise banner"
                 fill
                 sizes="350vw"

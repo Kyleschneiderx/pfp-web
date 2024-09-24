@@ -1,69 +1,56 @@
+import { ExerciseCategoryModel } from "@/app/models/exercise_model";
 import { apiClient } from "@/app/services/apiClient";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-interface FormPatientParams {
-  id?: number;
+export interface FormExerciseParams {
+  method: "POST" | "PUT",
+  id?: number | null;
   name: string;
-  email: string;
-  contactNo: string;
-  birthdate: string;
+  category_id: string;
+  sets: number;
+  reps: number;
+  hold: number;
   description: string | null;
-  userType: number;
+  how_to: string | null;
   photo: File | null;
+  video: File | null;
 }
 
-export const createPatient = async ({
-  name,
-  email,
-  contactNo,
-  birthdate,
-  description,
-  userType,
-  photo,
-}: FormPatientParams): Promise<{ msg: string }> => {
-  const url = `${API_BASE_URL}/users`;
+interface ExerciseCategoriesResponse {
+  data: {
+    exercise_category: ExerciseCategoryModel[];
+  };
+}
 
-  const formData = new FormData();
-  formData.append("name", name);
-  formData.append("email", email);
-  formData.append("contact_number", contactNo);
-  formData.append("birthdate", birthdate);
-  if (description) formData.append("description", description);
-  formData.append("type_id", userType.toString());
-  if (photo) formData.append("photo", photo);
-
-  return apiClient<{ msg: string }>({
-    url: url,
-    method: "POST",
-    body: formData,
-    contentType: "multipart/form-data",
-  });
-};
-
-export const updatePatient = async ({
+export const saveExercise = async ({
+  method,
   id,
   name,
-  email,
-  contactNo,
-  birthdate,
+  category_id,
+  sets,
+  reps,
+  hold,
   description,
-  userType,
+  how_to,
   photo,
-}: FormPatientParams): Promise<{ msg: string }> => {
-  const url = `${API_BASE_URL}/users/${id}`;
+  video,
+}: FormExerciseParams): Promise<{ msg: string }> => {
+  const url = `${API_BASE_URL}/exercises/${id ?? ""}`;
 
   const formData = new FormData();
   formData.append("name", name);
-  formData.append("email", email);
-  formData.append("contact_number", contactNo);
-  formData.append("birthdate", birthdate);
+  formData.append("category_id", category_id);
+  formData.append("sets", sets.toString());
+  formData.append("reps", reps.toString());
+  formData.append("hold", hold.toString());
   if (description) formData.append("description", description);
-  formData.append("type_id", userType.toString());
+  if (how_to) formData.append("how_to", how_to);
   if (photo) formData.append("photo", photo);
+  if (video) formData.append("video", video);
 
   return apiClient<{ msg: string }>({
     url: url,
-    method: "PUT",
+    method: method,
     body: formData,
     contentType: "multipart/form-data",
   });
@@ -71,5 +58,51 @@ export const updatePatient = async ({
 
 export const deleteExercise = async (id: number): Promise<{ msg: string }> => {
   const url = `${API_BASE_URL}/exercises/${id}`;
+  return await apiClient<{ msg: string }>({ url: url, method: "DELETE" });
+};
+
+export const createExerciseCategory = async ({
+  name,
+}: {
+  name: string;
+}): Promise<{ msg: string }> => {
+  const url = `${API_BASE_URL}/selections/exercise-categories`;
+  return apiClient<{ msg: string }>({
+    url: url,
+    method: "POST",
+    body: { name: name },
+  });
+};
+
+export const getExerciseCategories = async (): Promise<
+  ExerciseCategoryModel[]
+> => {
+  const url = `${API_BASE_URL}/selections?exercise_category`;
+  const data: ExerciseCategoriesResponse = await apiClient({
+    url: url,
+    method: "GET",
+  });
+  return data.data.exercise_category;
+};
+
+export const updateExerciseCategory = async ({
+  id,
+  name,
+}: {
+  id: string;
+  name: string;
+}): Promise<{ msg: string }> => {
+  const url = `${API_BASE_URL}/selections/exercise-categories/${id}`;
+  return apiClient<{ msg: string }>({
+    url: url,
+    method: "PUT",
+    body: { name: name },
+  });
+};
+
+export const deleteExerciseCategory = async (
+  id: string
+): Promise<{ msg: string }> => {
+  const url = `${API_BASE_URL}/selections/exercise-categories/${id}`;
   return await apiClient<{ msg: string }>({ url: url, method: "DELETE" });
 };

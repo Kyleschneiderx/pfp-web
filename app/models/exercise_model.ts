@@ -4,17 +4,17 @@ export interface ExerciseModel {
   sets: number;
   reps: number;
   hold: number;
-  description: string;
-  how_to: string;
+  description: string | null;
+  how_to: string | null;
   audio: string;
-  photo: string;
-  video: string;
+  photo: string | null;
+  video: string | null;
   created_at: string;
   updated_at: string;
-  exercise_category: ExerciseCategory;
+  exercise_category: ExerciseCategoryModel;
 }
 
-interface ExerciseCategory {
+export interface ExerciseCategoryModel {
   id: number;
   value: string;
 }
@@ -24,4 +24,9 @@ export interface ExercisesResponse {
   page: number;
   page_items: number;
   max_page: number;
+}
+
+export interface CategoryOptionsModel {
+  label: string;
+  value: string;
 }

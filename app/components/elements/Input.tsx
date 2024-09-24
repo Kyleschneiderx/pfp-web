@@ -21,7 +21,7 @@ export default function Input({
       <input
         {...rest}
         className={clsx(
-          "w-full rounded-md border py-[10px] pl-4 placeholder:text-neutral-400 placeholder:font-light focus:outline-none",
+          "w-full rounded-md border py-[10px] pl-4 placeholder:text-neutral-400 placeholder:font-light focus:outline-none focus:border-primary-600",
           icon ? "pr-10" : "pr-4",
           invalid
             ? "border-error-400 focus:border-error-600 bg-error-25"

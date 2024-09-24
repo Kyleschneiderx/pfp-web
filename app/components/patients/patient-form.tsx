@@ -20,7 +20,7 @@ import { ValidationErrorModel } from "@/app/models/validation_error_model";
 import {
   createPatient,
   deletePatient,
-  updatePatient
+  updatePatient,
 } from "@/app/services/client_side/patients";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -284,7 +284,7 @@ export default function PatientForm({ action = "Create", patient }: Props) {
           <div>
             <p className="font-medium mb-2">Description</p>
             <Textarea
-              placeholder="Enter the exercise's description"
+              placeholder="Enter the patient's description"
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -292,10 +292,14 @@ export default function PatientForm({ action = "Create", patient }: Props) {
           </div>
         </Card>
         <div>
-          <UploadCmp
-            onFileSelect={handleFileSelect}
-            clearImagePreview={photo === null}
-          />
+          <Card className="w-[446px] h-fit p-[22px]">
+            <UploadCmp
+              onFileSelect={handleFileSelect}
+              clearImagePreview={photo === null}
+              type="image"
+              previewType="image"
+            />
+          </Card>
           {action === "Edit" && (
             <Button
               label="Delete"
