@@ -6,6 +6,7 @@ interface Props {
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: Record<string, any>;
   contentType?: string;
+  revalidateTime?: number,
 }
 
 export const apiServerSide = async <T>({
@@ -13,6 +14,7 @@ export const apiServerSide = async <T>({
   method,
   body,
   contentType,
+  revalidateTime,
 }: Props): Promise<T> => {
   try {
     const cookieStore = cookies();
@@ -27,11 +29,11 @@ export const apiServerSide = async <T>({
             "Content-Type": contentType ?? "application/json",
           }),
       },
+      next: { revalidate: revalidateTime },
     };
 
     if (body) {
       options.body = body instanceof FormData ? body : JSON.stringify(body);
-      // options.body = body instanceof FormData ? body : JSON.parse(JSON.stringify(body));
     }
 
     const response = await fetch(url, options);

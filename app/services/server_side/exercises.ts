@@ -8,7 +8,11 @@ export const getExercises = async (
 ): Promise<ExercisesResponse> => {
   const url = `${API_BASE_URL}/exercises?${params}`;
   console.log(url);
-  const data = await apiServerSide({ url: url, method: "GET" });
+  const data = await apiServerSide({
+    url: url,
+    method: "GET",
+    revalidateTime: 60,
+  });
   return data as ExercisesResponse;
 };
 
