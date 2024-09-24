@@ -1,3 +1,5 @@
+import { PageSkeletons } from "@/app/components/elements/pageSkeletons";
+
 export default function Loading() {
-  return <p>loading patients...</p>
+  return <PageSkeletons />
 }
