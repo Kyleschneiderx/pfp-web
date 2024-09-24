@@ -3,7 +3,7 @@ const shimmer =
 
 export function PageSkeletons() {
   const CardSkeleton = () => (
-    <div className="mr-5 w-[350px] h-[200px] rounded-lg bg-gray-200" />
+    <div className="mb-5 mr-5 w-[350px] h-[200px] rounded-lg bg-gray-200" />
   );
 
   return (
