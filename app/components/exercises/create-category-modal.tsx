@@ -19,7 +19,9 @@ export default function CreateCategoryModal({
   const [name, setName] = useState<string>("");
 
   const handleAddclick = () => {
-    onAddClick(name);
+    if (name.trim() !== "") {
+      onAddClick(name);
+    }
   };
 
   useEffect(() => {
@@ -45,7 +47,12 @@ export default function CreateCategoryModal({
             onClick={onClose}
             className="px-[50px]"
           />
-          <Button label="Add" onClick={handleAddclick} className="px-[50px]" />
+          <Button
+            label="Add"
+            onClick={handleAddclick}
+            className="px-[50px]"
+            disabled={name.trim() === ""}
+          />
         </div>
       </div>
     </ModalCmp>

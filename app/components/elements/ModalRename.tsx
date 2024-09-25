@@ -25,7 +25,9 @@ export default function ModalRename({
   const [newName, setNewName] = useState<string>("");
 
   const handlSaveClick = () => {
-    onSaveClick(newName);
+    if (newName.trim() !== "") {
+      onSaveClick(newName);
+    }
   };
 
   useEffect(() => {
@@ -61,6 +63,7 @@ export default function ModalRename({
             label="Save"
             onClick={handlSaveClick}
             className="px-[50px]"
+            disabled={newName.trim() === ""}
             isProcessing={isProcessing}
           />
         </div>
