@@ -21,24 +21,28 @@ export default function PatientFilterSort() {
     { label: "Oldest to Latest Log-in", value: "last_login_at:ASC" },
   ];
 
-  const handleFilterSelect = (selectedFilter: string) => {
-    const params = new URLSearchParams(searchParams);
-    if (selectedFilter) {
-      params.set("status_id", selectedFilter);
-    } else {
-      params.delete("status_id");
+  const handleFilterSelect = (selectedFilter: string | string[]) => {
+    if (typeof selectedFilter === "string") {
+      const params = new URLSearchParams(searchParams);
+      if (selectedFilter) {
+        params.set("status_id", selectedFilter);
+      } else {
+        params.delete("status_id");
+      }
+      replace(`${pathname}?${params.toString()}`);
     }
-    replace(`${pathname}?${params.toString()}`);
   };
 
-  const handleSortSelect = (selectedSort: string) => {
-    const params = new URLSearchParams(searchParams);
-    if (selectedSort) {
-      params.set("sort", selectedSort);
-    } else {
-      params.delete("sort");
+  const handleSortSelect = (selectedSort: string | string[]) => {
+    if (typeof selectedSort === "string") {
+      const params = new URLSearchParams(searchParams);
+      if (selectedSort) {
+        params.set("sort", selectedSort);
+      } else {
+        params.delete("sort");
+      }
+      replace(`${pathname}?${params.toString()}`);
     }
-    replace(`${pathname}?${params.toString()}`);
   };
 
   return (

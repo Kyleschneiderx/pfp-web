@@ -7,12 +7,20 @@ import Card from "./Card";
 interface Props {
   label: string;
   options: Array<{ label: string; value: string }>;
-  onSelect: (selectedValue: string) => void;
+  onSelect: (selectedValue: string | string[]) => void;
+  isMulti?: boolean;
+  children?: React.ReactNode;
 }
 
-export default function FilterSort({ label, options = [], onSelect }: Props) {
+export default function FilterSort({
+  label,
+  options = [],
+  onSelect,
+  isMulti = false,
+  children,
+}: Props) {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [selectedValue, setSelectedValue] = useState<string | null>(null);
+  const [selectedValue, setSelectedValue] = useState<string | string[]>(isMulti ? [] : "");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const toggleDropdown = () => {
@@ -20,10 +28,21 @@ export default function FilterSort({ label, options = [], onSelect }: Props) {
   };
 
   const handleSelect = (value: string) => {
-    const newValue = value === selectedValue ? "" : value;
-    setSelectedValue(newValue || null);
-    onSelect(newValue);
-  }
+    if (isMulti) {
+      let newSelectedValues: string[] = Array.isArray(selectedValue) ? [...selectedValue] : [];
+      if (newSelectedValues.includes(value)) {
+        newSelectedValues = newSelectedValues.filter((v) => v !== value);
+      } else {
+        newSelectedValues.push(value);
+      }
+      setSelectedValue(newSelectedValues);
+      onSelect(newSelectedValues);
+    } else {
+      const newValue = value === selectedValue ? "" : value;
+      setSelectedValue(newValue || "");
+      onSelect(newValue);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -41,6 +60,13 @@ export default function FilterSort({ label, options = [], onSelect }: Props) {
     };
   }, []);
 
+  const isSelected = (value: string) => {
+    if (isMulti && Array.isArray(selectedValue)) {
+      return selectedValue.includes(value);
+    }
+    return selectedValue === value;
+  }
+
   return (
     <div
       className="relative flex text-sm font-medium select-none"
@@ -53,11 +79,11 @@ export default function FilterSort({ label, options = [], onSelect }: Props) {
         onClick={toggleDropdown}
       />
       {isOpen && (
-        <div className="absolute left-7 mt-8 w-64 z-20">
+        <div className="absolute left-7 mt-8 min-w-64 z-20">
           <Card className="p-5">
-            <ul className="space-y-3">
+            <ul className="space-y-3 max-h-[200px] overflow-auto">
               {options.map((option, index) => (
-                <li>
+                <li key={`li${option.value}`}>
                   <label
                     htmlFor={`id${index}`}
                     className="flex items-center cursor-pointer"
@@ -65,7 +91,7 @@ export default function FilterSort({ label, options = [], onSelect }: Props) {
                     <input
                       id={`id${index}`}
                       type="checkbox"
-                      checked={selectedValue === option.value}
+                      checked={isSelected(option.value)}
                       onChange={() => handleSelect(option.value)}
                       className="mr-2 cursor-pointer"
                     />
@@ -74,6 +100,7 @@ export default function FilterSort({ label, options = [], onSelect }: Props) {
                 </li>
               ))}
             </ul>
+            {children}
           </Card>
         </div>
       )}

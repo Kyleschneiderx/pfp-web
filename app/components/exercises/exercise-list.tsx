@@ -15,10 +15,18 @@ export default function ExerciseList({
   category_id,
   initialList,
   maxPage,
+  sets_from,
+  sets_to,
+  reps_from,
+  reps_to,
 }: {
   name: string;
   sort: string;
   category_id: string;
+  sets_from: string;
+  sets_to: string;
+  reps_from: string;
+  reps_to: string;
   initialList: ExerciseModel[] | [];
   maxPage: number;
 }) {
@@ -33,6 +41,10 @@ export default function ExerciseList({
       name,
       sort,
       category_id,
+      sets_from,
+      sets_to,
+      reps_from,
+      reps_to,
     });
     if (exerciseList.length) {
       setPage(next);
