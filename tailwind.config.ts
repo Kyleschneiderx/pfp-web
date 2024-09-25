@@ -11,6 +11,13 @@ const config: Config = {
       dropShadow: {
         'center': "0 0px 2px rgba(0,0,0,0.20)"
       },
+      keyframes: {
+        shimmer: {
+          '100%': {
+            transform: 'translateX(100%)',
+          },
+        },
+      },
       colors: {
         neutral: {
           50: "#FFFCFF",
@@ -79,13 +86,6 @@ const config: Config = {
           700: "#AA3030",
           800: "#832525",
           900: "#641D1D",
-        },
-      },
-    },
-    keyframes: {
-      shimmer: {
-        '100%': {
-          transform: 'translateX(100%)',
         },
       },
     },
