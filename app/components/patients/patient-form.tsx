@@ -18,9 +18,8 @@ import { ErrorModel } from "@/app/models/error_model";
 import { PatientModel } from "@/app/models/patient_model";
 import { ValidationErrorModel } from "@/app/models/validation_error_model";
 import {
-  createPatient,
   deletePatient,
-  updatePatient,
+  savePatient,
 } from "@/app/services/client_side/patients";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -96,28 +95,19 @@ export default function PatientForm({ action = "Create", patient }: Props) {
     if (!isProcessing) {
       try {
         setIsProcessing(true);
-        if (action === "Create") {
-          await createPatient({
-            name: name,
-            email: email,
-            contactNo: contactNo,
-            birthdate: birthdate ? formatDate(birthdate) : "",
-            description: description,
-            userType: userType,
-            photo: photo,
-          });
-        } else {
-          await updatePatient({
-            id: patient?.id,
-            name: name,
-            email: email,
-            contactNo: contactNo,
-            birthdate: birthdate ? formatDate(birthdate) : "",
-            description: description,
-            userType: userType,
-            photo: photo,
-          });
-        }
+        const method = action === "Create" ? "POST" : "PUT";
+        const id = action === "Edit" ? patient!.id : null;
+
+        const body = new FormData();
+        body.append("name", name);
+        body.append("email", email);
+        body.append("contact_number", contactNo);
+        body.append("birthdate", birthdate ? formatDate(birthdate) : "");
+        body.append("description", description);
+        body.append("type_id", userType.toString());
+        if (photo) body.append("photo", photo);
+
+        await savePatient({ method, id, body });
         await revalidatePage("/patients");
         setIsProcessing(false);
         showSnackBar({

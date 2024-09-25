@@ -139,6 +139,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
         setIsProcessing(true);
         const method = action === "Create" ? "POST" : "PUT";
         const id = action === "Edit" ? exercise!.id : null;
+        
         const body = new FormData();
         body.append("name", name);
         body.append("category_id", category!.value);
