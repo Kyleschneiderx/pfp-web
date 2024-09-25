@@ -6,12 +6,10 @@ import ConfirmModal from "@/app/components/elements/ConfirmModal";
 import DateInput from "@/app/components/elements/DateInput";
 import Input from "@/app/components/elements/Input";
 import ReqIndicator from "@/app/components/elements/ReqIndicator";
-import Select from "@/app/components/elements/Select";
 import Textarea from "@/app/components/elements/Textarea";
 import ToggleSwitch from "@/app/components/elements/ToggleSwitch";
 import UploadCmp from "@/app/components/elements/UploadCmp";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
-import countryCodes from "@/app/lib/country-codes.json";
 import { revalidatePage } from "@/app/lib/revalidate";
 import { formatDate, onPhoneNumKeyDown } from "@/app/lib/utils";
 import { ErrorModel } from "@/app/models/error_model";
@@ -227,30 +225,23 @@ export default function PatientForm({ action = "Create", patient }: Props) {
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-          <div>
-            <p className="font-medium mb-2">
-              Contact Number <ReqIndicator />
-            </p>
-            <div className="flex space-x-3">
-              <Select id="country_code" name="country_code">
-                {countryCodes.map((country) => (
-                  <option key={country.code} value={country.dial_code}>
-                    {country.dial_code}
-                  </option>
-                ))}
-              </Select>
-              <Input
-                type="text"
-                placeholder="xxx xxx xxx"
-                className="w-[482px]"
-                value={contactNo}
-                invalid={hasError("contactNo")}
-                onChange={(e) => setContactNo(e.target.value)}
-                onKeyDown={onPhoneNumKeyDown}
-              />
-            </div>
-          </div>
           <div className="flex space-x-3">
+            <div>
+              <p className="font-medium mb-2">
+                Contact Number <ReqIndicator />
+              </p>
+              <div className="flex space-x-3">
+                <Input
+                  type="text"
+                  placeholder="xxx xxx xxx"
+                  className="!w-[290px]"
+                  value={contactNo}
+                  invalid={hasError("contactNo")}
+                  onChange={(e) => setContactNo(e.target.value)}
+                  onKeyDown={onPhoneNumKeyDown}
+                />
+              </div>
+            </div>
             <div>
               <p className="font-medium mb-2">
                 Date of Birth <ReqIndicator />
@@ -260,15 +251,8 @@ export default function PatientForm({ action = "Create", patient }: Props) {
                 invalid={hasError("birthdate")}
                 maxDate={new Date()}
                 onChange={(date) => setBirthdate(date)}
+                className="!w-[290px]"
               />
-            </div>
-            <div>
-              <p className="font-medium mb-2">Other Info</p>
-              <Input type="text" placeholder="0" onChange={() => {}} />
-            </div>
-            <div>
-              <p className="font-medium mb-2">Other Info</p>
-              <Input type="text" placeholder="0" onChange={() => {}} />
             </div>
           </div>
           <div>
