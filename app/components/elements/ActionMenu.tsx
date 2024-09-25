@@ -8,9 +8,14 @@ import { useEffect, useRef, useState } from "react";
 interface Props {
   editUrl: string;
   onDeleteClick: () => void;
+  onRenameClick?: () => void;
 }
 
-export default function ActionMenu({ editUrl, onDeleteClick }: Props) {
+export default function ActionMenu({
+  editUrl,
+  onDeleteClick,
+  onRenameClick,
+}: Props) {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -53,6 +58,13 @@ export default function ActionMenu({ editUrl, onDeleteClick }: Props) {
                   <span>Edit</span>
                 </Link>
               </li>
+              {onRenameClick && (
+                <li>
+                  <Link href="#" className={itemClass} onClick={onRenameClick}>
+                    <span>Rename</span>
+                  </Link>
+                </li>
+              )}
               <li>
                 <Link href="#" className={itemClass} onClick={onDeleteClick}>
                   <span>Delete</span>

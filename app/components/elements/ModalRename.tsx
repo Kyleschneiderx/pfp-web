@@ -8,27 +8,29 @@ import { useEffect, useState } from "react";
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  categoryName: string;
-  onSaveClick: (name: string) => void;
+  name: string;
+  onSaveClick: (newName: string) => void;
   isProcessing: boolean;
+  label: string;
 }
 
-export default function RenameCategoryModal({
+export default function ModalRename({
   isOpen,
   onClose,
-  categoryName,
+  name,
   onSaveClick,
   isProcessing,
+  label,
 }: Props) {
-  const [name, setName] = useState<string>("");
+  const [newName, setNewName] = useState<string>("");
 
   const handlSaveClick = () => {
-    onSaveClick(name);
+    onSaveClick(newName);
   };
 
   useEffect(() => {
     if (isOpen) {
-      setName("");
+      setNewName("");
     }
   }, [isOpen]);
 
@@ -36,16 +38,16 @@ export default function RenameCategoryModal({
     <ModalCmp isOpen={isOpen} contentLabel="Example Modal">
       <div className="w-[450px] py-5 px-3">
         <p className="text-2xl font-semibold mb-7 text-center">
-          Rename a Category
+          Rename {label}
         </p>
         <div className="border border-neutral-200 rounded py-[9px] px-4 mb-6">
-          <span>{categoryName}</span>
+          <span>{name}</span>
         </div>
         <Input
           type="text"
-          placeholder="Enter a new category name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          placeholder={`Enter the New ${label} name`}
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
         />
         <div className="flex justify-center space-x-3 mt-9">
           <Button

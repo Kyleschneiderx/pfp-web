@@ -18,10 +18,9 @@ import {
   createExerciseCategory,
   deleteExercise,
   deleteExerciseCategory,
-  FormExerciseParams,
   getExerciseCategories,
   saveExercise,
-  updateExerciseCategory,
+  updateExerciseCategory
 } from "@/app/services/client_side/exercises";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -43,8 +42,8 @@ const CategoryListModal = dynamic(
   () => import("@/app/components/exercises/category-list-modal"),
   { ssr: false }
 );
-const RenameCategoryModal = dynamic(
-  () => import("@/app/components/exercises/rename-category-modal"),
+const ModalRename = dynamic(
+  () => import("@/app/components/elements/ModalRename"),
   { ssr: false }
 );
 
@@ -138,21 +137,20 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
     if (!isProcessing) {
       try {
         setIsProcessing(true);
-        let body: FormExerciseParams = {
-          method: action === "Create" ? "POST" : "PUT",
-          id: action === "Edit" ? exercise!.id : null,
-          name: name,
-          category_id: category!.value,
-          sets: sets,
-          reps: reps,
-          hold: hold,
-          description: description,
-          how_to: howTo,
-          photo: photo,
-          video: video,
-        }
-        
-        await saveExercise(body);
+        const method = action === "Create" ? "POST" : "PUT";
+        const id = action === "Edit" ? exercise!.id : null;
+        const body = new FormData();
+        body.append("name", name);
+        body.append("category_id", category!.value);
+        body.append("sets", sets.toString());
+        body.append("reps", reps.toString());
+        body.append("hold", hold.toString());
+        body.append("description", description);
+        body.append("how_to", howTo);
+        if (photo) body.append("photo", photo);
+        if (video) body.append("video", video);
+
+        await saveExercise({method, id, body});
         await revalidatePage("/exercises");
         setIsProcessing(false);
         showSnackBar({
@@ -470,18 +468,17 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
           onEditClick={handleEditCatClick}
           onDeleteClick={handleDeleteCatClick}
         />
-        <RenameCategoryModal
+        <ModalRename
           isOpen={renameCatModalOpen}
           onClose={handleCloseModal}
-          categoryName={catToEditDelete.label}
+          name={catToEditDelete.label}
           onSaveClick={handleRenameClick}
           isProcessing={isCategoryProcessing}
+          label="Category"
         />
         <ConfirmModal
           title={`Are you sure you want to ${
-            action === "Create"
-              ? "create this exercise?"
-              : "save this changes?"
+            action === "Create" ? "create this exercise?" : "save this changes?"
           } `}
           subTitle="Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum been."
           isOpen={modalOpen}

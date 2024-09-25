@@ -5,15 +5,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 export interface FormExerciseParams {
   method: "POST" | "PUT",
   id?: number | null;
-  name: string;
-  category_id: string;
-  sets: number;
-  reps: number;
-  hold: number;
-  description: string | null;
-  how_to: string | null;
-  photo: File | null;
-  video: File | null;
+  body: FormData,
 }
 
 interface ExerciseCategoriesResponse {
@@ -25,33 +17,14 @@ interface ExerciseCategoriesResponse {
 export const saveExercise = async ({
   method,
   id,
-  name,
-  category_id,
-  sets,
-  reps,
-  hold,
-  description,
-  how_to,
-  photo,
-  video,
+  body,
 }: FormExerciseParams): Promise<{ msg: string }> => {
   const url = `${API_BASE_URL}/exercises/${id ?? ""}`;
-
-  const formData = new FormData();
-  formData.append("name", name);
-  formData.append("category_id", category_id);
-  formData.append("sets", sets.toString());
-  formData.append("reps", reps.toString());
-  formData.append("hold", hold.toString());
-  if (description) formData.append("description", description);
-  if (how_to) formData.append("how_to", how_to);
-  if (photo) formData.append("photo", photo);
-  if (video) formData.append("video", video);
 
   return apiClient<{ msg: string }>({
     url: url,
     method: method,
-    body: formData,
+    body: body,
     contentType: "multipart/form-data",
   });
 };
