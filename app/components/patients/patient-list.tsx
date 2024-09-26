@@ -78,15 +78,17 @@ export default function PatientList({
               <p
                 className={clsx(
                   "text-xs mb-1",
-                  patient.last_login_at &&
-                    getLastLoginStatus(patient.last_login_at) === "Active"
+                  patient.last_login_at ||
+                    getLastLoginStatus(patient.last_login_at ?? "") === "Active"
                     ? "text-green-500"
                     : "text-neutral-500"
                 )}
               >
-                {patient.last_login_at
+                {patient.status.value === "Inactive"
+                  ? "Inactive"
+                  : patient.last_login_at
                   ? getLastLoginStatus(patient.last_login_at)
-                  : "Inactive"}
+                  : ""}
               </p>
               <div className="flex text-sm mb-1">
                 <p className="mr-2 text-neutral-800 w-[90px] font-medium">

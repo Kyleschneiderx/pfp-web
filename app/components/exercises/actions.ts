@@ -37,7 +37,7 @@ export async function fetchExercises({
     return { exerciseList: response.data, max_page: response.max_page };
   } catch (error) {
     const apiError = error as ErrorModel;
-    const errorMessage = apiError.msg || "Failed to fetch patients";
+    const errorMessage = apiError.msg || "Failed to fetch exercises";
     throw new Error(errorMessage);
   }
 }
