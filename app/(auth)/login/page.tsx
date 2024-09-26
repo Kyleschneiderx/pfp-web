@@ -40,6 +40,8 @@ export default function Page() {
     if (isValid() && !isProcessing) {
       try {
         setIsProcessing(true);
+        Cookies.remove("token");
+
         const response: LoginModel = await login(email, password);
         Cookies.set("token", response.token.access, {
           expires: 1 / 24, // expires in 1 hour
@@ -47,8 +49,9 @@ export default function Page() {
           // secure: true, // enable this if the server is already https
           sameSite: "Strict",
         });
-        router.push("/dashboard");
-        window.location.reload();
+        window.location.replace("/dashboard");
+        // router.push("/dashboard");
+        // window.location.reload();
       } catch (error) {
         const apiError = error as ErrorModel;
 

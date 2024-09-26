@@ -6,9 +6,7 @@ export const useLogout = () => {
 
   const logout = () => {
     Cookies.remove('token');
-    router.replace('/login');
-    window.history.pushState(null, "", "/login");
-    window.location.reload();
+    window.location.replace("/login");
   };
 
   return logout;
