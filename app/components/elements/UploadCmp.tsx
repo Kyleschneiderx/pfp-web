@@ -10,12 +10,14 @@ interface Props {
   onFileSelect: (file: File | null) => void;
   clearImagePreview: boolean;
   type: "image" | "video";
+  recommendedText?: string;
 }
 
 export default function UploadCmp({
   onFileSelect,
   clearImagePreview,
   type,
+  recommendedText,
 }: Props) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -79,7 +81,7 @@ export default function UploadCmp({
               "video/x-msvideo": [".avi"],
               "video/x-matroska": [".mkv"],
             },
-      maxSize: type === "image" ? 5242880 : 20971520, // Image: 5mb, Video: 20mb
+      maxSize: type === "image" ? 5242880 : 104857600, // Image: 5mb, Video: 100mb
       multiple: false,
     });
 
@@ -152,6 +154,9 @@ export default function UploadCmp({
               : "MP4, MOV, WMV, AVI or MKV"}
           </p>
           <p className="text-sm">(Max file size: {limitText})</p>
+          {recommendedText && (
+            <p className="text-sm">Recomended Dimentions: {recommendedText}</p>
+          )}
         </div>
       </div>
     </div>
