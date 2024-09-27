@@ -23,7 +23,7 @@ export default function UploadCmp({
   const [fileName, setFileName] = useState<string | null>(null);
   const [fileType, setFileType] = useState<string | null>(null);
   const { showSnackBar } = useSnackBar();
-  const limitText = type === "image" ? "5MB" : "20MB";
+  const limitText = type === "image" ? "5MB" : "100MB";
 
   const onDrop = (acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
