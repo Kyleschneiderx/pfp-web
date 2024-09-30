@@ -2,7 +2,7 @@
 
 import { ErrorModel } from "@/app/models/error_model";
 import { WorkoutModel } from "@/app/models/workout_model";
-import { getWorkouts } from "@/app/services/server_side/workout";
+import { getWorkouts } from "@/app/services/server_side/workouts";
 
 interface Props {
   page?: number;

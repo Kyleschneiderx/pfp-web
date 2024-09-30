@@ -11,6 +11,9 @@ const config: Config = {
       dropShadow: {
         'center': "0 0px 2px rgba(0,0,0,0.20)"
       },
+      boxShadow: {
+        'bottom': "0 3px 3px -1px rgba(0, 0, 0, 0.05)",
+      },
       keyframes: {
         shimmer: {
           '100%': {

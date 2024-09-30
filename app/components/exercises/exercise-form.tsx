@@ -8,6 +8,7 @@ import Textarea from "@/app/components/elements/Textarea";
 import UploadCmp from "@/app/components/elements/UploadCmp";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import { revalidatePage } from "@/app/lib/revalidate";
+import { getFileContentType } from "@/app/lib/utils";
 import { ErrorModel } from "@/app/models/error_model";
 import {
   CategoryOptionsModel,
@@ -148,8 +149,11 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
         body.append("hold", hold.toString());
         body.append("description", description);
         body.append("how_to", howTo);
-        if (photo) body.append("photo", photo);
-        if (video) body.append("video", video);
+        if (photo) body.append("photo", photo, photo.name);
+        if (video) {
+          const blob = new Blob([video], {type: getFileContentType(video)});
+          body.append("video", blob, video.name);
+        };
 
         await saveExercise({method, id, body});
         await revalidatePage("/exercises");

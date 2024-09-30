@@ -19,7 +19,7 @@ export default function SelectCmp({ className, invalid, onChange, ...rest }: Pro
         {...rest}
         classNamePrefix="react-select"
         className={clsx(
-          "w-full rounded-md border p-[3px] focus:outline-none",
+          "w-full rounded-md border p-[3px] focus:outline-none bg-white",
           invalid
           ? "border-error-400 focus:border-error-600"
           : "border-gray-200 focus:border-neutral-600 ",

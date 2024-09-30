@@ -1,4 +1,4 @@
-import { ExerciseCategoryModel } from "@/app/models/exercise_model";
+import { ExerciseCategoryModel, ExercisesResponse } from "@/app/models/exercise_model";
 import { apiClient } from "@/app/services/apiClient";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -13,6 +13,18 @@ interface ExerciseCategoriesResponse {
     exercise_category: ExerciseCategoryModel[];
   };
 }
+
+export const getExercises = async (
+  params: string
+): Promise<ExercisesResponse> => {
+  const url = `${API_BASE_URL}/exercises?${params}`;
+  console.log(url);
+  const data = await apiClient({
+    url: url,
+    method: "GET",
+  });
+  return data as ExercisesResponse;
+};
 
 export const saveExercise = async ({
   method,

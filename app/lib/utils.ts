@@ -63,3 +63,21 @@ export const getLastLoginStatus = (dateString: string): string => {
     return `Last login ${diffMonths} months ago`;
   }
 }
+
+export const getFileContentType = (file: File): string => {
+  const ext = file.name.split('.').pop()!.toLowerCase();
+  switch (ext) {
+    case 'mp4':
+      return 'video/mp4';
+    case 'avi':
+      return 'video/x-msvideo'; // Common MIME type for .avi
+    case 'mov':
+      return 'video/quicktime'; // Common MIME type for .mov
+    case 'wmv':
+      return 'video/x-ms-wmv'; // Common MIME type for .wmv
+    case 'mkv':
+      return 'video/x-matroska'; // Common MIME type for .mkv
+    default:
+      return 'application/octet-stream';
+  }
+};
