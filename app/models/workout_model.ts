@@ -28,11 +28,11 @@ export interface WorkoutExerciseModel {
 interface Exercise {
   id: number;
   name: string;
-  description: string;
-  how_to: string;
-  photo: string;
-  video: string;
-  exercise_category: ExerciseCategoryModel;
+  description?: string;
+  how_to?: string;
+  photo?: string;
+  video?: string;
+  exercise_category?: ExerciseCategoryModel;
 }
 
 export interface WorkoutResponse {

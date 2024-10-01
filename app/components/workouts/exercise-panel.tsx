@@ -85,11 +85,12 @@ export default function ExercisePanel({
             <div className="flex items-center shadow-bottom w-[420px] p-2">
               <Image
                 src={item.photo || "/images/exercise-banner.jpg"}
-                width={76}
-                height={45}
+                width={80}
+                height={56}
                 alt="Banner"
                 placeholder="blur"
                 blurDataURL="/images/placeholder.jpg"
+                className="w-[80px] h-[56px]"
               />
               <div className="ml-3">
                 <p

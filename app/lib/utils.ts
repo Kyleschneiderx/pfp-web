@@ -81,3 +81,7 @@ export const getFileContentType = (file: File): string => {
       return 'application/octet-stream';
   }
 };
+
+export const truncatedText = (text: string, max: number): string => {
+  return text.length > max ? text.substring(0, max) + "..." : text;
+};

@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@hello-pangea/dnd": "^17.0.0",
     "@types/js-cookie": "^3.0.6",
     "clsx": "^2.1.1",
     "js-cookie": "^3.0.5",

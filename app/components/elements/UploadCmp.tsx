@@ -35,7 +35,6 @@ export default function UploadCmp({
       setImagePreview(imageUrl);
       setFileName(filename);
       setFileType(fileExtension);
-      console.log(file.name)
       onFileSelect(file);
     }
   };

@@ -5,6 +5,7 @@ import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import { revalidatePage } from "@/app/lib/revalidate";
 import { ErrorModel } from "@/app/models/error_model";
 import { WorkoutModel } from "@/app/models/workout_model";
+import { deleteWorkout, saveWorkout } from "@/app/services/client_side/workouts";
 import { useState } from "react";
 import ConfirmModal from "../elements/ConfirmModal";
 import ModalRename from "../elements/ModalRename";
@@ -30,7 +31,7 @@ export default function WorkoutAction({ workout }: Props) {
     if (!isProcessing) {
       try {
         setIsProcessing(true);
-        // await deleteExercise(workout.id);
+        await deleteWorkout(workout.id);
         await revalidatePage("/workouts");
         setIsProcessing(false);
         showSnackBar({
@@ -56,7 +57,7 @@ export default function WorkoutAction({ workout }: Props) {
         setIsProcessing(true);
         const body = new FormData();
         body.append("name", newName);
-        // await saveExercise({ method: "PUT", id: workout.id, body });
+        await saveWorkout({ method: "PUT", id: workout.id, body });
         await revalidatePage("/workouts");
         setIsProcessing(false);
         showSnackBar({
