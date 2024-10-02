@@ -6,12 +6,14 @@ export const validateForm = ({
   type,
   photo,
   exerciseLength,
+  action,
 }: {
   name: string;
   description: string;
   type?: string;
   photo?: any;
   exerciseLength: number;
+  action: string,
 }): ValidationErrorModel[] => {
   const errors: ValidationErrorModel[] = [];
 
@@ -30,7 +32,7 @@ export const validateForm = ({
     errors.push({ fieldName: "type", message: "Please select a user type." });
   }
 
-  if (!photo) {
+  if (!photo && action === "Create") {
     errors.push({ fieldName: "photo", message: "A photo is required." });
   }
 
