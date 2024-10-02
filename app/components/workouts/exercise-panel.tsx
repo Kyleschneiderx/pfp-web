@@ -35,7 +35,7 @@ export default function ExercisePanel({
     try {
       setIsLoading(true);
       const currentPage = resetPage ? 1 : page;
-      const params = `name=${name}&sort[]=name:ASC&page=${currentPage}&page_items=20`;
+      const params = `name=${name}&sort[]=name:ASC&page=${currentPage}&page_items=5`;
       const { data, max_page } = await getExercises(params);
       setMaxPage(max_page);
       if (currentPage < max_page) {
@@ -84,7 +84,7 @@ export default function ExercisePanel({
           <p className="text-center mt-[200px]">{errorMessage}</p>
         ) : (
           exercises.map((item) => (
-            <div className="flex items-center">
+            <div key={item.id} className="flex items-center">
               <div className="flex items-center shadow-bottom w-[420px] p-2">
                 <Image
                   src={item.photo || "/images/exercise-banner.jpg"}
