@@ -18,7 +18,6 @@ export const saveWorkout = async ({
     url: url,
     method: method,
     body: body,
-    contentType: "multipart/form-data",
   });
 };
 

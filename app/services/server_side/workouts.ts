@@ -11,7 +11,6 @@ export const getWorkouts = async (
   const data = await apiServerSide({
     url: url,
     method: "GET",
-    revalidateTime: 60,
   });
   return data as WorkoutResponse;
 };

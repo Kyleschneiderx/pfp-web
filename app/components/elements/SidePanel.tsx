@@ -19,7 +19,7 @@ export default function SidePanel({ isOpen, onClose, children }: Props) {
         <div className="flex-grow overflow-auto p-4">{children}</div>
         <div className="p-4">
           <Button
-            label="Close"
+            label="Done"
             secondary
             className="right-4 !py-2 !px-4 ml-auto"
             onClick={onClose}
