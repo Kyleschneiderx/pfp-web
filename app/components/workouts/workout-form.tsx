@@ -146,7 +146,13 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
   };
 
   const isValid = () => {
-    const validationErrors = validateForm(name, description, type?.label);
+    const validationErrors = validateForm({
+      name,
+      description,
+      type: type?.label,
+      photo,
+      exerciseLength: exercises.length,
+    });
     setErrors(validationErrors);
     return validationErrors.length === 0;
   };
@@ -310,14 +316,14 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
                 )}
               >
                 {type?.label === "Premium" && (
-                    <Image
-                      src="/images/orange-heart.png"
-                      alt="orange heart"
-                      width={20}
-                      height={19}
-                      quality={100}
-                      className="mr-[5px] w-[20px] h-[19px]"
-                    />
+                  <Image
+                    src="/images/orange-heart.png"
+                    alt="orange heart"
+                    width={20}
+                    height={19}
+                    quality={100}
+                    className="mr-[5px] w-[20px] h-[19px]"
+                  />
                 )}
                 <p>{type?.label}</p>
               </div>
