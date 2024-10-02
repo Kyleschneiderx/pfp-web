@@ -29,6 +29,7 @@ export default function ExercisePanel({
   const [name, setName] = useState("");
   const [ref, inView] = useInView();
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   const fetchExercises = async (resetPage = false) => {
     try {
@@ -43,11 +44,10 @@ export default function ExercisePanel({
       setExercises((prev: ExerciseModel[]) => {
         return resetPage ? data : [...prev, ...data];
       });
+      setErrorMessage("");
     } catch (error) {
       const apiError = error as ErrorModel;
-      const errorMessage =
-        apiError.msg || "Failed to fetch exercise categories";
-      throw new Error(errorMessage);
+      setErrorMessage(apiError.msg || "Failed to fetch exercise categories");
     } finally {
       setIsLoading(false);
     }
@@ -80,38 +80,42 @@ export default function ExercisePanel({
         onChange={setName}
       />
       <div className="space-y-3 mt-2">
-        {exercises.map((item) => (
-          <div className="flex items-center">
-            <div className="flex items-center shadow-bottom w-[420px] p-2">
-              <Image
-                src={item.photo || "/images/exercise-banner.jpg"}
-                width={80}
-                height={56}
-                alt="Banner"
-                placeholder="blur"
-                blurDataURL="/images/placeholder.jpg"
-                className="w-[80px] h-[56px]"
-              />
-              <div className="ml-3">
-                <p
-                  className={clsx(
-                    pClass,
-                    "text-sm font-medium text-neutral-800 mb-1"
-                  )}
-                >
-                  {truncatedText(item.name, 35)}
-                </p>
-                <p className={clsx(pClass, "text-xs text-neutral-500")}>
-                  {truncatedText(item.description ?? "", 45)}
-                </p>
+        {errorMessage ? (
+          <p className="text-center mt-[200px]">{errorMessage}</p>
+        ) : (
+          exercises.map((item) => (
+            <div className="flex items-center">
+              <div className="flex items-center shadow-bottom w-[420px] p-2">
+                <Image
+                  src={item.photo || "/images/exercise-banner.jpg"}
+                  width={80}
+                  height={56}
+                  alt="Banner"
+                  placeholder="blur"
+                  blurDataURL="/images/placeholder.jpg"
+                  className="w-[80px] h-[56px]"
+                />
+                <div className="ml-3">
+                  <p
+                    className={clsx(
+                      pClass,
+                      "text-sm font-medium text-neutral-800 mb-1"
+                    )}
+                  >
+                    {truncatedText(item.name, 35)}
+                  </p>
+                  <p className={clsx(pClass, "text-xs text-neutral-500")}>
+                    {truncatedText(item.description ?? "", 45)}
+                  </p>
+                </div>
+                <Plus
+                  className="ml-auto cursor-pointer"
+                  onClick={() => onSelect(item)}
+                />
               </div>
-              <Plus
-                className="ml-auto cursor-pointer"
-                onClick={() => onSelect(item)}
-              />
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
       {page < maxPage && (
         <div ref={ref} className="flex justify-center mt-5">
