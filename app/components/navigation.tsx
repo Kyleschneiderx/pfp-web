@@ -57,6 +57,7 @@ export default function Navigation() {
         alt="Logo"
         width={172}
         height={80}
+        quality={100}
         className="ml-9 my-10"
         priority
       />

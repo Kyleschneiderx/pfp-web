@@ -74,6 +74,7 @@ export default function Page() {
         alt="Logo"
         width={172}
         height={80}
+        quality={100}
         className="mx-auto"
         priority
       />

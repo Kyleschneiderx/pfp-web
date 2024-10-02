@@ -83,6 +83,7 @@ export default function ExerciseList({
                 sizes="350vw"
                 className="rounded-lg rounded-b-none object-cover"
                 priority
+                quality={90}
                 placeholder="blur"
                 blurDataURL="/images/placeholder.jpg"
               />

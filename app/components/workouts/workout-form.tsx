@@ -9,7 +9,10 @@ import { ExerciseModel } from "@/app/models/exercise_model";
 import { SelectOptionsModel } from "@/app/models/global_model";
 import { ValidationErrorModel } from "@/app/models/validation_error_model";
 import { WorkoutExerciseModel, WorkoutModel } from "@/app/models/workout_model";
-import { deleteWorkout, saveWorkout } from "@/app/services/client_side/workouts";
+import {
+  deleteWorkout,
+  saveWorkout,
+} from "@/app/services/client_side/workouts";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import clsx from "clsx";
 import { CircleX } from "lucide-react";
@@ -25,6 +28,7 @@ import StatusBadge from "../elements/StatusBadge";
 import Textarea from "../elements/Textarea";
 import UploadCmp from "../elements/UploadCmp";
 import MoveTaskIcon from "../icons/move_task_icon";
+import PencilIcon from "../icons/pencil_icon";
 import { validateForm } from "./validation";
 const ExercisePanel = dynamic(
   () => import("@/app/components/workouts/exercise-panel"),
@@ -53,6 +57,9 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
 
   const [errors, setErrors] = useState<ValidationErrorModel[]>([]);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [editInfo, setEditInfo] = useState<boolean>(
+    action === "Create" ? true : false
+  );
 
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -271,33 +278,69 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
         </div>
       </div>
       <hr />
-      <div className="mt-6 w-[800px] border-l-4 border-primary-500 pl-4">
+      <div className="mt-6 border-l-4 border-primary-500 pl-4">
         <div className="flex space-x-4 items-center">
-          <Input
-            type="text"
-            placeholder="Workout name"
-            value={name}
-            invalid={false}
-            onChange={(e) => setName(e.target.value)}
-            className="!w-[468px]"
-          />
-          <SelectCmp
-            options={typeOptions}
-            value={type}
-            invalid={false}
-            onChange={(e) => setType(e)}
-            placeholder="Select"
-            className="!w-[150px]"
-          />
+          {editInfo ? (
+            <>
+              <Input
+                type="text"
+                placeholder="Workout name"
+                value={name}
+                invalid={false}
+                onChange={(e) => setName(e.target.value)}
+                className="!w-[468px]"
+              />
+              <SelectCmp
+                options={typeOptions}
+                value={type}
+                invalid={false}
+                onChange={(e) => setType(e)}
+                placeholder="Select"
+                className="!w-[150px]"
+              />
+            </>
+          ) : (
+            <>
+              <div
+                className={clsx(
+                  "flex items-center rounded-md py-[4px] px-[10px]",
+                  type?.label === "Premium"
+                    ? "text-[#D5A215] bg-[#D5A21514]"
+                    : "text-primary-900 bg-secondary-100"
+                )}
+              >
+                {type?.label === "Premium" && (
+                    <Image
+                      src="/images/orange-heart.png"
+                      alt="orange heart"
+                      width={20}
+                      height={19}
+                      quality={100}
+                      className="mr-[5px] w-[20px] h-[19px]"
+                    />
+                )}
+                <p>{type?.label}</p>
+              </div>
+              <p className="text-2xl font-semibold">{name}</p>
+              <div onClick={() => setEditInfo(true)} className="cursor-pointer">
+                <PencilIcon />
+              </div>
+            </>
+          )}
           <StatusBadge label={workout ? workout.status.value : "Draft"} />
         </div>
-        <div className="mt-3 w-[635px]">
-          <Textarea
-            placeholder="Enter a description"
-            rows={3}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
+        <div className={clsx(editInfo ? "w-[635px]" : "")}>
+          {editInfo ? (
+            <Textarea
+              placeholder="Enter a description"
+              rows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="mt-3"
+            />
+          ) : (
+            <p>{description}</p>
+          )}
         </div>
       </div>
       <div className="flex mt-4">
