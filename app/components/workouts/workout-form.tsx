@@ -150,9 +150,8 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
       name,
       description,
       type: type?.label,
-      photo,
+      photo: photo ?? workout?.photo,
       exerciseLength: exercises.length,
-      action,
     });
     setErrors(validationErrors);
     return validationErrors.length === 0;
