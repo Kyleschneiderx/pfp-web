@@ -89,6 +89,7 @@ export default function UploadCmp({
     setImagePreview(null);
     setFileName(null);
     setFileType(null);
+    onFileSelect(null);
     if (imagePreview) {
       URL.revokeObjectURL(imagePreview);
     }

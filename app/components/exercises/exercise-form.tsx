@@ -21,7 +21,7 @@ import {
   deleteExerciseCategory,
   getExerciseCategories,
   saveExercise,
-  updateExerciseCategory
+  updateExerciseCategory,
 } from "@/app/services/client_side/exercises";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -114,7 +114,12 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
   };
 
   const isValid = () => {
-    const validationErrors = validateForm(name, category);
+    const validationErrors = validateForm({
+      name,
+      category,
+      photo: photo ?? exercise?.photo,
+      video: video ?? exercise?.video,
+    });
     setErrors(validationErrors);
     return validationErrors.length === 0;
   };
@@ -140,7 +145,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
         setIsProcessing(true);
         const method = action === "Create" ? "POST" : "PUT";
         const id = action === "Edit" ? exercise!.id : null;
-        
+
         const body = new FormData();
         body.append("name", name);
         body.append("category_id", category!.value);
@@ -151,11 +156,11 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
         body.append("how_to", howTo);
         if (photo) body.append("photo", photo, photo.name);
         if (video) {
-          const blob = new Blob([video], {type: getFileContentType(video)});
+          const blob = new Blob([video], { type: getFileContentType(video) });
           body.append("video", blob, video.name);
-        };
+        }
 
-        await saveExercise({method, id, body});
+        await saveExercise({ method, id, body });
         await revalidatePage("/exercises");
         setIsProcessing(false);
         showSnackBar({
