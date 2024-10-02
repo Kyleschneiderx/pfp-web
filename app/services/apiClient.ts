@@ -12,8 +12,7 @@ export const apiClient = async <T>({
   url,
   method,
   body,
-}:
-Props): Promise<T> => {
+}: Props): Promise<T> => {
   try {
     const token = Cookies.get("token");
 
@@ -24,15 +23,22 @@ Props): Promise<T> => {
         ...(token && { Authorization: `Bearer ${token}` }),
       },
       data: body,
+      timeout: 600000, // 10 minutes
     };
 
     const response = await axios(config);
 
     return response.data;
   } catch (error: any) {
-    const apiError: ErrorModel = error.response?.data?.error?.[0] || {
-      msg: "Unknown error occurred",
-    };
+    let apiError: ErrorModel;
+    if (error.code === "ECONNABORTED") {
+      apiError = { msg: "Timeout of 10 minutes exceeded" };
+    } else {
+      apiError = error.response?.data?.error?.[0] || {
+        msg: error.message,
+      };
+    }
+
     console.error(apiError.msg);
     throw apiError;
   }
