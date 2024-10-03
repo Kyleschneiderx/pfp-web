@@ -8,7 +8,7 @@ export default function CardBanner({url}:{url: string}) {
       width={351}
       height={200}
       className="rounded-lg rounded-b-none object-cover w-[351px] h-[200px]"
-      quality={90}
+      quality={100}
       placeholder="blur"
       blurDataURL="/images/placeholder.jpg"
     />
