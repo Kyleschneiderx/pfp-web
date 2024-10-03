@@ -14,6 +14,7 @@ export const apiServerSide = async <T>({
   body,
 }: Props): Promise<T> => {
   try {
+    console.log(url);
     const cookieStore = cookies();
     const token = cookieStore.get("token")?.value; // Server-side cookies
 

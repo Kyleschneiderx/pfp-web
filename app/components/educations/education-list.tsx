@@ -1,78 +1,78 @@
 "use client";
 
 import Card from "@/app/components/elements/Card";
-import { WorkoutModel } from "@/app/models/workout_model";
+import { EducationModel } from "@/app/models/education_model";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import CardBanner from "../elements/CardBanner";
 import Loader from "../elements/Loader";
 import StatusBadge from "../elements/StatusBadge";
-import { fetchWorkouts } from "./actions";
-import WorkoutAction from "./workout-action";
+import { fetchEducations } from "./actions";
+import EducationAction from "./education-action";
 
 interface Props {
   name: string;
   sort: string;
-  initialList: WorkoutModel[] | [];
+  initialList: EducationModel[] | [];
   maxPage: number;
 }
 
-export default function WorkoutList({
+export default function EducationList({
   name,
   sort,
   initialList,
   maxPage,
 }: Props) {
-  const [workouts, setWorkouts] = useState(initialList);
+  const [educations, setEducations] = useState(initialList);
   const [page, setPage] = useState(1);
   const [ref, inView] = useInView();
 
-  const loadMoreWorkouts = async () => {
+  const loadMoreEducations = async () => {
     const next = page + 1;
-    const { workoutList } = await fetchWorkouts({
+    const { educationList } = await fetchEducations({
       page: next,
       name,
       sort,
     });
-    if (workoutList.length) {
+    if (educationList.length) {
       setPage(next);
-      setWorkouts((prev: WorkoutModel[]) => [
+      setEducations((prev: EducationModel[]) => [
         ...(prev?.length ? prev : []),
-        ...workoutList,
+        ...educationList,
       ]);
     }
   };
 
   useEffect(() => {
     if (inView && page < maxPage) {
-      loadMoreWorkouts();
+      loadMoreEducations();
     }
   }, [inView]);
 
   useEffect(() => {
-    setWorkouts(initialList);
+    setEducations(initialList);
     setPage(1);
   }, [sort, name, initialList]);
 
   return (
     <>
       <div className="flex flex-wrap">
-        {workouts.map((workout) => (
+        {educations.map((education) => (
           <div
-            key={workout.id}
+            key={education.id}
             className="w-[351px] mr-7 mb-7 text-neutral-900"
           >
-            <CardBanner url={workout.photo} />
+            <CardBanner url={education.photo} />
             <Card className="min-h-[158px] rounded-t-none py-4 px-5">
               <div className="flex">
-                <StatusBadge label={workout.status.value} />
-                <WorkoutAction workout={workout} />
+                <StatusBadge label={education.status.value} />
+                <EducationAction education={education} />
               </div>
               <p className="text-lg font-semibold leading-tight mt-[8px] mb-[6px]">
-                {workout.name}
+                {education.title}
               </p>
               <p className="text-sm text-neutral-700 mt-1">
-                {workout.description}
+                {education.content}
               </p>
             </Card>
           </div>

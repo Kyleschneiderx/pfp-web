@@ -3,9 +3,9 @@
 import Badge from "@/app/components/elements/Badge";
 import Card from "@/app/components/elements/Card";
 import { ExerciseModel } from "@/app/models/exercise_model";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
+import CardBanner from "../elements/CardBanner";
 import Loader from "../elements/Loader";
 import { fetchExercises } from "./actions";
 import ExerciseAction from "./exercise-action";
@@ -76,17 +76,7 @@ export default function ExerciseList({
             className="w-[351px] mr-7 mb-7 text-neutral-900"
           >
             <div className="relative h-[200px]">
-              <Image
-                src={exercise.photo || "/images/exercise-banner.jpg"}
-                alt="Exercise banner"
-                fill
-                sizes="350vw"
-                className="rounded-lg rounded-b-none object-cover"
-                priority
-                quality={90}
-                placeholder="blur"
-                blurDataURL="/images/placeholder.jpg"
-              />
+              <CardBanner url={exercise.photo} />
               <Badge
                 label={`${exercise.exercise_category.value}`}
                 className="text-white !bg-primary-500 absolute top-4 left-5"

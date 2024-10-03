@@ -1,10 +1,9 @@
+import CommonSort from "@/app/components/common-sort";
+import { fetchEducations } from "@/app/components/educations/actions";
+import EducationList from "@/app/components/educations/education-list";
 import Button from "@/app/components/elements/Button";
 import SearchCmp from "@/app/components/elements/SearchCmp";
-import { fetchWorkouts } from "@/app/components/workouts/actions";
-import WorkoutList from "@/app/components/workouts/workout-list";
-// import WorkoutSort from "@/app/components/workouts/workout_sort";
-import CommonSort from "@/app/components/common-sort";
-import { WorkoutModel } from "@/app/models/workout_model";
+import { EducationModel } from "@/app/models/education_model";
 import Link from "next/link";
 
 export default async function Page({
@@ -17,9 +16,9 @@ export default async function Page({
   };
 }) {
   const name = searchParams?.name || "";
-  const sort = searchParams?.sort || "name:ASC";
+  const sort = searchParams?.sort || "title:ASC";
 
-  let workouts: WorkoutModel[] = [];
+  let educations: EducationModel[] = [];
   let maxPage: number = 0;
   let errorMessage: string = "";
 
@@ -28,11 +27,11 @@ export default async function Page({
   };
 
   try {
-    const { workoutList, max_page } = await fetchWorkouts({
+    const { educationList, max_page } = await fetchEducations({
       name,
       sort,
     });
-    workouts = workoutList;
+    educations = educationList;
     maxPage = max_page;
   } catch (error) {
     errorMessage = (error as Error).message;
@@ -41,18 +40,18 @@ export default async function Page({
   return (
     <>
       <div className="flex items-center mb-8">
-        <SearchCmp placeholder="Search workouts" />
-        <CommonSort field="name" />
-        <Link href="/workouts/create" className="ml-auto">
-          <Button label="Add Workout" showIcon />
+        <SearchCmp placeholder="Search educations" />
+        <CommonSort field="title" />
+        <Link href="/educations/create" className="ml-auto">
+          <Button label="Add education" showIcon />
         </Link>
       </div>
       <div>
         {errorMessage ? (
           displayNoRecord(errorMessage)
         ) : (
-          <WorkoutList
-            initialList={workouts}
+          <EducationList
+            initialList={educations}
             name={name}
             sort={sort}
             maxPage={maxPage}

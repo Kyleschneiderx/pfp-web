@@ -70,7 +70,8 @@ export default function PatientList({
               width={50}
               height={50}
               alt="Profile pic"
-              className="self-start"
+              quality={90}
+              className="self-start w-[50px] h-[50px]"
             />
             <div className="pl-4 pr-2 w-[300px]">
               <p className="text-lg font-semibold mb-1">

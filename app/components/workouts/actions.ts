@@ -22,7 +22,7 @@ export async function fetchWorkouts({
     return { workoutList: response.data, max_page: response.max_page};
   } catch (error) {
     const apiError = error as ErrorModel;
-    const errorMessage = apiError.msg || "Failed to fetch exercises";
+    const errorMessage = apiError.msg || "Failed to fetch workouts";
     throw new Error(errorMessage);
   }
 }

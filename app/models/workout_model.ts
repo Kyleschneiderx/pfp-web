@@ -4,7 +4,7 @@ export interface WorkoutModel {
   id: number;
   name: string;
   description: string;
-  photo: string | null;
+  photo: string;
   is_premium: boolean | null;
   created_at: string;
   updated_at: string;

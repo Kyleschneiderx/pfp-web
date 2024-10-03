@@ -7,7 +7,7 @@ export interface ExerciseModel {
   description: string | null;
   how_to: string | null;
   audio: string;
-  photo: string | null;
+  photo: string;
   video: string | null;
   created_at: string;
   updated_at: string;

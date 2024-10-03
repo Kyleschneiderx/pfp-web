@@ -7,7 +7,6 @@ export const getWorkouts = async (
   params: string
 ): Promise<WorkoutResponse> => {
   const url = `${API_BASE_URL}/workouts?${params}`;
-  console.log(url);
   const data = await apiServerSide({
     url: url,
     method: "GET",
