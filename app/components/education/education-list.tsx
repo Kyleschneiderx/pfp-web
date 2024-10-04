@@ -72,7 +72,7 @@ export default function EducationList({
                 {education.title}
               </p>
               <p className="text-sm text-neutral-700 mt-1">
-                {education.content}
+                {education.description}
               </p>
             </Card>
           </div>

@@ -484,6 +484,7 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
         <div>
           <Card className="w-[446px] h-fit p-[22px]">
             <UploadCmp
+              label="Upload a Photo"
               onFileSelect={handleFileSelect}
               clearImagePreview={photo === null}
               type="image"

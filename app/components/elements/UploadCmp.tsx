@@ -3,17 +3,19 @@
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import clsx from "clsx";
 import { FileImage, Trash2, Upload } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 
 interface Props {
+  label: string;
   onFileSelect: (file: File | null) => void;
   clearImagePreview: boolean;
-  type: "image" | "video";
+  type: "image" | "video" | "image/video";
   recommendedText?: string;
 }
 
 export default function UploadCmp({
+  label,
   onFileSelect,
   clearImagePreview,
   type,
@@ -25,44 +27,74 @@ export default function UploadCmp({
   const { showSnackBar } = useSnackBar();
   const limitText = type === "image" ? "5MB" : "100MB";
 
-  const onDrop = (acceptedFiles: File[]) => {
-    if (acceptedFiles.length > 0) {
-      const file = acceptedFiles[0];
-      const filename = file.name.split(".").slice(0, -1).join();
-      const fileExtension =
-        file.name.split(".").pop()?.toUpperCase() || "UNKNOWN";
-      const imageUrl = URL.createObjectURL(file);
-      setImagePreview(imageUrl);
-      setFileName(filename);
-      setFileType(fileExtension);
-      onFileSelect(file);
-    }
+  const acceptedImage = {
+    "image/jpeg": [".jpeg", ".jpg"],
+    "image/png": [".png"],
   };
 
-  const onDropRejected = (fileRejections: any) => {
-    const error = fileRejections[0]?.errors[0];
-    if (error.code === "file-invalid-type") {
-      const message =
-        type === "image"
-          ? "Only JPEG, JPG, and PNG files are allowed."
-          : "Only MP4, MOV, WMV, AVI, and MKV files are allowed.";
-      showSnackBar({
-        message: message,
-        success: false,
-      });
-    } else if (error.code === "file-too-large") {
-      showSnackBar({
-        message: `File size exceeds the ${limitText} limit.`,
-        success: false,
-      });
-    } else {
-      showSnackBar({ message: "File upload failed.", success: false });
-    }
-    setImagePreview(null);
-    setFileName(null);
-    setFileType(null);
-    onFileSelect(null);
+  const acceptedVideo = {
+    "video/mp4": [".mp4"],
+    "video/quicktime": [".mov"],
+    "video/x-ms-wmv": [".wmv"],
+    "video/x-msvideo": [".avi"],
+    "video/x-matroska": [".mkv"],
   };
+
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      if (acceptedFiles.length > 0) {
+        const file = acceptedFiles[0];
+        const [filename, fileExtension] = [
+          file.name.split(".").slice(0, -1).join(),
+          file.name.split(".").pop()?.toUpperCase() || "UNKNOWN",
+        ];
+        setImagePreview(URL.createObjectURL(file));
+        setFileName(filename);
+        setFileType(fileExtension);
+        onFileSelect(file);
+      }
+    },
+    [onFileSelect]
+  );
+
+  const onDropRejected = useCallback(
+    (fileRejections: any) => {
+      const error = fileRejections[0]?.errors[0];
+      if (error.code === "file-invalid-type") {
+        let message = "";
+        switch (type) {
+          case "image":
+            message = "Only JPEG, JPG, and PNG files are allowed.";
+            break;
+          case "video":
+            message = "Only MP4, MOV, WMV, AVI, and MKV files are allowed.";
+            break;
+          case "image/video":
+            message =
+              "Only JPEG, JPG, PNG, MP4, MOV, WMV, AVI, and MKV files are allowed.";
+            break;
+          default:
+            break;
+        }
+        showSnackBar({
+          message: message,
+          success: false,
+        });
+      } else if (error.code === "file-too-large") {
+        showSnackBar({
+          message: `File size exceeds the ${limitText} limit.`,
+          success: false,
+        });
+      } else {
+        showSnackBar({ message: "File upload failed.", success: false });
+      }
+      setImagePreview(null);
+      setFileName(null);
+      setFileType(null);
+      onFileSelect(null);
+    },
+    [type, limitText, showSnackBar, onFileSelect]
+  );
 
   const { getRootProps, getInputProps, isDragActive, isDragReject } =
     useDropzone({
@@ -70,16 +102,12 @@ export default function UploadCmp({
       onDropRejected,
       accept:
         type === "image"
-          ? {
-              "image/jpeg": [".jpeg", ".jpg"],
-              "image/png": [".png"],
-            }
+          ? acceptedImage
+          : type === "video"
+          ? acceptedVideo
           : {
-              "video/mp4": [".mp4"],
-              "video/quicktime": [".mov"],
-              "video/x-ms-wmv": [".wmv"],
-              "video/x-msvideo": [".avi"],
-              "video/x-matroska": [".mkv"],
+              ...acceptedImage,
+              ...acceptedVideo,
             },
       maxSize: type === "image" ? 5242880 : 104857600, // Image: 5mb, Video: 100mb
       multiple: false,
@@ -113,9 +141,7 @@ export default function UploadCmp({
 
   return (
     <div>
-      <p className="font-medium mb-2">
-        Upload a {type === "image" ? "Photo" : "Video"}
-      </p>
+      <p className="font-medium mb-2">{label}</p>
       {fileName && fileType && (
         <div className="flex items-center mb-4">
           <FileImage size={20} className="text-neutral-300 mr-2" />
@@ -152,7 +178,9 @@ export default function UploadCmp({
           <p className="mt-2">
             {type === "image"
               ? "JPEG, JPG or PNG"
-              : "MP4, MOV, WMV, AVI or MKV"}
+              : type === "video"
+              ? "MP4, MOV, WMV, AVI or MKV"
+              : "JPEG, JPG, PNG, MP4, MOV, WMV, AVI or MKV"}
           </p>
           <p className="text-sm">(Max file size: {limitText})</p>
           {recommendedText && (

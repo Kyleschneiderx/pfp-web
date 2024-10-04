@@ -434,6 +434,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
           </div>
           <UploadCmp
             key="upload1"
+            label="Upload a Photo"
             onFileSelect={handlePhotoSelect}
             clearImagePreview={photo === null}
             type="image"
@@ -452,6 +453,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
             </div>
             <UploadCmp
               key="upload2"
+              label="Upload a Video"
               onFileSelect={handleVideoSelect}
               clearImagePreview={video === null}
               type="video"

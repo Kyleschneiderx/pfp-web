@@ -32,7 +32,7 @@ export default function EducationAction({ education }: Props) {
       try {
         setIsProcessing(true);
         await deleteEducation(education.id);
-        await revalidatePage("/educations");
+        await revalidatePage("/education");
         setIsProcessing(false);
         showSnackBar({
           message: `Education successfully deleted.`,
@@ -51,14 +51,14 @@ export default function EducationAction({ education }: Props) {
     }
   };
 
-  const handleRenameConfirm = async (newName: string) => {
+  const handleRenameConfirm = async (newTitle: string) => {
     if (!isProcessing) {
       try {
         setIsProcessing(true);
         const body = new FormData();
-        body.append("name", newName);
+        body.append("title", newTitle);
         await saveEducation({ method: "PUT", id: education.id, body });
-        await revalidatePage("/educations");
+        await revalidatePage("/education");
         setIsProcessing(false);
         showSnackBar({
           message: `Education successfully renamed.`,
@@ -80,7 +80,7 @@ export default function EducationAction({ education }: Props) {
   return (
     <div className="ml-auto">
       <ActionMenu
-        editUrl={`educations/${education.id}/edit`}
+        editUrl={`education/${education.id}/edit`}
         onRenameClick={() => setModalRenameOpen(true)}
         onDeleteClick={() => setModalOpen(true)}
       />

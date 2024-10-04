@@ -1,6 +1,6 @@
 import CommonSort from "@/app/components/common-sort";
-import { fetchEducations } from "@/app/components/educations/actions";
-import EducationList from "@/app/components/educations/education-list";
+import { fetchEducations } from "@/app/components/education/actions";
+import EducationList from "@/app/components/education/education-list";
 import Button from "@/app/components/elements/Button";
 import SearchCmp from "@/app/components/elements/SearchCmp";
 import { EducationModel } from "@/app/models/education_model";
@@ -42,7 +42,7 @@ export default async function Page({
       <div className="flex items-center mb-8">
         <SearchCmp placeholder="Search educations" />
         <CommonSort field="title" />
-        <Link href="/educations/create" className="ml-auto">
+        <Link href="/education/create" className="ml-auto">
           <Button label="Add education" showIcon />
         </Link>
       </div>

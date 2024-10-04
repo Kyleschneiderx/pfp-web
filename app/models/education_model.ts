@@ -1,6 +1,7 @@
 export interface EducationModel {
   id: number;
   title: string;
+  description: string;
   content: string;
   photo: string;
   media_url: string | null;
