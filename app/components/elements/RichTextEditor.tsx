@@ -159,8 +159,7 @@ export default function RichTextEditor({
     const selection = editorState.getSelection();
 
     if (!selection.isCollapsed()) {
-      // const url = window.prompt("Enter a URL:");
-      const url = "";
+      const url = window.prompt("Enter a URL:");
       if (url) {
         const contentState = editorState.getCurrentContent();
         const contentStateWithEntity = contentState.createEntity(
