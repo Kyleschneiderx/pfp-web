@@ -3,6 +3,7 @@
 import Button from "@/app/components/elements/Button";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import { revalidatePage } from "@/app/lib/revalidate";
+import { getFileContentType } from "@/app/lib/utils";
 import { EducationModel } from "@/app/models/education_model";
 import { ErrorModel } from "@/app/models/error_model";
 import { ValidationErrorModel } from "@/app/models/validation_error_model";
@@ -10,6 +11,9 @@ import {
   deleteEducation,
   saveEducation,
 } from "@/app/services/client_side/educations";
+import { ContentState, convertToRaw, EditorState } from "draft-js";
+import draftToHtml from "draftjs-to-html";
+// import htmlToDraft from "html-to-draftjs";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -19,6 +23,11 @@ import Input from "../elements/Input";
 import ReqIndicator from "../elements/ReqIndicator";
 import UploadCmp from "../elements/UploadCmp";
 import { validateForm } from "./validation";
+
+const RichTextEditor = dynamic(
+  () => import("@/app/components/elements/RichTextEditor"),
+  { ssr: false }
+);
 
 const ConfirmModal = dynamic(
   () => import("@/app/components/elements/ConfirmModal"),
@@ -36,7 +45,7 @@ export default function EducationForm({ action = "Create", education }: Props) {
 
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-  const [content, setContent] = useState<string>("");
+  const [content, setContent] = useState(EditorState.createEmpty());
   const [photo, setPhoto] = useState<File | null>(null);
   const [mediaUrl, setMediaUrl] = useState<string>("");
   const [mediaUpload, setMediaUpload] = useState<File | null>(null);
@@ -44,6 +53,8 @@ export default function EducationForm({ action = "Create", education }: Props) {
 
   const [errors, setErrors] = useState<ValidationErrorModel[]>([]);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [isSaved, setIsSaved] = useState<boolean>(false);
+  const [descCount, setDescCount] = useState<number>(0);
   const [editInfo, setEditInfo] = useState<boolean>(
     action === "Create" ? true : false
   );
@@ -55,16 +66,35 @@ export default function EducationForm({ action = "Create", education }: Props) {
     if (action === "Edit" && education) {
       setTitle(education.title);
       setDescription(education.description);
-      setContent(education.content);
       setMediaUrl(education.media_url ?? "");
+      setDescCount(education.description.length);
+      if (typeof window !== "undefined") {
+        const htmlToDraft = require("html-to-draftjs").default;
+        const blocksFromHtml = htmlToDraft(education.content);
+        const { contentBlocks, entityMap } = blocksFromHtml;
+        const contentState = ContentState.createFromBlockArray(
+          contentBlocks,
+          entityMap
+        );
+        setContent(EditorState.createWithContent(contentState));
+      }
     }
   }, [education]);
 
   const handlePhotoSelect = (file: File | null) => {
     setPhoto(file);
   };
+
   const handleMediaSelect = (file: File | null) => {
     setMediaUpload(file);
+  };
+
+  const handleChangeDescription = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target?.value;
+    if (value.length <= 60) {
+      setDescription(value);
+      setDescCount(value.length);
+    }
   };
 
   const isValid = () => {
@@ -114,13 +144,26 @@ export default function EducationForm({ action = "Create", education }: Props) {
         const id = action === "Edit" ? education!.id : null;
         const body = new FormData();
 
+        const rawContentState = convertToRaw(content.getCurrentContent());
+        const htmlContent = draftToHtml(rawContentState);
+
         body.append("title", title);
         body.append("description", description);
-        body.append("content", content);
+        body.append("content", htmlContent);
         body.append("status_id", statusId);
-        if (photo) body.append("photo", photo);
+        if (photo) body.append("photo", photo, photo.name);
         if (mediaUrl) body.append("media_url", mediaUrl);
-        if (mediaUpload) body.append("media_upload", mediaUpload);
+        if (mediaUpload) {
+          const ext = mediaUpload.name.split(".").pop()!.toLowerCase();
+          if (["mp4", "avi", "mov", "wmv", "mkv"].includes(ext)) {
+            const blob = new Blob([mediaUpload], {
+              type: getFileContentType(mediaUpload),
+            });
+            body.append("media_upload", blob, mediaUpload.name);
+          } else {
+            body.append("media_upload", mediaUpload, mediaUpload.name);
+          }
+        }
 
         await saveEducation({ method, id, body });
         await revalidatePage("/education");
@@ -133,6 +176,7 @@ export default function EducationForm({ action = "Create", education }: Props) {
         });
         setModalOpen(false);
         clearData();
+        setIsSaved(true);
       } catch (error) {
         const apiError = error as ErrorModel;
 
@@ -173,7 +217,6 @@ export default function EducationForm({ action = "Create", education }: Props) {
   const clearData = () => {
     setTitle("");
     setDescription("");
-    setContent("");
     setPhoto(null);
     setMediaUrl("");
     setMediaUpload(null);
@@ -195,6 +238,11 @@ export default function EducationForm({ action = "Create", education }: Props) {
 
   const hasError = (fieldName: string) => {
     return errors.some((error) => error.fieldName === fieldName);
+  };
+
+  const handleEditorChange = (content: EditorState) => {
+    setContent(content);
+    setIsSaved(false);
   };
 
   return (
@@ -239,23 +287,26 @@ export default function EducationForm({ action = "Create", education }: Props) {
             />
           </div>
           <div>
-            <Label label="Description" required />
+            <div className="flex justify-between items-center">
+              <Label label="Description" required />
+              <span className="text-neutral-600 text-sm">{descCount}/60</span>
+            </div>
             <Input
               type="text"
               placeholder="Enter description"
               value={description}
               invalid={hasError("description")}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={handleChangeDescription}
             />
           </div>
           <div>
             <Label label="Content" required />
-            <Input
-              type="text"
+            <RichTextEditor
               placeholder="Enter the education's content here"
-              value={content}
-              invalid={hasError("content")}
-              onChange={(e) => setContent(e.target.value)}
+              content={education?.content ?? null}
+              onChange={handleEditorChange}
+              isSaved={isSaved}
+              isEdit={action === "Edit"}
             />
           </div>
         </Card>

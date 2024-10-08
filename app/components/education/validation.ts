@@ -1,4 +1,5 @@
 import { ValidationErrorModel } from "@/app/models/validation_error_model";
+import { EditorState } from "draft-js";
 
 export const validateForm = ({
   title,
@@ -8,7 +9,7 @@ export const validateForm = ({
 }: {
   title: string;
   description: string;
-  content: string;
+  content: EditorState;
   photo?: any;
 }): ValidationErrorModel[] => {
   const errors: ValidationErrorModel[] = [];
@@ -24,7 +25,7 @@ export const validateForm = ({
     });
   }
 
-  if (!content.trim()) {
+  if (!content) {
     errors.push({ fieldName: "content", message: "Please enter a content." });
   }
 
