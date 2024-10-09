@@ -29,7 +29,7 @@ const blockStyleFn = (block: any) => {
     case "header-one":
       return "text-2xl font-bold";
     case "blockquote":
-      return "border-l-4 border-gray-400 pl-4";
+      return "border-l-4 pl-4 italic mb-2";
     default:
       return "";
   }

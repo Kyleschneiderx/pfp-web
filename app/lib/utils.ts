@@ -1,8 +1,10 @@
+import { convertToRaw, EditorState } from "draft-js";
+import draftToHtml from "draftjs-to-html";
+
 // return format: 1988-11-23
 export const formatDate = (date: Date): string => {
-  return date.toISOString().split('T')[0];
+  return date.toISOString().split("T")[0];
 };
-
 
 // return format: December 25, 1998
 export const formatDateToLocal = (dateStr: string | Date) => {
@@ -30,25 +32,25 @@ export const onPhoneNumKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
   // Allow only numbers, hypen, backspace, delete and arrow keys
   if (
     !/[0-9]/.test(e.key) &&
-    e.key !== 'Backspace' &&
-    e.key !== 'Delete' &&
-    e.key !== 'ArrowLeft' &&
-    e.key !== 'ArrowRight'
+    e.key !== "Backspace" &&
+    e.key !== "Delete" &&
+    e.key !== "ArrowLeft" &&
+    e.key !== "ArrowRight"
   ) {
     e.preventDefault();
   }
-}
+};
 
 export const getLastLoginStatus = (dateString: string): string => {
   const givenDate = new Date(dateString);
   const currentDate = new Date();
-  
+
   // Calculate the difference in time
   const diffTime = currentDate.getTime() - givenDate.getTime();
-  
+
   // Convert difference to days
   const diffDays = diffTime / (1000 * 3600 * 24);
-  
+
   // Return "Active" if within the last 31 days
   if (diffDays < 31) {
     return "Active";
@@ -62,24 +64,41 @@ export const getLastLoginStatus = (dateString: string): string => {
   } else {
     return `Last login ${diffMonths} months ago`;
   }
-}
+};
 
 export const getFileContentType = (file: File): string => {
-  const ext = file.name.split('.').pop()!.toLowerCase();
+  const ext = file.name.split(".").pop()!.toLowerCase();
   switch (ext) {
-    case 'mp4':
-      return 'video/mp4';
-    case 'avi':
-      return 'video/x-msvideo'; // Common MIME type for .avi
-    case 'mov':
-      return 'video/quicktime'; // Common MIME type for .mov
-    case 'wmv':
-      return 'video/x-ms-wmv'; // Common MIME type for .wmv
-    case 'mkv':
-      return 'video/x-matroska'; // Common MIME type for .mkv
+    case "mp4":
+      return "video/mp4";
+    case "avi":
+      return "video/x-msvideo"; // Common MIME type for .avi
+    case "mov":
+      return "video/quicktime"; // Common MIME type for .mov
+    case "wmv":
+      return "video/x-ms-wmv"; // Common MIME type for .wmv
+    case "mkv":
+      return "video/x-matroska"; // Common MIME type for .mkv
     default:
-      return 'application/octet-stream';
+      return "application/octet-stream";
   }
+};
+
+export const convertDraftjsToHtml = (editorState: EditorState) => {
+  const rawContentState = convertToRaw(editorState.getCurrentContent());
+  let htmlContent = draftToHtml(rawContentState);
+  htmlContent = htmlContent.replace(
+    /<a /g,
+    '<a style="color: blue; text-decoration: underline;" '
+  );
+  htmlContent = htmlContent.replace(
+    /<h1>/g,
+    '<h1 style="font-size: 1.5rem; font-weight: bold;">'
+  );
+  htmlContent = htmlContent.replace(/<ul>/g, '<ul style="margin: 0;">');
+  htmlContent = htmlContent.replace(/<li>/g, '<li style="margin: 0; padding: 0;">');
+  // console.log(htmlContent);
+  return htmlContent;
 };
 
 export const truncatedText = (text: string, max: number): string => {

@@ -3,7 +3,7 @@
 import Button from "@/app/components/elements/Button";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import { revalidatePage } from "@/app/lib/revalidate";
-import { getFileContentType } from "@/app/lib/utils";
+import { convertDraftjsToHtml, getFileContentType } from "@/app/lib/utils";
 import { EducationModel } from "@/app/models/education_model";
 import { ErrorModel } from "@/app/models/error_model";
 import { ValidationErrorModel } from "@/app/models/validation_error_model";
@@ -11,9 +11,7 @@ import {
   deleteEducation,
   saveEducation,
 } from "@/app/services/client_side/educations";
-import { ContentState, convertToRaw, EditorState } from "draft-js";
-import draftToHtml from "draftjs-to-html";
-// import htmlToDraft from "html-to-draftjs";
+import { ContentState, EditorState } from "draft-js";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -22,6 +20,7 @@ import Card from "../elements/Card";
 import Input from "../elements/Input";
 import ReqIndicator from "../elements/ReqIndicator";
 import UploadCmp from "../elements/UploadCmp";
+import MobilePreview from "./MobilePreview";
 import { validateForm } from "./validation";
 
 const RichTextEditor = dynamic(
@@ -144,8 +143,7 @@ export default function EducationForm({ action = "Create", education }: Props) {
         const id = action === "Edit" ? education!.id : null;
         const body = new FormData();
 
-        const rawContentState = convertToRaw(content.getCurrentContent());
-        const htmlContent = draftToHtml(rawContentState);
+        const htmlContent = convertDraftjsToHtml(content);
 
         body.append("title", title);
         body.append("description", description);
@@ -264,73 +262,82 @@ export default function EducationForm({ action = "Create", education }: Props) {
         </div>
       </div>
       <hr />
-      <div className="space-y-4 mt-4">
-        <Card className="w-[592px] h-fit p-[22px]">
-          <UploadCmp
-            key="upload1"
-            label="Thumbnail"
-            onFileSelect={handlePhotoSelect}
-            clearImagePreview={photo === null}
-            type="image"
-            recommendedText="405 x 225 pixels"
-          />
-        </Card>
-        <Card className="w-[592px] p-[22px] mr-5 space-y-3">
-          <div>
-            <Label label="Education Title" required />
-            <Input
-              type="text"
-              placeholder="Enter education title"
-              value={title}
-              invalid={hasError("title")}
-              onChange={(e) => setTitle(e.target.value)}
+      <div className="flex mt-4">
+        <div className="space-y-4">
+          <Card className="w-[592px] h-fit p-[22px]">
+            <UploadCmp
+              key="upload1"
+              label="Thumbnail"
+              onFileSelect={handlePhotoSelect}
+              clearImagePreview={photo === null}
+              type="image"
+              recommendedText="405 x 225 pixels"
             />
-          </div>
-          <div>
-            <div className="flex justify-between items-center">
-              <Label label="Description" required />
-              <span className="text-neutral-600 text-sm">{descCount}/60</span>
+          </Card>
+          <Card className="w-[592px] p-[22px] mr-5 space-y-3">
+            <div>
+              <Label label="Education Title" required />
+              <Input
+                type="text"
+                placeholder="Enter education title"
+                value={title}
+                invalid={hasError("title")}
+                onChange={(e) => setTitle(e.target.value)}
+              />
             </div>
-            <Input
-              type="text"
-              placeholder="Enter description"
-              value={description}
-              invalid={hasError("description")}
-              onChange={handleChangeDescription}
+            <div>
+              <div className="flex justify-between items-center">
+                <Label label="Description" required />
+                <span className="text-neutral-600 text-sm">{descCount}/60</span>
+              </div>
+              <Input
+                type="text"
+                placeholder="Enter description"
+                value={description}
+                invalid={hasError("description")}
+                onChange={handleChangeDescription}
+              />
+            </div>
+            <div>
+              <Label label="Content" />
+              <RichTextEditor
+                placeholder="Enter the education's content here"
+                content={education?.content ?? null}
+                onChange={handleEditorChange}
+                isSaved={isSaved}
+                isEdit={action === "Edit"}
+              />
+            </div>
+          </Card>
+          <Card className="w-[592px] p-[22px] space-y-3">
+            <Label label="Upload Video/Image or URL" />
+            <hr />
+            <div>
+              <Label label="Video/Image URL" />
+              <Input
+                type="text"
+                placeholder="www.yourvideolink.com"
+                value={mediaUrl}
+                onChange={(e) => setMediaUrl(e.target.value)}
+              />
+            </div>
+            <p className="text-sm font-medium mb-2 text-center">OR</p>
+            <UploadCmp
+              key="upload2"
+              label="Upload a video/image"
+              onFileSelect={handleMediaSelect}
+              clearImagePreview={photo === null}
+              type="image/video"
             />
-          </div>
-          <div>
-            <Label label="Content" required />
-            <RichTextEditor
-              placeholder="Enter the education's content here"
-              content={education?.content ?? null}
-              onChange={handleEditorChange}
-              isSaved={isSaved}
-              isEdit={action === "Edit"}
-            />
-          </div>
-        </Card>
-        <Card className="w-[592px] p-[22px] space-y-3">
-          <Label label="Upload Video/Image or URL" />
-          <hr />
-          <div>
-            <Label label="Video/Image URL" />
-            <Input
-              type="text"
-              placeholder="www.yourvideolink.com"
-              value={mediaUrl}
-              onChange={(e) => setMediaUrl(e.target.value)}
-            />
-          </div>
-          <p className="text-sm font-medium mb-2 text-center">OR</p>
-          <UploadCmp
-            key="upload2"
-            label="Upload a video/image"
-            onFileSelect={handleMediaSelect}
-            clearImagePreview={photo === null}
-            type="image/video"
-          />
-        </Card>
+          </Card>
+        </div>
+        <MobilePreview
+          banner={photo || education?.photo}
+          title={title}
+          description={description}
+          media={mediaUpload || mediaUrl || education?.media_upload}
+          content={content}
+        />
       </div>
       <ConfirmModal
         title={`Are you sure you want to ${
