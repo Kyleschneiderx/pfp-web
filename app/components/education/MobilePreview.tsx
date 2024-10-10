@@ -46,6 +46,9 @@ export default function MobilePreview({
         setBannerPreview(banner);
       }
     }
+  }, [banner]);
+
+  useEffect(() => {
     if (media) {
       if (media instanceof File) {
         if (getFileContentType(media).startsWith("video/")) {
@@ -68,11 +71,14 @@ export default function MobilePreview({
         setMediaPreview(media);
       }
     }
+  }, [media]);
+
+  useEffect(() => {
     if (content) {
       const htmlContent = convertDraftjsToHtml(content);
       setEducContent(htmlContent);
     }
-  }, [banner, media, content]);
+  }, [content]);
 
   const handleNext = () => {
     setCurrentIndex((prev) => (prev === 0 ? 1 : prev));
@@ -166,7 +172,7 @@ export default function MobilePreview({
             )}
             <div
               dangerouslySetInnerHTML={{ __html: educContent }}
-              className="prose prose-li:marker:text-black mt-6 content-preview"
+              className="prose prose-li:marker:text-black mt-6 h-[480px] overflow-auto content-preview"
             />
           </div>
         </div>

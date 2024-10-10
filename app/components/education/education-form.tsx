@@ -20,13 +20,14 @@ import Card from "../elements/Card";
 import Input from "../elements/Input";
 import ReqIndicator from "../elements/ReqIndicator";
 import UploadCmp from "../elements/UploadCmp";
-import MobilePreview from "./MobilePreview";
 import { validateForm } from "./validation";
 
 const RichTextEditor = dynamic(
   () => import("@/app/components/elements/RichTextEditor"),
   { ssr: false }
 );
+
+const MobilePreview = dynamic(() => import("./MobilePreview"), { ssr: false });
 
 const ConfirmModal = dynamic(
   () => import("@/app/components/elements/ConfirmModal"),
