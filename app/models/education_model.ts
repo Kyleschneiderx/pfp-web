@@ -8,6 +8,7 @@ export interface EducationModel {
   media_upload: string | null;
   created_at: string;
   updated_at: string;
+  status_id: number;
   status: Status;
 }
 

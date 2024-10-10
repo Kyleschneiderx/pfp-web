@@ -8,6 +8,7 @@ export interface WorkoutModel {
   is_premium: boolean | null;
   created_at: string;
   updated_at: string;
+  status_id: number | null;
   status: Status;
   workout_exercises: WorkoutExerciseModel[];
 }

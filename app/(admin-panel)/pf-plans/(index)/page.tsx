@@ -1,9 +1,9 @@
 import CommonSort from "@/app/components/common-sort";
 import Button from "@/app/components/elements/Button";
 import SearchCmp from "@/app/components/elements/SearchCmp";
-import { fetchWorkouts } from "@/app/components/workouts/actions";
-import WorkoutList from "@/app/components/workouts/workout-list";
-import { WorkoutModel } from "@/app/models/workout_model";
+import { fetchPfPlans } from "@/app/components/pf-plans/action";
+import PfPlanList from "@/app/components/pf-plans/pfplan-list";
+import { PfPlanModel } from "@/app/models/pfplan_model";
 import Link from "next/link";
 
 export default async function Page({
@@ -18,7 +18,7 @@ export default async function Page({
   const name = searchParams?.name || "";
   const sort = searchParams?.sort || "name:ASC";
 
-  let workouts: WorkoutModel[] = [];
+  let pfPlans: PfPlanModel[] = [];
   let maxPage: number = 0;
   let errorMessage: string = "";
 
@@ -27,11 +27,11 @@ export default async function Page({
   };
 
   try {
-    const { workoutList, max_page } = await fetchWorkouts({
+    const { pfPlanList, max_page } = await fetchPfPlans({
       name,
       sort,
     });
-    workouts = workoutList;
+    pfPlans = pfPlanList;
     maxPage = max_page;
   } catch (error) {
     errorMessage = (error as Error).message;
@@ -40,18 +40,18 @@ export default async function Page({
   return (
     <>
       <div className="flex items-center mb-8">
-        <SearchCmp placeholder="Search workouts" />
+        <SearchCmp placeholder="Search PF Plan" />
         <CommonSort field="name" />
-        <Link href="/workouts/create" className="ml-auto">
-          <Button label="Add Workout" showIcon />
+        <Link href="/pf-plans/create" className="ml-auto">
+          <Button label="Add Plan" showIcon />
         </Link>
       </div>
       <div>
         {errorMessage ? (
           displayNoRecord(errorMessage)
         ) : (
-          <WorkoutList
-            initialList={workouts}
+          <PfPlanList
+            initialList={pfPlans}
             name={name}
             sort={sort}
             maxPage={maxPage}
