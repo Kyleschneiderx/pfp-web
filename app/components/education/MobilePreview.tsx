@@ -103,18 +103,23 @@ export default function MobilePreview({
               <Clock3 fill="#c9c9c9" stroke="white" />
             </div>
             <div className="mt-4">
-              <CardBanner
-                url={bannerPreview ?? ""}
-                width={410}
-                className="mx-auto"
-              />
+              {!banner ? (
+                <div className="h-[200px] bg-neutral-200"></div>
+              ) : (
+                bannerPreview && (
+                  <CardBanner
+                    url={bannerPreview ?? ""}
+                    width={410}
+                    className="mx-auto"
+                  />
+                )
+              )}
               <Card className="w-[401px] mx-auto rounded-t-none py-2 px-2">
                 <p className="text-sm font-medium truncate">
-                  {title || "Title of the Article"}
+                  {title || "[Your title here]"}
                 </p>
                 <p className="text-xs text-neutral-500">
-                  {description ||
-                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit ante ipsum primis in faucibus."}
+                  {description || "[Your description here]"}
                 </p>
               </Card>
             </div>
@@ -139,16 +144,18 @@ export default function MobilePreview({
               <ChevronLeft size={18} />
               <span className="text-xs">Back</span>
             </div>
-            <div className="flex items-center justify-between w-[408px]">
+            <div className="flex items-center justify-between w-[408px] mb-3">
               <p className="text-2xl mt-1 font-semibold truncate">
-                {title || "Title of the Article"}
+                {title || "[Your title here]"}
               </p>
               <div className="flex space-x-2">
                 <Heart size={18} fill="#c9c9c9" stroke="#c9c9c9" />
                 <Share2 size={18} fill="#c9c9c9" stroke="#c9c9c9" />
               </div>
             </div>
-            {mediaPreview && isVideo ? (
+            {!media ? (
+              <div className="h-[200px] bg-neutral-200"></div>
+            ) : mediaPreview && isVideo ? (
               <video src={mediaPreview} controls className="w-full h-auto" />
             ) : (
               <CardBanner
