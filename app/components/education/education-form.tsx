@@ -151,7 +151,7 @@ export default function EducationForm({ action = "Create", education }: Props) {
         body.append("content", htmlContent);
         body.append("status_id", statusId);
         if (photo) body.append("photo", photo, photo.name);
-        if (mediaUrl) body.append("media_url", mediaUrl);
+        body.append("media_url", mediaUrl);
         if (mediaUpload) {
           const ext = mediaUpload.name.split(".").pop()!.toLowerCase();
           if (["mp4", "avi", "mov", "wmv", "mkv"].includes(ext)) {
