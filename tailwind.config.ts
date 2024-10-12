@@ -12,6 +12,7 @@ const config: Config = {
         center: "0 0px 2px rgba(0,0,0,0.20)",
       },
       boxShadow: {
+        left: '-4px 0 10px rgba(0, 0, 0, 0.1)', 
         bottom: "0 3px 3px -1px rgba(0, 0, 0, 0.05)",
       },
       keyframes: {

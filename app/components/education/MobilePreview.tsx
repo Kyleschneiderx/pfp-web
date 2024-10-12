@@ -88,8 +88,6 @@ export default function MobilePreview({
     setCurrentIndex((prev) => (prev === 1 ? 0 : prev));
   };
 
-  console.log(mediaPreview);
-
   return (
     <div>
       <div className="bg-white w-[446px] h-[862px] border-[7px] border-neutral-200 rounded-[30px] ml-[10px] overflow-hidden">

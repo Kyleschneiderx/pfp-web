@@ -474,7 +474,7 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
           {exercises.length === 0 && (
             <div className="flex flex-col justify-center items-center h-full">
               <p className="text-neutral-400 mb-3">
-                Add exercise form the exercise panel to begin creating your
+                Add exercise from the exercise panel to begin creating your
                 workout
               </p>
               <Button label="Add Exercise" outlined onClick={togglePanel} />

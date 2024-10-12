@@ -1,6 +1,7 @@
 import { SnackBarProvider } from "@/app/contexts/SnackBarContext";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import ProgressBarProvider from "./components/progressbar-provider";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -19,9 +20,8 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <SnackBarProvider>
-          {/* <PageProgressBar /> */}
           <div id="modal"></div>
-          {children}
+          <ProgressBarProvider>{children}</ProgressBarProvider>
         </SnackBarProvider>
       </body>
     </html>

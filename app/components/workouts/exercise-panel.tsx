@@ -47,7 +47,7 @@ export default function ExercisePanel({
       setErrorMessage("");
     } catch (error) {
       const apiError = error as ErrorModel;
-      setErrorMessage(apiError.msg || "Failed to fetch exercise categories");
+      setErrorMessage(apiError.msg || "Failed to fetch exercises");
     } finally {
       setIsLoading(false);
     }
