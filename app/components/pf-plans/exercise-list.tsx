@@ -1,6 +1,6 @@
 import { ErrorModel } from "@/app/models/error_model";
-import { WorkoutModel } from "@/app/models/workout_model";
-import { getWorkouts } from "@/app/services/client_side/workouts";
+import { ExerciseModel } from "@/app/models/exercise_model";
+import { getExercises } from "@/app/services/client_side/exercises";
 import clsx from "clsx";
 import { Plus } from "lucide-react";
 import Image from "next/image";
@@ -10,34 +10,35 @@ import Loader from "../elements/Loader";
 
 interface Props {
   name?: string;
-  onSelect: (workout: WorkoutModel) => void;
+  onSelect: (exercise: ExerciseModel) => void;
+  isOpen: boolean,
 }
 
-export default function WorkoutList({ name = "", onSelect }: Props) {
-  const [workoutList, setWorkoutList] = useState<WorkoutModel[]>([]);
+export default function ExerciseList({ name = "", onSelect, isOpen }: Props) {
+  const [exercises, setExercises] = useState<ExerciseModel[]>([]);
   const [page, setPage] = useState(1);
   const [maxPage, setMaxPage] = useState(1);
   const [ref, inView] = useInView();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
 
-  const fetchWorkouts = async (resetPage = false) => {
+  const fetchExercises = async (resetPage = false) => {
     try {
       setIsLoading(true);
       const currentPage = resetPage ? 1 : page;
       const params = `name=${name}&sort[]=name:ASC&page=${currentPage}&page_items=20`;
-      const { data, max_page } = await getWorkouts(params);
+      const { data, max_page } = await getExercises(params);
       setMaxPage(max_page);
       if (currentPage < max_page) {
         setPage(currentPage + 1);
       }
-      setWorkoutList((prev: WorkoutModel[]) => {
+      setExercises((prev: ExerciseModel[]) => {
         return resetPage ? data : [...prev, ...data];
       });
       setErrorMessage("");
     } catch (error) {
       const apiError = error as ErrorModel;
-      setErrorMessage(apiError.msg || "Failed to fetch workouts");
+      setErrorMessage(apiError.msg || "Failed to fetch exercises");
     } finally {
       setIsLoading(false);
     }
@@ -45,12 +46,12 @@ export default function WorkoutList({ name = "", onSelect }: Props) {
 
   useEffect(() => {
     setPage(1);
-    fetchWorkouts(true);
+    fetchExercises(true);
   }, [name]);
 
   useEffect(() => {
     if (inView && page <= maxPage && !isLoading) {
-      fetchWorkouts();
+      fetchExercises();
     }
   }, [inView, page]);
 
@@ -62,11 +63,11 @@ export default function WorkoutList({ name = "", onSelect }: Props) {
     "truncate max-w-xs overflow-hidden text-ellipsis whitespace-nowrap";
 
   return (
-    <div className="space-y-3 mt-2">
+    <div className={clsx("space-y-3 mt-2", !isOpen && "hidden")}>
       {errorMessage ? (
         <p className="text-center mt-[200px]">{errorMessage}</p>
       ) : (
-        workoutList.map((item) => (
+        exercises.map((item) => (
           <div key={item.id} className="flex items-center">
             <div className="flex items-center shadow-bottom w-full p-2">
               <Image

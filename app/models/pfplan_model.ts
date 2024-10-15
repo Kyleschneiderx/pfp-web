@@ -1,5 +1,5 @@
 import { EducationModel } from "./education_model";
-import { WorkoutModel } from "./workout_model";
+import { ExerciseModel } from "./exercise_model";
 
 export interface PfPlanModel {
   id: number;
@@ -27,7 +27,7 @@ export interface PfPlanDailies {
 
 interface PfPlanDailyContents {
   id: number;
-  workout: WorkoutModel;
+  exercise: ExerciseModel;
   education: EducationModel;
 }
 

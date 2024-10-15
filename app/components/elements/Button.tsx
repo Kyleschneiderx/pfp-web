@@ -5,6 +5,7 @@ import Loader from "./Loader";
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   label: String;
   showIcon?: boolean;
+  icon?: React.ReactNode;
   secondary?: boolean;
   outlined?: boolean;
   className?: string;
@@ -15,6 +16,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 export default function Button({
   label,
   showIcon = false,
+  icon,
   secondary,
   outlined,
   children,
@@ -40,6 +42,7 @@ export default function Button({
       )}
     >
       {isProcessing && <Loader className="text-white" />}
+      {icon && icon}
       {label}
       {showIcon && <CirclePlus className="ml-3" />}
     </button>
