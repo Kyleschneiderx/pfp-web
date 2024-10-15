@@ -4,12 +4,12 @@ import Button from "@/app/components/elements/Button";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import { revalidatePage } from "@/app/lib/revalidate";
 import { ErrorModel } from "@/app/models/error_model";
-import { PfPlanDailies, PfPlanModel } from "@/app/models/pfplan_model";
+import { PfPlanModel } from "@/app/models/pfplan_model";
 import { ValidationErrorModel } from "@/app/models/validation_error_model";
 import { deleteWorkout } from "@/app/services/client_side/workouts";
+import { usePfPlanDailiesStore } from "@/app/store/store";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import clsx from "clsx";
-import { CircleX } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -21,12 +21,10 @@ import Textarea from "../elements/Textarea";
 import UploadCmp from "../elements/UploadCmp";
 import MoveTaskIcon from "../icons/move_task_icon";
 import PencilIcon from "../icons/pencil_icon";
+import TrashbinIcon from "../icons/trashbin_icon";
 import AddDayPanel from "./add-day-panel";
 import { validateForm } from "./validation";
-const ExercisePanel = dynamic(
-  () => import("@/app/components/workouts/exercise-panel"),
-  { ssr: false }
-);
+
 const ConfirmModal = dynamic(
   () => import("@/app/components/elements/ConfirmModal"),
   { ssr: false }
@@ -40,12 +38,12 @@ interface Props {
 export default function PfPlanForm({ action = "Create", workout }: Props) {
   const { showSnackBar } = useSnackBar();
   const router = useRouter();
+  const { days, removeDay } = usePfPlanDailiesStore();
 
   const [name, setName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [photo, setPhoto] = useState<File | null>(null);
   const [statusId, setStatusId] = useState<"4" | "5">("4");
-  const [days, setDays] = useState<PfPlanDailies[]>([]);
 
   const [errors, setErrors] = useState<ValidationErrorModel[]>([]);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -70,11 +68,6 @@ export default function PfPlanForm({ action = "Create", workout }: Props) {
 
   const togglePanel = () => {
     setIsPanelOpen((prev) => !prev);
-  };
-
-  const onRemoveDay = (id: number) => {
-    const updatedDays = days.filter((item) => item.id !== id);
-    setDays(updatedDays);
   };
 
   const onDragEnd = (result: any) => {
@@ -202,7 +195,6 @@ export default function PfPlanForm({ action = "Create", workout }: Props) {
     setName("");
     setDescription("");
     setPhoto(null);
-    setDays([]);
   };
 
   return (
@@ -267,7 +259,7 @@ export default function PfPlanForm({ action = "Create", workout }: Props) {
             <h1 className="text-2xl font-semibold">PF Plan</h1>
             {days.length > 0 && (
               <Button
-                label="Add Exercise"
+                label="Add Day"
                 outlined
                 onClick={togglePanel}
                 className="!py-2 !px-4"
@@ -278,14 +270,14 @@ export default function PfPlanForm({ action = "Create", workout }: Props) {
             <Droppable droppableId="ExerciseList">
               {(provided) => (
                 <div
-                  className="space-y-6 mt-6"
+                  className="space-y-4 mt-6"
                   ref={provided.innerRef}
                   {...provided.droppableProps}
                 >
                   {days.map((item, index) => (
                     <Draggable
-                      key={"key" + item.id}
-                      draggableId={item.id.toString()}
+                      key={"key" + item.day}
+                      draggableId={item.day.toString()}
                       index={index}
                     >
                       {(provided, snapshot) => (
@@ -294,19 +286,23 @@ export default function PfPlanForm({ action = "Create", workout }: Props) {
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
                           className={clsx(
-                            "flex items-center",
+                            "flex items-center border rounded-md border-neutral-300 group p-4",
                             snapshot.isDragging
-                              ? "drop-shadow-center !top-auto !left-auto bg-white !p-[20px] !h-[120px]"
+                              ? "drop-shadow-center !top-auto !left-auto bg-white"
                               : ""
                           )}
                         >
-                          <div className="flex items-center group mr-6">
-                            <MoveTaskIcon className="hidden group-hover:inline-block mr-4" />
-                            <div className="ml-6"></div>
+                          <MoveTaskIcon className="hidden group-hover:inline-block mr-2" />
+                          <div className="text-[22px] font-medium">
+                            Day {item.day} -
                           </div>
-                          <CircleX
-                            className="text-error-600"
-                            onClick={() => onRemoveDay(item.id)}
+                          <div className="ml-2 mr-3 text-[18px] font-semibold">
+                            {item.name}
+                          </div>
+                          <PencilIcon />
+                          <TrashbinIcon
+                            className="text-error-600 ml-auto"
+                            onClick={() => removeDay(item.day)}
                           />
                         </div>
                       )}
@@ -320,8 +316,7 @@ export default function PfPlanForm({ action = "Create", workout }: Props) {
           {days.length === 0 && (
             <div className="flex flex-col justify-center items-center h-full">
               <p className="text-neutral-400 mb-3">
-                Add day from the Add Day Panel to begin creating your
-                PF Plan
+                Add day from the Add Day Panel to begin creating your PF Plan
               </p>
               <Button label="Add Day" outlined onClick={togglePanel} />
             </div>

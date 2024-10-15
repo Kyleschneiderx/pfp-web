@@ -10,6 +10,7 @@ const EducationList = dynamic(() => import("./education-list"), { ssr: false });
 
 interface Props {
   tab: number;
+  isOpen: boolean;
   onClose: () => void;
   onSelectExercise: (exercise: ExerciseModel) => void;
   onSelectEducation: (education: EducationModel) => void;
@@ -17,6 +18,7 @@ interface Props {
 
 export default function ExerciseEducationPanel({
   tab,
+  isOpen = false,
   onClose,
   onSelectExercise,
   onSelectEducation,
@@ -44,7 +46,7 @@ export default function ExerciseEducationPanel({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className={clsx("flex flex-col h-full", !isOpen && "hidden")}>
       <div className="flex-grow overflow-auto p-4 w-[450px]">
         <SearchCmp
           placeholder="Search exercise or education"

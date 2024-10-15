@@ -32,7 +32,8 @@
     "react-modal": "^3.16.1",
     "react-select": "^5.8.1",
     "sharp": "^0.33.5",
-    "use-debounce": "^10.0.3"
+    "use-debounce": "^10.0.3",
+    "zustand": "^5.0.0"
   },
   "devDependencies": {
     "@types/node": "^20",

@@ -1,17 +1,23 @@
 import { EducationModel } from "@/app/models/education_model";
 import { ExerciseModel } from "@/app/models/exercise_model";
-import { WorkoutExerciseModel } from "@/app/models/workout_model";
+import { PfPlanDailies, PfPlanExerciseModel } from "@/app/models/pfplan_model";
+import { usePfPlanDailiesStore } from "@/app/store/store";
 import ArrowLeft from "@/public/svg/arrow-left.svg";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import clsx from "clsx";
 import { CircleX, Pencil, Plus } from "lucide-react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "../elements/Button";
 import Card from "../elements/Card";
 import Input from "../elements/Input";
 import MoveTaskIcon from "../icons/move_task_icon";
-import ExerciseEducationPanel from "./exercise-education-panel";
+
+const ExerciseEducationPanel = dynamic(
+  () => import("./exercise-education-panel"),
+  { ssr: false }
+);
 
 interface Props {
   isOpen: boolean;
@@ -19,30 +25,38 @@ interface Props {
 }
 
 export default function AddDayPanel({ isOpen = false, onClose }: Props) {
+  const { days, setDay } = usePfPlanDailiesStore();
   const [name, setName] = useState("");
   const [isOpenSelectList, setIsOpenSelectList] = useState(false);
-  const [exercises, setExercises] = useState<WorkoutExerciseModel[]>([]);
+  const [exercises, setExercises] = useState<PfPlanExerciseModel[]>([]);
   const [selectedEducation, setSelectedEducation] =
     useState<EducationModel | null>(null);
   const [activeTab, setActiveTab] = useState(1);
+  const [currentDayCount, setCurrentDayCount] = useState(1);
+  
+  useEffect(() => {
+    if (days.length > 0) {
+      setCurrentDayCount(days.length + 1);
+    }
+  }, [days]);
 
   const handleOnClose = () => {
     setIsOpenSelectList(false);
     onClose();
+    clear();
   };
+
+  console.log(days);
 
   const onSelectExercise = (exercise: ExerciseModel) => {
     const itemExists = exercises.some((item) => item.id === exercise.id);
-    const data: WorkoutExerciseModel = {
+    const data: PfPlanExerciseModel = {
       id: exercise.id,
+      exercise_id: exercise.id,
       sets: exercise.sets,
       reps: exercise.reps,
       hold: exercise.hold,
-      exercise: {
-        id: exercise.id,
-        name: exercise.name,
-        photo: exercise.photo ?? undefined,
-      },
+      exercise: exercise,
     };
     if (!itemExists) {
       setExercises((prev) => [...prev, data]);
@@ -88,6 +102,25 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
     }
   };
 
+  const onSave = () => {
+    const day: PfPlanDailies = {
+      name: name,
+      day: currentDayCount,
+      contents: [
+        selectedEducation && { education_id: selectedEducation.id },
+        ...exercises,
+      ],
+    };
+    setDay(day);
+    clear();
+  };
+
+  const clear = () => {
+    setName("");
+    setSelectedEducation(null);
+    setExercises([]);
+  };
+
   const pClass =
     "truncate max-w-xs overflow-hidden text-ellipsis whitespace-nowrap";
 
@@ -99,14 +132,13 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
         isOpenSelectList ? "w-[1043px]" : "w-[593px]"
       )}
     >
-      {isOpenSelectList && (
-        <ExerciseEducationPanel
-          tab={activeTab}
-          onClose={() => setIsOpenSelectList(false)}
-          onSelectExercise={onSelectExercise}
-          onSelectEducation={onSelectEducation}
-        />
-      )}
+      <ExerciseEducationPanel
+        tab={activeTab}
+        isOpen={isOpenSelectList}
+        onClose={() => setIsOpenSelectList(false)}
+        onSelectExercise={onSelectExercise}
+        onSelectEducation={onSelectEducation}
+      />
       <div className="flex flex-col h-full shadow-left">
         <div className="flex-grow overflow-auto p-4">
           <div className="flex items-center mb-4">
@@ -118,16 +150,16 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
               className="ml-auto mr-3"
               onClick={handleOnClose}
             />
-            <Button label="Save" />
+            <Button label="Save" onClick={onSave} />
           </div>
           <Card className="p-4">
             <div className="flex items-center justify-center mb-4">
               <label className="text-[22px] font-medium mr-2">
-                Day&nbsp;1&nbsp;-
+                Day&nbsp;{currentDayCount}&nbsp;-
               </label>
               <Input
                 type="text"
-                placeholder="Name your Day 1 Workout"
+                placeholder={`Name your Day ${currentDayCount} Plan`}
                 value={name}
                 invalid={false}
                 onChange={(e) => setName(e.target.value)}
