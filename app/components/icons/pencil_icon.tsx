@@ -1,9 +1,11 @@
 interface Props {
   className?: string;
+  onClick?: () => void;
 }
-export default function PencilIcon({ className }: Props) {
+export default function PencilIcon({ className, onClick }: Props) {
   return (
     <svg
+      onClick={onClick}
       className={className}
       xmlns="http://www.w3.org/2000/svg"
       width="24"

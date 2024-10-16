@@ -1,6 +1,8 @@
+import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import { EducationModel } from "@/app/models/education_model";
 import { ExerciseModel } from "@/app/models/exercise_model";
 import { PfPlanDailies, PfPlanExerciseModel } from "@/app/models/pfplan_model";
+import { ValidationErrorModel } from "@/app/models/validation_error_model";
 import { usePfPlanDailiesStore } from "@/app/store/store";
 import ArrowLeft from "@/public/svg/arrow-left.svg";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
@@ -13,6 +15,7 @@ import Button from "../elements/Button";
 import Card from "../elements/Card";
 import Input from "../elements/Input";
 import MoveTaskIcon from "../icons/move_task_icon";
+import { validateDayForm } from "./add-day-validation";
 
 const ExerciseEducationPanel = dynamic(
   () => import("./exercise-education-panel"),
@@ -25,7 +28,8 @@ interface Props {
 }
 
 export default function AddDayPanel({ isOpen = false, onClose }: Props) {
-  const { days, setDay } = usePfPlanDailiesStore();
+  const { showSnackBar } = useSnackBar();
+  const { days, setDay, selectedDay, setSelectedDay } = usePfPlanDailiesStore();
   const [name, setName] = useState("");
   const [isOpenSelectList, setIsOpenSelectList] = useState(false);
   const [exercises, setExercises] = useState<PfPlanExerciseModel[]>([]);
@@ -33,20 +37,35 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
     useState<EducationModel | null>(null);
   const [activeTab, setActiveTab] = useState(1);
   const [currentDayCount, setCurrentDayCount] = useState(1);
-  
+
+  const [errors, setErrors] = useState<ValidationErrorModel[]>([]);
+
   useEffect(() => {
     if (days.length > 0) {
       setCurrentDayCount(days.length + 1);
     }
+    console.log(days);
   }, [days]);
+
+  useEffect(() => {
+    if (selectedDay) {
+      setName(selectedDay.name);
+      const firstContent = selectedDay.contents[0];
+      if (firstContent && "title" in firstContent) {
+        setSelectedEducation(firstContent as EducationModel);
+      }
+      const exerciseContents = selectedDay.contents
+        .slice(1)
+        .filter((item) => "exercise_id" in item) as PfPlanExerciseModel[];
+      setExercises(exerciseContents);
+    }
+  }, [selectedDay]);
 
   const handleOnClose = () => {
     setIsOpenSelectList(false);
     onClose();
     clear();
   };
-
-  console.log(days);
 
   const onSelectExercise = (exercise: ExerciseModel) => {
     const itemExists = exercises.some((item) => item.id === exercise.id);
@@ -102,24 +121,53 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
     }
   };
 
+  const isValid = () => {
+    const validationErrors = validateDayForm({
+      name,
+      education: selectedEducation,
+      exerciseLength: exercises.length,
+    });
+    setErrors(validationErrors);
+    return validationErrors.length === 0;
+  };
+
+  useEffect(() => {
+    if (errors.length > 0) {
+      const errorMessages = errors.map((error) => error.message).join("\n");
+      showSnackBar({ message: errorMessages, success: false });
+    }
+  }, [errors]);
+
   const onSave = () => {
-    const day: PfPlanDailies = {
-      name: name,
-      day: currentDayCount,
-      contents: [
-        selectedEducation && { education_id: selectedEducation.id },
-        ...exercises,
-      ],
-    };
-    setDay(day);
-    clear();
+    if (isValid()) {
+      let contents: any = [...exercises];
+      if (selectedEducation) {
+        contents.unshift(selectedEducation);
+      }
+      const day: PfPlanDailies = {
+        name: name,
+        day: selectedDay?.day || currentDayCount,
+        contents: contents,
+      };
+      setDay(day);
+      clear();
+      showSnackBar({
+        message: `Day ${
+          selectedDay?.day || currentDayCount
+        } was successfully saved.`,
+        success: true,
+      });
+    }
   };
 
   const clear = () => {
     setName("");
     setSelectedEducation(null);
     setExercises([]);
+    setSelectedDay(null);
   };
+
+  console.log(selectedDay);
 
   const pClass =
     "truncate max-w-xs overflow-hidden text-ellipsis whitespace-nowrap";
@@ -155,7 +203,7 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
           <Card className="p-4">
             <div className="flex items-center justify-center mb-4">
               <label className="text-[22px] font-medium mr-2">
-                Day&nbsp;{currentDayCount}&nbsp;-
+                Day&nbsp;{selectedDay?.day || currentDayCount}&nbsp;-
               </label>
               <Input
                 type="text"

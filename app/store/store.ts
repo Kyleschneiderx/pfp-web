@@ -5,6 +5,9 @@ interface PfPlanDailiesState {
   days: PfPlanDailies[];
   setDay: (day: PfPlanDailies) => void;
   removeDay: (id: number) => void;
+  replaceDays: (days: PfPlanDailies[]) => void;
+  selectedDay: PfPlanDailies | null;
+  setSelectedDay: (day: PfPlanDailies | null) => void;
 }
 
 const usePfPlanDailiesStore = create<PfPlanDailiesState>((set) => ({
@@ -16,8 +19,8 @@ const usePfPlanDailiesStore = create<PfPlanDailiesState>((set) => ({
         ? state.days.map((day) => (day.day === newDay.day ? newDay : day))
         : [...state.days, newDay],
     })),
-    
-  removeDay: (id: number) =>
+
+  removeDay: (id) =>
     set((state) => {
       // Remove the day with the specified id
       const updatedDays = state.days.filter((day) => day.day !== id);
@@ -30,6 +33,10 @@ const usePfPlanDailiesStore = create<PfPlanDailiesState>((set) => ({
 
       return { days: reindexedDays };
     }),
+
+  replaceDays: (newDays) => set(() => ({ days: newDays })),
+  selectedDay: null,
+  setSelectedDay: (day) => set(() => ({ selectedDay: day })),
 }));
 
 export { usePfPlanDailiesStore };

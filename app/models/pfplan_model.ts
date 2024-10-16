@@ -22,11 +22,10 @@ export interface PfPlanDailies {
   id?: number;
   name: string;
   day: number;
-  contents: any[];
+  contents: PfPlanDailyContents[];
 }
 
 interface PfPlanDailyContents {
-  id?: number;
   exercise?: ExerciseModel;
   education?: EducationModel;
 }

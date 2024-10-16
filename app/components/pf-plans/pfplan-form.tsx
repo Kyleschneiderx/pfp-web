@@ -4,7 +4,7 @@ import Button from "@/app/components/elements/Button";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import { revalidatePage } from "@/app/lib/revalidate";
 import { ErrorModel } from "@/app/models/error_model";
-import { PfPlanModel } from "@/app/models/pfplan_model";
+import { PfPlanDailies, PfPlanModel } from "@/app/models/pfplan_model";
 import { ValidationErrorModel } from "@/app/models/validation_error_model";
 import { deleteWorkout } from "@/app/services/client_side/workouts";
 import { usePfPlanDailiesStore } from "@/app/store/store";
@@ -38,7 +38,8 @@ interface Props {
 export default function PfPlanForm({ action = "Create", workout }: Props) {
   const { showSnackBar } = useSnackBar();
   const router = useRouter();
-  const { days, removeDay } = usePfPlanDailiesStore();
+  const { days, removeDay, replaceDays, setSelectedDay } =
+    usePfPlanDailiesStore();
 
   const [name, setName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
@@ -73,15 +74,20 @@ export default function PfPlanForm({ action = "Create", workout }: Props) {
   const onDragEnd = (result: any) => {
     const { destination, source } = result;
     if (!destination) return;
-  };
 
-  const onChangeExercise = (
-    index: number,
-    value: number,
-    type: "sets" | "reps" | "hold"
-  ) => {
-    if (index !== -1) {
-    }
+    const updatedDays = [...days];
+    // Remove the dragged day from its original position
+    const [movedDays] = updatedDays.splice(source.index, 1);
+    // Insert the dragged day into its new position
+    updatedDays.splice(destination.index, 0, movedDays);
+    // Reassign the 'day' property (or id) for each day based on its new position
+    const reindexedDays = updatedDays.map((day, index) => ({
+      ...day,
+      day: index + 1,
+    }));
+
+    // Replace the current days with the reindexed days
+    replaceDays(reindexedDays);
   };
 
   const isValid = () => {
@@ -191,6 +197,11 @@ export default function PfPlanForm({ action = "Create", workout }: Props) {
     }
   };
 
+  const handleEditDay = (day: PfPlanDailies) => {
+    setSelectedDay(day);
+    setIsPanelOpen(true);
+  }
+
   const clearData = () => {
     setName("");
     setDescription("");
@@ -299,7 +310,7 @@ export default function PfPlanForm({ action = "Create", workout }: Props) {
                           <div className="ml-2 mr-3 text-[18px] font-semibold">
                             {item.name}
                           </div>
-                          <PencilIcon />
+                          <PencilIcon onClick={() => handleEditDay(item)} />
                           <TrashbinIcon
                             className="text-error-600 ml-auto"
                             onClick={() => removeDay(item.day)}
