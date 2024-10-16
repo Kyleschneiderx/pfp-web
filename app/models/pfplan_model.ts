@@ -22,12 +22,7 @@ export interface PfPlanDailies {
   id?: number;
   name: string;
   day: number;
-  contents: PfPlanDailyContents[];
-}
-
-interface PfPlanDailyContents {
-  exercise?: ExerciseModel;
-  education?: EducationModel;
+  contents: (EducationModel | PfPlanExerciseModel)[];
 }
 
 export interface PfPlanExerciseModel {

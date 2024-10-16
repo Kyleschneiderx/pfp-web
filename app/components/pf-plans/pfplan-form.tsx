@@ -3,10 +3,11 @@
 import Button from "@/app/components/elements/Button";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import { revalidatePage } from "@/app/lib/revalidate";
+import { EducationModel } from "@/app/models/education_model";
 import { ErrorModel } from "@/app/models/error_model";
 import { PfPlanDailies, PfPlanModel } from "@/app/models/pfplan_model";
 import { ValidationErrorModel } from "@/app/models/validation_error_model";
-import { deleteWorkout } from "@/app/services/client_side/workouts";
+import { savePfPlan } from "@/app/services/client_side/pfplans";
 import { usePfPlanDailiesStore } from "@/app/store/store";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import clsx from "clsx";
@@ -32,10 +33,10 @@ const ConfirmModal = dynamic(
 
 interface Props {
   action: "Create" | "Edit";
-  workout?: PfPlanModel;
+  pfPlan?: PfPlanModel;
 }
 
-export default function PfPlanForm({ action = "Create", workout }: Props) {
+export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
   const { showSnackBar } = useSnackBar();
   const router = useRouter();
   const { days, removeDay, replaceDays, setSelectedDay } =
@@ -57,11 +58,11 @@ export default function PfPlanForm({ action = "Create", workout }: Props) {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   useEffect(() => {
-    if (action === "Edit" && workout) {
-      setName(workout.name);
-      setDescription(workout.description);
+    if (action === "Edit" && pfPlan) {
+      setName(pfPlan.name);
+      setDescription(pfPlan.description);
     }
-  }, [workout]);
+  }, [pfPlan]);
 
   const handleFileSelect = (file: File | null) => {
     setPhoto(file);
@@ -94,7 +95,7 @@ export default function PfPlanForm({ action = "Create", workout }: Props) {
     const validationErrors = validateForm({
       name,
       description,
-      photo: photo ?? workout?.photo,
+      photo: photo ?? pfPlan?.photo,
       dayLength: days.length,
     });
     setErrors(validationErrors);
@@ -130,82 +131,101 @@ export default function PfPlanForm({ action = "Create", workout }: Props) {
   };
 
   const handleConfirm = async () => {
-    // if (!isProcessing) {
+    if (!isProcessing) {
+      try {
+        setIsProcessing(true);
+        const method = action === "Create" ? "POST" : "PUT";
+        const id = action === "Edit" ? pfPlan!.id : null;
+        const body = new FormData();
+
+        const dailiesPayload = days.map((item) => ({
+          name: item.name,
+          day: item.day,
+          contents: item.contents
+            .map((el) => {
+              if ("exercise" in el) {
+                return {
+                  exercise_id: el.exercise.id,
+                  sets: el.exercise.sets,
+                  reps: el.exercise.reps,
+                  hold: el.exercise.hold,
+                };
+              } else if (el && !("exercise" in el)) {
+                const education = el as EducationModel;
+                return {
+                  education_id: education.id,
+                };
+              }
+              return null;
+            })
+            .filter(Boolean),
+        }));
+
+        body.append("name", name);
+        if (description) body.append("description", description);
+        body.append("status_id", statusId);
+        if (photo) body.append("photo", photo);
+        if (dailiesPayload.length) {
+          body.append("dailies", JSON.stringify(dailiesPayload));
+        }
+
+        await savePfPlan({ method, id, body });
+        await revalidatePage("/pf-plans");
+        setIsProcessing(false);
+        showSnackBar({
+          message: `Pf Plan successfully ${
+            action === "Create" ? "created" : "updated"
+          }.`,
+          success: true,
+        });
+        setModalOpen(false);
+        clearData();
+      } catch (error) {
+        const apiError = error as ErrorModel;
+        if (apiError && apiError.msg) {
+          showSnackBar({ message: apiError.msg, success: false });
+        }
+        setIsProcessing(false);
+        setModalOpen(false);
+      }
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    // if (!isProcessing && action === "Edit") {
     //   try {
     //     setIsProcessing(true);
-    //     const method = action === "Create" ? "POST" : "PUT";
-    //     const id = action === "Edit" ? workout!.id : null;
-    //     const body = new FormData();
-    //     const exercisePayload = exercises.map((item) => ({
-    //       exercise_id: item.id,
-    //       sets: item.sets,
-    //       reps: item.reps,
-    //       hold: item.hold,
-    //     }));
-    //     body.append("name", name);
-    //     if (description) body.append("description", description);
-    //     body.append("status_id", statusId);
-    //     body.append("is_premium", type?.label === "Premium" ? "true" : "false");
-    //     if (photo) body.append("photo", photo);
-    //     if (exercisePayload.length) {
-    //       body.append("exercises", JSON.stringify(exercisePayload));
-    //     }
-    //     await saveWorkout({ method, id, body });
+    //     await deleteWorkout(workout!.id);
     //     await revalidatePage("/workouts");
     //     setIsProcessing(false);
     //     showSnackBar({
-    //       message: `Workout successfully ${
-    //         action === "Create" ? "created" : "updated"
-    //       }.`,
+    //       message: `Workout successfully deleted.`,
     //       success: true,
     //     });
     //     setModalOpen(false);
-    //     clearData();
+    //     router.push("/workouts");
     //   } catch (error) {
     //     const apiError = error as ErrorModel;
     //     if (apiError && apiError.msg) {
     //       showSnackBar({ message: apiError.msg, success: false });
     //     }
     //     setIsProcessing(false);
-    //     setModalOpen(false);
+    //     setDeleteModalOpen(false);
     //   }
     // }
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!isProcessing && action === "Edit") {
-      try {
-        setIsProcessing(true);
-        await deleteWorkout(workout!.id);
-        await revalidatePage("/workouts");
-        setIsProcessing(false);
-        showSnackBar({
-          message: `Workout successfully deleted.`,
-          success: true,
-        });
-        setModalOpen(false);
-        router.push("/workouts");
-      } catch (error) {
-        const apiError = error as ErrorModel;
-
-        if (apiError && apiError.msg) {
-          showSnackBar({ message: apiError.msg, success: false });
-        }
-        setIsProcessing(false);
-        setDeleteModalOpen(false);
-      }
-    }
   };
 
   const handleEditDay = (day: PfPlanDailies) => {
     setSelectedDay(day);
     setIsPanelOpen(true);
-  }
+  };
 
   const clearData = () => {
     setName("");
     setDescription("");
     setPhoto(null);
+    setSelectedDay(null);
+    replaceDays([]);
   };
 
   return (
@@ -248,7 +268,7 @@ export default function PfPlanForm({ action = "Create", workout }: Props) {
               </div>
             </>
           )}
-          <StatusBadge label={workout ? workout.status.value : "Draft"} />
+          <StatusBadge label={pfPlan ? pfPlan.status.value : "Draft"} />
         </div>
         <div className={clsx(editInfo ? "w-[674px]" : "")}>
           {editInfo ? (

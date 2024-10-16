@@ -15,7 +15,7 @@ export const validateForm = ({
   const errors: ValidationErrorModel[] = [];
 
   if (!name.trim()) {
-    errors.push({ fieldName: "name", message: "Please enter a workout name." });
+    errors.push({ fieldName: "name", message: "Please enter a plan name." });
   }
 
   if (!description.trim()) {

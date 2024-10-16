@@ -48,6 +48,7 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
   }, [days]);
 
   useEffect(() => {
+    console.log(selectedDay);
     if (selectedDay) {
       setName(selectedDay.name);
       const firstContent = selectedDay.contents[0];
@@ -56,7 +57,7 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
       }
       const exerciseContents = selectedDay.contents
         .slice(1)
-        .filter((item) => "exercise_id" in item) as PfPlanExerciseModel[];
+        .filter((item): item is PfPlanExerciseModel => "exercise_id" in item);
       setExercises(exerciseContents);
     }
   }, [selectedDay]);
@@ -166,8 +167,6 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
     setExercises([]);
     setSelectedDay(null);
   };
-
-  console.log(selectedDay);
 
   const pClass =
     "truncate max-w-xs overflow-hidden text-ellipsis whitespace-nowrap";
