@@ -1,14 +1,16 @@
 import { ValidationErrorModel } from "@/app/models/validation_error_model";
+import { EditorState } from "draft-js";
 
 export const validateForm = ({
   name,
   description,
+  content,
   photo,
   dayLength,
 }: {
   name: string;
   description: string;
-  type?: string;
+  content: EditorState;
   photo?: any;
   dayLength: number;
 }): ValidationErrorModel[] => {
@@ -27,6 +29,10 @@ export const validateForm = ({
 
   if (!photo) {
     errors.push({ fieldName: "photo", message: "A photo is required." });
+  }
+
+  if (!content) {
+    errors.push({ fieldName: "content", message: "Please enter a content." });
   }
 
   if (dayLength === 0) {

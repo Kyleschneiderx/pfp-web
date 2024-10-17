@@ -41,9 +41,7 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
   const [errors, setErrors] = useState<ValidationErrorModel[]>([]);
 
   useEffect(() => {
-    if (days.length > 0) {
-      setCurrentDayCount(days.length + 1);
-    }
+    setCurrentDayCount(days.length + 1);
   }, [days]);
 
   useEffect(() => {
@@ -67,7 +65,9 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
   };
 
   const onSelectExercise = (exercise: ExerciseModel) => {
-    const itemExists = exercises.some((item) => item.exercise_id === exercise.id);
+    const itemExists = exercises.some(
+      (item) => item.exercise_id === exercise.id
+    );
     const data: PfPlanExerciseModel = {
       exercise_id: exercise.id,
       sets: exercise.sets,
@@ -89,7 +89,9 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
   };
 
   const onRemoveExercise = (id: number) => {
-    const updatedExercises = exercises.filter((item) => item.exercise_id !== id);
+    const updatedExercises = exercises.filter(
+      (item) => item.exercise_id !== id
+    );
     setExercises(updatedExercises);
   };
 

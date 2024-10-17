@@ -5,6 +5,7 @@ export interface PfPlanModel {
   id: number;
   name: string;
   description: string;
+  content: string;
   photo: string;
   is_premium: boolean | null;
   created_at: string;

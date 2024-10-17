@@ -3,6 +3,7 @@
 import Button from "@/app/components/elements/Button";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import { revalidatePage } from "@/app/lib/revalidate";
+import { convertDraftjsToHtml } from "@/app/lib/utils";
 import { EducationModel } from "@/app/models/education_model";
 import { ErrorModel } from "@/app/models/error_model";
 import {
@@ -15,6 +16,7 @@ import { deletePfPlan, savePfPlan } from "@/app/services/client_side/pfplans";
 import { usePfPlanDailiesStore } from "@/app/store/store";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import clsx from "clsx";
+import { ContentState, EditorState } from "draft-js";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -35,6 +37,11 @@ const ConfirmModal = dynamic(
   { ssr: false }
 );
 
+const RichTextEditor = dynamic(
+  () => import("@/app/components/elements/RichTextEditor"),
+  { ssr: false }
+);
+
 interface Props {
   action: "Create" | "Edit";
   pfPlan?: PfPlanModel;
@@ -47,11 +54,13 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
 
   const [name, setName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
+  const [content, setContent] = useState(EditorState.createEmpty());
   const [photo, setPhoto] = useState<File | null>(null);
   const [statusId, setStatusId] = useState<"4" | "5">("4");
 
   const [errors, setErrors] = useState<ValidationErrorModel[]>([]);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [isSaved, setIsSaved] = useState<boolean>(false);
   const [editInfo, setEditInfo] = useState<boolean>(
     action === "Create" ? true : false
   );
@@ -64,6 +73,17 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
     if (action === "Edit" && pfPlan) {
       setName(pfPlan.name);
       setDescription(pfPlan.description);
+
+      if (typeof window !== "undefined") {
+        const htmlToDraft = require("html-to-draftjs").default;
+        const blocksFromHtml = htmlToDraft(pfPlan.content);
+        const { contentBlocks, entityMap } = blocksFromHtml;
+        const contentState = ContentState.createFromBlockArray(
+          contentBlocks,
+          entityMap
+        );
+        setContent(EditorState.createWithContent(contentState));
+      }
 
       const dailies = pfPlan.pf_plan_dailies.map(
         (item: {
@@ -97,7 +117,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
     }
     return () => {
       setDays([]);
-    }
+    };
   }, [pfPlan]);
 
   const handleFileSelect = (file: File | null) => {
@@ -131,6 +151,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
     const validationErrors = validateForm({
       name,
       description,
+      content,
       photo: photo ?? pfPlan?.photo,
       dayLength: days.length,
     });
@@ -188,7 +209,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
                   sets: exercise.sets,
                   reps: exercise.reps,
                   hold: exercise.hold,
-                }
+                };
                 return data;
               } else if (el && !("exercise" in el)) {
                 const education = el as EducationModel;
@@ -202,8 +223,11 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
             .filter(Boolean),
         }));
 
+        const htmlContent = convertDraftjsToHtml(content);
+
         body.append("name", name);
         if (description) body.append("description", description);
+        body.append("content", htmlContent);
         body.append("status_id", statusId);
         if (photo) body.append("photo", photo);
         if (dailiesPayload.length) {
@@ -221,6 +245,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
         });
         setModalOpen(false);
         clearData();
+        setIsSaved(true);
       } catch (error) {
         const apiError = error as ErrorModel;
         if (apiError && apiError.msg) {
@@ -259,6 +284,11 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
   const handleEditDay = (day: PfPlanDailies) => {
     setSelectedDay(day);
     setIsPanelOpen(true);
+  };
+
+  const handleEditorChange = (content: EditorState) => {
+    setContent(content);
+    setIsSaved(false);
   };
 
   const clearData = () => {
@@ -326,7 +356,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
         </div>
       </div>
       <div className="flex mt-4">
-        <Card className="w-[693px] min-h-[500px] p-[22px] mr-5">
+        <Card className="w-[693px] min-h-[300px] p-[22px] mr-5">
           <div className="flex justify-between">
             <h1 className="text-2xl font-semibold">PF Plan</h1>
             {days.length > 0 && (
@@ -414,6 +444,16 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
           )}
         </div>
       </div>
+      <Card className="w-[694px] p-5 mt-5">
+        <p className="font-medium mb-2">Content</p>
+        <RichTextEditor
+          placeholder="Enter the PF Plan's content here"
+          content={pfPlan?.content ?? null}
+          onChange={handleEditorChange}
+          isSaved={isSaved}
+          isEdit={action === "Edit"}
+        />
+      </Card>
       <AddDayPanel isOpen={isPanelOpen} onClose={togglePanel} />
       <ConfirmModal
         title={`Are you sure you want to ${
