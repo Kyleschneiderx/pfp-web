@@ -11,7 +11,7 @@ import {
   PfPlanModel,
 } from "@/app/models/pfplan_model";
 import { ValidationErrorModel } from "@/app/models/validation_error_model";
-import { savePfPlan } from "@/app/services/client_side/pfplans";
+import { deletePfPlan, savePfPlan } from "@/app/services/client_side/pfplans";
 import { usePfPlanDailiesStore } from "@/app/store/store";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import clsx from "clsx";
@@ -233,27 +233,27 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
   };
 
   const handleDeleteConfirm = async () => {
-    // if (!isProcessing && action === "Edit") {
-    //   try {
-    //     setIsProcessing(true);
-    //     await deleteWorkout(workout!.id);
-    //     await revalidatePage("/workouts");
-    //     setIsProcessing(false);
-    //     showSnackBar({
-    //       message: `Workout successfully deleted.`,
-    //       success: true,
-    //     });
-    //     setModalOpen(false);
-    //     router.push("/workouts");
-    //   } catch (error) {
-    //     const apiError = error as ErrorModel;
-    //     if (apiError && apiError.msg) {
-    //       showSnackBar({ message: apiError.msg, success: false });
-    //     }
-    //     setIsProcessing(false);
-    //     setDeleteModalOpen(false);
-    //   }
-    // }
+    if (!isProcessing && action === "Edit") {
+      try {
+        setIsProcessing(true);
+        await deletePfPlan(pfPlan!.id);
+        await revalidatePage("/pf-plans");
+        setIsProcessing(false);
+        showSnackBar({
+          message: `Pf Plan successfully deleted.`,
+          success: true,
+        });
+        setModalOpen(false);
+        router.push("/pf-plans");
+      } catch (error) {
+        const apiError = error as ErrorModel;
+        if (apiError && apiError.msg) {
+          showSnackBar({ message: apiError.msg, success: false });
+        }
+        setIsProcessing(false);
+        setDeleteModalOpen(false);
+      }
+    }
   };
 
   const handleEditDay = (day: PfPlanDailies) => {

@@ -67,9 +67,8 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
   };
 
   const onSelectExercise = (exercise: ExerciseModel) => {
-    const itemExists = exercises.some((item) => item.id === exercise.id);
+    const itemExists = exercises.some((item) => item.exercise_id === exercise.id);
     const data: PfPlanExerciseModel = {
-      // id: exercise.id,
       exercise_id: exercise.id,
       sets: exercise.sets,
       reps: exercise.reps,
@@ -90,7 +89,7 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
   };
 
   const onRemoveExercise = (id: number) => {
-    const updatedExercises = exercises.filter((item) => item.id !== id);
+    const updatedExercises = exercises.filter((item) => item.exercise_id !== id);
     setExercises(updatedExercises);
   };
 
