@@ -44,11 +44,9 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
     if (days.length > 0) {
       setCurrentDayCount(days.length + 1);
     }
-    console.log(days);
   }, [days]);
 
   useEffect(() => {
-    console.log(selectedDay);
     if (selectedDay) {
       setName(selectedDay.name);
       const firstContent = selectedDay.contents[0];
@@ -71,7 +69,7 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
   const onSelectExercise = (exercise: ExerciseModel) => {
     const itemExists = exercises.some((item) => item.id === exercise.id);
     const data: PfPlanExerciseModel = {
-      id: exercise.id,
+      // id: exercise.id,
       exercise_id: exercise.id,
       sets: exercise.sets,
       reps: exercise.reps,
@@ -146,6 +144,7 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
         contents.unshift(selectedEducation);
       }
       const day: PfPlanDailies = {
+        id: selectedDay?.id,
         name: name,
         day: selectedDay?.day || currentDayCount,
         contents: contents,
@@ -301,8 +300,8 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
                   >
                     {exercises.map((item, index) => (
                       <Draggable
-                        key={"key" + item.id}
-                        draggableId={item.id.toString()}
+                        key={"key" + item.exercise_id}
+                        draggableId={item.exercise_id.toString()}
                         index={index}
                       >
                         {(provided, snapshot) => (
@@ -389,7 +388,7 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
                             </div>
                             <CircleX
                               className="text-error-600 ml-auto"
-                              onClick={() => onRemoveExercise(item.id)}
+                              onClick={() => onRemoveExercise(item.exercise_id)}
                             />
                           </div>
                         )}

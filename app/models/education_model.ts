@@ -10,6 +10,7 @@ export interface EducationModel {
   updated_at: string;
   status_id: number;
   status: Status;
+  pfPlanDayContentId?: number;
 }
 
 interface Status {

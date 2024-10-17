@@ -19,15 +19,15 @@ interface Status {
 }
 
 export interface PfPlanDailies {
-  id?: number;
+  id?: number; // Used for daily_id
   name: string;
   day: number;
   contents: (EducationModel | PfPlanExerciseModel)[];
 }
 
 export interface PfPlanExerciseModel {
-  id: number;
-  exercise_id?: number;
+  id?: number; // Used for content_id
+  exercise_id: number;
   sets: number;
   reps: number;
   hold: number;

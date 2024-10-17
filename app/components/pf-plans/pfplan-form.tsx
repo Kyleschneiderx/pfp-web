@@ -5,7 +5,11 @@ import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import { revalidatePage } from "@/app/lib/revalidate";
 import { EducationModel } from "@/app/models/education_model";
 import { ErrorModel } from "@/app/models/error_model";
-import { PfPlanDailies, PfPlanModel } from "@/app/models/pfplan_model";
+import {
+  PfPlanDailies,
+  PfPlanExerciseModel,
+  PfPlanModel,
+} from "@/app/models/pfplan_model";
 import { ValidationErrorModel } from "@/app/models/validation_error_model";
 import { savePfPlan } from "@/app/services/client_side/pfplans";
 import { usePfPlanDailiesStore } from "@/app/store/store";
@@ -39,8 +43,7 @@ interface Props {
 export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
   const { showSnackBar } = useSnackBar();
   const router = useRouter();
-  const { days, removeDay, replaceDays, setSelectedDay } =
-    usePfPlanDailiesStore();
+  const { days, removeDay, setDays, setSelectedDay } = usePfPlanDailiesStore();
 
   const [name, setName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
@@ -61,6 +64,39 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
     if (action === "Edit" && pfPlan) {
       setName(pfPlan.name);
       setDescription(pfPlan.description);
+
+      const dailies = pfPlan.pf_plan_dailies.map(
+        (item: {
+          id?: number;
+          name: string;
+          day: number;
+          contents: any[];
+        }) => ({
+          id: item.id,
+          name: item.name,
+          day: item.day,
+          contents: item.contents.map((el) => {
+            if (el.exercise) {
+              return {
+                id: el.id,
+                exercise_id: el.exercise.id,
+                sets: el.exercise.sets,
+                reps: el.exercise.reps,
+                hold: el.exercise.hold,
+                exercise: el.exercise,
+              };
+            } else if (el.education) {
+              let education = el.education;
+              education.pfPlanDayContentId = el.id;
+              return education;
+            }
+          }),
+        })
+      );
+      setDays(dailies);
+    }
+    return () => {
+      setDays([]);
     }
   }, [pfPlan]);
 
@@ -88,7 +124,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
     }));
 
     // Replace the current days with the reindexed days
-    replaceDays(reindexedDays);
+    setDays(reindexedDays);
   };
 
   const isValid = () => {
@@ -139,20 +175,25 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
         const body = new FormData();
 
         const dailiesPayload = days.map((item) => ({
+          daily_id: item.id,
           name: item.name,
           day: item.day,
           contents: item.contents
             .map((el) => {
               if ("exercise" in el) {
-                return {
-                  exercise_id: el.exercise.id,
-                  sets: el.exercise.sets,
-                  reps: el.exercise.reps,
-                  hold: el.exercise.hold,
-                };
+                const exercise = el as PfPlanExerciseModel;
+                const data = {
+                  content_id: el.id,
+                  exercise_id: exercise.exercise_id,
+                  sets: exercise.sets,
+                  reps: exercise.reps,
+                  hold: exercise.hold,
+                }
+                return data;
               } else if (el && !("exercise" in el)) {
                 const education = el as EducationModel;
                 return {
+                  content_id: education.pfPlanDayContentId,
                   education_id: education.id,
                 };
               }
@@ -225,7 +266,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
     setDescription("");
     setPhoto(null);
     setSelectedDay(null);
-    replaceDays([]);
+    setDays([]);
   };
 
   return (
