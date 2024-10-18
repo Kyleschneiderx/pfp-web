@@ -2,6 +2,7 @@
 
 import clsx from "clsx";
 import {
+  AtomicBlockUtils,
   CompositeDecorator,
   ContentState,
   DraftHandleValue,
@@ -15,6 +16,7 @@ import htmlToDraft from "html-to-draftjs";
 import {
   Bold,
   Heading,
+  Image,
   Italic,
   Link2,
   List,
@@ -22,7 +24,7 @@ import {
   Strikethrough,
   Underline,
 } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 const blockStyleFn = (block: any) => {
   switch (block.getType()) {
@@ -83,6 +85,8 @@ export default function RichTextEditor({
   const [editorState, setEditorState] = useState(
     EditorState.createEmpty(decorator)
   );
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const iconSize = 16;
   const iconClassname = (isActive: boolean) => {
     return clsx(isActive ? "text-black" : "text-neutral-500", "cursor-pointer");
@@ -185,6 +189,58 @@ export default function RichTextEditor({
     }
   };
 
+  const addImage = (imageURL: string) => {
+    const contentState = editorState.getCurrentContent();
+    const contentStateWithEntity = contentState.createEntity(
+      "IMAGE",
+      "IMMUTABLE",
+      { src: imageURL }
+    );
+    const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
+    const newEditorState = AtomicBlockUtils.insertAtomicBlock(
+      editorState,
+      entityKey,
+      " "
+    );
+    setEditorState(
+      EditorState.forceSelection(newEditorState, newEditorState.getSelection())
+    );
+  };
+
+  // Function to handle file input and read the image
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event: any) => {
+        addImage(event.target.result); // Insert image into the editor once loaded
+      };
+      reader.readAsDataURL(file); // Convert image to data URL
+    }
+  };
+
+  const handleFileSelect = () => {
+    fileInputRef.current?.click();
+  };
+
+  // Custom block renderer for handling images
+  const blockRendererFn = (block: any) => {
+    if (block.getType() === "atomic") {
+      return {
+        component: Media,
+        editable: false,
+      };
+    }
+    return null;
+  };
+
+  // Media component to display the image
+  const Media = (props: any) => {
+    const entity = props.contentState.getEntity(props.block.getEntityAt(0));
+    const { src } = entity.getData();
+    return <img src={src} alt="Media" />;
+  };
+
   const isBold = editorState.getCurrentInlineStyle().has("BOLD");
   const isItalic = editorState.getCurrentInlineStyle().has("ITALIC");
   const isStrikeThrough = editorState
@@ -225,6 +281,7 @@ export default function RichTextEditor({
           handleKeyCommand={handleKeyCommand}
           handleReturn={handleReturn}
           blockStyleFn={blockStyleFn}
+          blockRendererFn={blockRendererFn}
           placeholder={placeholder}
         />
       </div>
@@ -261,6 +318,18 @@ export default function RichTextEditor({
         >
           <Link2 size={iconSize} className={iconClassname(isLink)} />
         </span>
+        <Image
+          size={iconSize}
+          className={iconClassname(isBlockquote)}
+          onClick={handleFileSelect}
+        />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={onFileChange}
+          className="hidden"
+        />
       </div>
     </div>
   );
