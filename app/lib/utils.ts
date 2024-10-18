@@ -97,7 +97,6 @@ export const convertDraftjsToHtml = (editorState: EditorState) => {
   );
   htmlContent = htmlContent.replace(/<ul>/g, '<ul style="margin: 0;">');
   htmlContent = htmlContent.replace(/<li>/g, '<li style="margin: 0; padding: 0;">');
-  // console.log(htmlContent);
   return htmlContent;
 };
 

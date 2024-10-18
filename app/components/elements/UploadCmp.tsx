@@ -34,10 +34,10 @@ export default function UploadCmp({
 
   const acceptedVideo = {
     "video/mp4": [".mp4"],
-    "video/quicktime": [".mov"],
-    "video/x-ms-wmv": [".wmv"],
-    "video/x-msvideo": [".avi"],
-    "video/x-matroska": [".mkv"],
+    // "video/quicktime": [".mov"],
+    // "video/x-ms-wmv": [".wmv"],
+    // "video/x-msvideo": [".avi"],
+    // "video/x-matroska": [".mkv"],
   };
 
   const onDrop = useCallback(
@@ -67,11 +67,11 @@ export default function UploadCmp({
             message = "Only JPEG, JPG, and PNG files are allowed.";
             break;
           case "video":
-            message = "Only MP4, MOV, WMV, AVI, and MKV files are allowed.";
+            message = "Only MP4 files are allowed.";
             break;
           case "image/video":
             message =
-              "Only JPEG, JPG, PNG, MP4, MOV, WMV, AVI, and MKV files are allowed.";
+              "Only JPEG, JPG, PNG, and MP4 files are allowed.";
             break;
           default:
             break;
@@ -179,8 +179,8 @@ export default function UploadCmp({
             {type === "image"
               ? "JPEG, JPG or PNG"
               : type === "video"
-              ? "MP4, MOV, WMV, AVI or MKV"
-              : "JPEG, JPG, PNG, MP4, MOV, WMV, AVI or MKV"}
+              ? "MP4 only"
+              : "JPEG, JPG, PNG or MP4"}
           </p>
           <p className="text-sm">(Max file size: {limitText})</p>
           {recommendedText && (
