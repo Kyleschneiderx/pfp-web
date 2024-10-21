@@ -9,9 +9,18 @@ export type LoginModel = {
     verified_at: string | null;
     created_at: string;
     updated_at: string;
+    user_profile: UserProfile;
   };
   token: {
     access: string;
     expires: number;
   };
 };
+
+interface UserProfile {
+  birthdate: string | null;
+  contact_number: string | null;
+  description: string | null;
+  name: string;
+  photo: string | null;
+}

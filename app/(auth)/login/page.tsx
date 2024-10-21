@@ -23,6 +23,18 @@ export default function Page() {
   const { showSnackBar } = useSnackBar();
   const router = useRouter();
 
+  const expireTime = {
+    expires: 1 / 24, // expires in 1 hour
+  };
+
+  const setCookie = (name: string, value: string) => {
+    Cookies.set(name, value, {
+      ...expireTime,
+      sameSite: "Strict",
+      // secure: true, // enable this if the server is already https
+    });
+  };
+
   const isValid = () => {
     const validationErrors = validateForm(email, password);
     setErrors(validationErrors);
@@ -43,15 +55,12 @@ export default function Page() {
         Cookies.remove("token");
 
         const response: LoginModel = await login(email, password);
-        Cookies.set("token", response.token.access, {
-          expires: 1 / 24, // expires in 1 hour
-          // expires: 1 / 1440, // expires in 1 minute
-          // secure: true, // enable this if the server is already https
-          sameSite: "Strict",
-        });
+        setCookie("token", response.token.access);
+        setCookie("user_name", response.user.user_profile.name);
+        setCookie("user_email", response.user.email);
+        
         window.location.replace("/dashboard");
         // router.push("/dashboard");
-        // window.location.reload();
       } catch (error) {
         const apiError = error as ErrorModel;
 
