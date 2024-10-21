@@ -14,7 +14,7 @@ interface Props extends Omit<ReactSelectProps<OptionType>, 'onChange'> {
 
 export default function SelectCmp({ className, invalid, onChange, ...rest }: Props) {
   return (
-    <div className="relative">
+    <div className="relative z-50">
       <Select
         {...rest}
         classNamePrefix="react-select"

@@ -97,6 +97,12 @@ export const convertDraftjsToHtml = (editorState: EditorState) => {
   );
   htmlContent = htmlContent.replace(/<ul>/g, '<ul style="margin: 0;">');
   htmlContent = htmlContent.replace(/<li>/g, '<li style="margin: 0; padding: 0;">');
+   // Fix image tags with undefined attributes
+   htmlContent = htmlContent.replace(
+    /<img src="([^"]+)" alt="undefined" style="height: undefined;width: undefined"/g,
+    (match, src) =>
+      `<img src="${src}" alt="" style="height: auto; width: auto; max-width: 100%"/>`
+  );
   return htmlContent;
 };
 

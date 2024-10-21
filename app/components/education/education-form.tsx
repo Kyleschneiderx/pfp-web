@@ -4,6 +4,7 @@ import Button from "@/app/components/elements/Button";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import { revalidatePage } from "@/app/lib/revalidate";
 import { convertDraftjsToHtml, getFileContentType } from "@/app/lib/utils";
+import { OptionsModel } from "@/app/models/common_model";
 import { EducationModel } from "@/app/models/education_model";
 import { ErrorModel } from "@/app/models/error_model";
 import { ValidationErrorModel } from "@/app/models/validation_error_model";
@@ -34,6 +35,11 @@ const ConfirmModal = dynamic(
   { ssr: false }
 );
 
+const PfPlanDropdownList = dynamic(
+  () => import("@/app/components/education/pfplan-dropdown-list"),
+  { ssr: false }
+);
+
 interface Props {
   action: "Create" | "Edit";
   education?: EducationModel;
@@ -50,6 +56,8 @@ export default function EducationForm({ action = "Create", education }: Props) {
   const [mediaUrl, setMediaUrl] = useState<string>("");
   const [mediaUpload, setMediaUpload] = useState<File | null>(null);
   const [statusId, setStatusId] = useState<"4" | "5">("4");
+  const [pfplanRef, setPfplanRef] = useState<OptionsModel | null>(null);
+  const [pfplanOptions, setPfplanOptions] = useState<OptionsModel[]>([]);
 
   const [errors, setErrors] = useState<ValidationErrorModel[]>([]);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -68,6 +76,12 @@ export default function EducationForm({ action = "Create", education }: Props) {
       setDescription(education.description);
       setMediaUrl(education.media_url ?? "");
       setDescCount(education.description.length);
+      if (education.reference_pf_plan_id) {
+        const foundItem = pfplanOptions.find(
+          (el) => el.value === education.reference_pf_plan_id!.toString()
+        );
+        setPfplanRef(foundItem ?? null);
+      }
       if (typeof window !== "undefined") {
         const htmlToDraft = require("html-to-draftjs").default;
         const blocksFromHtml = htmlToDraft(education.content);
@@ -79,7 +93,7 @@ export default function EducationForm({ action = "Create", education }: Props) {
         setContent(EditorState.createWithContent(contentState));
       }
     }
-  }, [education]);
+  }, [education, pfplanOptions]);
 
   const handlePhotoSelect = (file: File | null) => {
     setPhoto(file);
@@ -163,6 +177,9 @@ export default function EducationForm({ action = "Create", education }: Props) {
             body.append("media_upload", mediaUpload, mediaUpload.name);
           }
         }
+        if (pfplanRef) {
+          body.append("reference_pf_plan_id", pfplanRef.value);
+        }
 
         await saveEducation({ method, id, body });
         await revalidatePage("/education");
@@ -219,6 +236,7 @@ export default function EducationForm({ action = "Create", education }: Props) {
     setPhoto(null);
     setMediaUrl("");
     setMediaUpload(null);
+    setPfplanRef(null);
   };
 
   const Label = ({
@@ -242,6 +260,10 @@ export default function EducationForm({ action = "Create", education }: Props) {
   const handleEditorChange = (content: EditorState) => {
     setContent(content);
     setIsSaved(false);
+  };
+
+  const handleGetPfPlanOptions = (data: OptionsModel[]) => {
+    setPfplanOptions(data);
   };
 
   return (
@@ -297,6 +319,16 @@ export default function EducationForm({ action = "Create", education }: Props) {
                 value={description}
                 invalid={hasError("description")}
                 onChange={handleChangeDescription}
+              />
+            </div>
+            <div>
+              <div className="flex justify-between items-center">
+                <Label label="Reference PF plan" />
+              </div>
+              <PfPlanDropdownList
+                value={pfplanRef}
+                setValue={setPfplanRef}
+                getOptions={handleGetPfPlanOptions}
               />
             </div>
             <div>

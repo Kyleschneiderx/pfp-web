@@ -11,6 +11,7 @@ export interface EducationModel {
   status_id: number;
   status: Status;
   pfPlanDayContentId?: number;
+  reference_pf_plan_id: number | null;
 }
 
 interface Status {
