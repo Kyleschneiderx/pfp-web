@@ -19,7 +19,7 @@ export async function fetchPatients({
   let response;
   const params = `&name=${name}${
     !["0", ""].includes(status_id ?? "") ? `&status_id[]=${status_id}` : ""
-  }&sort[]=${sort}&page=${page}&page_items=20`;
+  }&sort[]=${sort}&page=${page}&page_items=15`;
 
   try {
     response = await getPatients(params);

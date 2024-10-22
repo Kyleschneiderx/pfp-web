@@ -29,7 +29,7 @@ export async function fetchExercises({
     ? categoryIds.map((id) => `&category_id[]=${id}`).join("")
     : "";
 
-  const params = `&name=${name}${category_ids}&sets_from=${sets_from}&sets_to=${sets_to}&reps_from=${reps_from}&reps_to=${reps_to}&sort[]=${sort}&page=${page}&page_items=20`;
+  const params = `&name=${name}${category_ids}&sets_from=${sets_from}&sets_to=${sets_to}&reps_from=${reps_from}&reps_to=${reps_to}&sort[]=${sort}&page=${page}&page_items=15`;
 
   try {
     response = await getExercises(params);

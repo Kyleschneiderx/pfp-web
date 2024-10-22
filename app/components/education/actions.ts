@@ -15,7 +15,7 @@ export async function fetchEducations({
   name, sort,
 }: Props): Promise<{educationList: EducationModel[]; max_page: number}> {
   let response;
-  const params = `&title=${name}&sort[]=${sort}&page=${page}&page_items=20`;
+  const params = `&title=${name}&sort[]=${sort}&page=${page}&page_items=15`;
   try {
     response = await getEducations(params);
     console.log(response.data.length);

@@ -15,7 +15,7 @@ export async function fetchPfPlans({
   name, sort,
 }: Props): Promise<{pfPlanList: PfPlanModel[]; max_page: number}> {
   let response;
-  const params = `&name=${name}&sort[]=${sort}&page=${page}&page_items=20`;
+  const params = `&name=${name}&sort[]=${sort}&page=${page}&page_items=15`;
   try {
     response = await getPfPlans(params);
     console.log(response.data.length);
