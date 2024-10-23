@@ -112,3 +112,22 @@ export const convertDraftjsToHtml = (editorState: EditorState) => {
 export const truncatedText = (text: string, max: number): string => {
   return text.length > max ? text.substring(0, max) + "..." : text;
 };
+
+export type WeekRange = {
+  startOfWeek: Date;
+  endOfWeek: Date;
+};
+
+// Helper function to get the start (sunday) and end (saturday) of the week
+export const getWeekRange = (date: Date): WeekRange => {
+  const dayOfWeek = date.getDay(); // 0 is sunday, 6 is saturday
+  const startOfWeek = new Date(date);
+  const endOfWeek = new Date(date);
+
+  // Set start to Sunday
+  startOfWeek.setDate(date.getDate() - dayOfWeek);
+  // Set end to Saturday
+  endOfWeek.setDate(date.getDate() + (6 - dayOfWeek));
+
+  return { startOfWeek, endOfWeek };
+};
