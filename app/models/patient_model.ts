@@ -9,6 +9,7 @@ export interface PatientModel {
   account_type: AccountType;
   user_type: UserType;
   status: Status;
+  can_invite: boolean;
 };
 
 interface UserProfile {

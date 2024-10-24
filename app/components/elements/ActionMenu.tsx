@@ -9,12 +9,16 @@ interface Props {
   editUrl: string;
   onDeleteClick: () => void;
   onRenameClick?: () => void;
+  onSendInviteClick?: () => void
+  canInvite?: boolean;
 }
 
 export default function ActionMenu({
   editUrl,
   onDeleteClick,
   onRenameClick,
+  onSendInviteClick,
+  canInvite,
 }: Props) {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -62,6 +66,13 @@ export default function ActionMenu({
                 <li>
                   <Link href="#" className={itemClass} onClick={onRenameClick}>
                     <span>Rename</span>
+                  </Link>
+                </li>
+              )}
+              {onSendInviteClick && canInvite && (
+                <li>
+                  <Link href="#" className={itemClass} onClick={onSendInviteClick}>
+                    <span>Send invite</span>
                   </Link>
                 </li>
               )}

@@ -33,3 +33,11 @@ export const getUserSummary = async (
   const url = `${API_BASE_URL}/users/summary?${params}`;
   return apiClient<UserSummaryModel>({ url: url, method: "GET" });
 };
+
+export const sendInvite = async (id: number): Promise<{ msg: string }> => {
+  const url = `${API_BASE_URL}/users/${id}/invite`;
+  return apiClient<{ msg: string }>({
+    url: url,
+    method: "POST",
+  });
+};
