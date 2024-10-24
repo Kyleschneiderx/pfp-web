@@ -2,6 +2,12 @@
 
 import Button from "@/app/components/elements/Button";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
+import {
+  CONFIRM_DELETE_DESCRIPTION,
+  CONFIRM_SAVE_DESCRIPTION,
+  CREATE_WORKOUT_DESCRIPTION,
+  UPDATE_DESCRIPTION,
+} from "@/app/lib/constants";
 import { revalidatePage } from "@/app/lib/revalidate";
 import { truncatedText } from "@/app/lib/utils";
 import { ErrorModel } from "@/app/models/error_model";
@@ -272,8 +278,9 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
         <div>
           <h1 className="text-2xl font-semibold">{action} Workout</h1>
           <p className="text-sm text-neutral-600">
-            Fill out the form below to create a new patient profile with the
-            required details.
+            {action === "Create"
+              ? CREATE_WORKOUT_DESCRIPTION
+              : UPDATE_DESCRIPTION}
           </p>
         </div>
         <div className="flex ml-auto space-x-3">
@@ -511,7 +518,7 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
         title={`Are you sure you want to ${
           action === "Create" ? "create this workout?" : "save this changes?"
         } `}
-        subTitle="Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum been."
+        subTitle={CONFIRM_SAVE_DESCRIPTION}
         isOpen={modalOpen}
         confirmBtnLabel="Save"
         isProcessing={isProcessing}
@@ -521,7 +528,7 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
       {action === "Edit" && (
         <ConfirmModal
           title="Are you sure you want to delete this workout?"
-          subTitle="Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum been."
+          subTitle={CONFIRM_DELETE_DESCRIPTION}
           isOpen={deleteModalOpen}
           confirmBtnLabel="Delete"
           isProcessing={isProcessing}

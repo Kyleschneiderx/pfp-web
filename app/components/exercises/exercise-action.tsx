@@ -2,6 +2,7 @@
 
 import ActionMenu from "@/app/components/elements/ActionMenu";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
+import { CONFIRM_DELETE_DESCRIPTION } from "@/app/lib/constants";
 import { revalidatePage } from "@/app/lib/revalidate";
 import { ErrorModel } from "@/app/models/error_model";
 import { ExerciseModel } from "@/app/models/exercise_model";
@@ -97,7 +98,7 @@ export default function ExerciseAction({ exercise }: Props) {
       />
       <ConfirmModal
         title="Are you sure you want to delete this exercise?"
-        subTitle="Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum been."
+        subTitle={CONFIRM_DELETE_DESCRIPTION}
         isOpen={modalOpen}
         confirmBtnLabel="Delete"
         isProcessing={isProcessing}

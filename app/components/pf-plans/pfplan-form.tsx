@@ -2,6 +2,12 @@
 
 import Button from "@/app/components/elements/Button";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
+import {
+  CONFIRM_DELETE_DESCRIPTION,
+  CONFIRM_SAVE_DESCRIPTION,
+  CREATE_PFPLAN_DESCRIPTION,
+  UPDATE_DESCRIPTION,
+} from "@/app/lib/constants";
 import { revalidatePage } from "@/app/lib/revalidate";
 import { convertDraftjsToHtml } from "@/app/lib/utils";
 import { EducationModel } from "@/app/models/education_model";
@@ -305,8 +311,9 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
         <div>
           <h1 className="text-2xl font-semibold">{action} PF Plan</h1>
           <p className="text-sm text-neutral-600">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit ante ipsum
-            primis in faucibus.
+            {action === "Create"
+              ? CREATE_PFPLAN_DESCRIPTION
+              : UPDATE_DESCRIPTION}
           </p>
         </div>
         <div className="flex ml-auto space-x-3">
@@ -459,7 +466,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
         title={`Are you sure you want to ${
           action === "Create" ? "create this PF Plan?" : "save this changes?"
         } `}
-        subTitle="Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum been."
+        subTitle={CONFIRM_SAVE_DESCRIPTION}
         isOpen={modalOpen}
         confirmBtnLabel="Save"
         isProcessing={isProcessing}
@@ -469,7 +476,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
       {action === "Edit" && (
         <ConfirmModal
           title="Are you sure you want to delete this PF Plan?"
-          subTitle="Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum been."
+          subTitle={CONFIRM_DELETE_DESCRIPTION}
           isOpen={deleteModalOpen}
           confirmBtnLabel="Delete"
           isProcessing={isProcessing}

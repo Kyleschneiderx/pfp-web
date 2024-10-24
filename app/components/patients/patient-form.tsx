@@ -10,6 +10,12 @@ import Textarea from "@/app/components/elements/Textarea";
 import ToggleSwitch from "@/app/components/elements/ToggleSwitch";
 import UploadCmp from "@/app/components/elements/UploadCmp";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
+import {
+  CONFIRM_DELETE_DESCRIPTION,
+  CONFIRM_SAVE_DESCRIPTION,
+  CREATE_PATIENT_DESCRIPTION,
+  UPDATE_DESCRIPTION,
+} from "@/app/lib/constants";
 import { revalidatePage } from "@/app/lib/revalidate";
 import { formatDate, onPhoneNumKeyDown } from "@/app/lib/utils";
 import { ErrorModel } from "@/app/models/error_model";
@@ -184,8 +190,9 @@ export default function PatientForm({ action = "Create", patient }: Props) {
         <div>
           <h1 className="text-2xl font-semibold">{action} Patients</h1>
           <p className="text-sm text-neutral-600">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit ante ipsum
-            primis in faucibus.
+            {action === "Create"
+              ? CREATE_PATIENT_DESCRIPTION
+              : UPDATE_DESCRIPTION}
           </p>
         </div>
         <div className="flex ml-auto space-x-3">
@@ -273,7 +280,7 @@ export default function PatientForm({ action = "Create", patient }: Props) {
         <div>
           <Card className="w-[446px] h-fit p-[22px]">
             <UploadCmp
-            label="Upload a Photo"
+              label="Upload a Photo"
               onFileSelect={handleFileSelect}
               clearImagePreview={photo === null}
               type="image"
@@ -294,7 +301,7 @@ export default function PatientForm({ action = "Create", patient }: Props) {
               ? "create this Patient's account?"
               : "save this changes?"
           } `}
-          subTitle="Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum been."
+          subTitle={CONFIRM_SAVE_DESCRIPTION}
           isOpen={modalOpen}
           confirmBtnLabel="Save"
           isProcessing={isProcessing}
@@ -304,7 +311,7 @@ export default function PatientForm({ action = "Create", patient }: Props) {
         {action === "Edit" && (
           <ConfirmModal
             title="Are you sure you want to delete this account?"
-            subTitle="Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum been."
+            subTitle={CONFIRM_DELETE_DESCRIPTION}
             isOpen={deleteModalOpen}
             confirmBtnLabel="Delete"
             isProcessing={isProcessing}

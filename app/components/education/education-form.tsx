@@ -2,6 +2,12 @@
 
 import Button from "@/app/components/elements/Button";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
+import {
+  CONFIRM_DELETE_DESCRIPTION,
+  CONFIRM_SAVE_DESCRIPTION,
+  CREATE_EDUCATION_DESCRIPTION,
+  UPDATE_DESCRIPTION,
+} from "@/app/lib/constants";
 import { revalidatePage } from "@/app/lib/revalidate";
 import { convertDraftjsToHtml, getFileContentType } from "@/app/lib/utils";
 import { OptionsModel } from "@/app/models/common_model";
@@ -272,8 +278,9 @@ export default function EducationForm({ action = "Create", education }: Props) {
         <div>
           <h1 className="text-2xl font-semibold">{action} Education</h1>
           <p className="text-sm text-neutral-600">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit ante ipsum
-            primis in faucibus.
+            {action === "Create"
+              ? CREATE_EDUCATION_DESCRIPTION
+              : UPDATE_DESCRIPTION}
           </p>
         </div>
         <div className="flex ml-auto space-x-3">
@@ -376,7 +383,7 @@ export default function EducationForm({ action = "Create", education }: Props) {
         title={`Are you sure you want to ${
           action === "Create" ? "create this education?" : "save this changes?"
         } `}
-        subTitle="Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum been."
+        subTitle={CONFIRM_SAVE_DESCRIPTION}
         isOpen={modalOpen}
         confirmBtnLabel="Save"
         isProcessing={isProcessing}
@@ -386,7 +393,7 @@ export default function EducationForm({ action = "Create", education }: Props) {
       {action === "Edit" && (
         <ConfirmModal
           title="Are you sure you want to delete this education?"
-          subTitle="Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum been."
+          subTitle={CONFIRM_DELETE_DESCRIPTION}
           isOpen={deleteModalOpen}
           confirmBtnLabel="Delete"
           isProcessing={isProcessing}

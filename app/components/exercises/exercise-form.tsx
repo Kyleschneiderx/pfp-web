@@ -7,6 +7,12 @@ import ReqIndicator from "@/app/components/elements/ReqIndicator";
 import Textarea from "@/app/components/elements/Textarea";
 import UploadCmp from "@/app/components/elements/UploadCmp";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
+import {
+  CONFIRM_DELETE_DESCRIPTION,
+  CONFIRM_SAVE_DESCRIPTION,
+  CREATE_EXERCISE_DESCRIPTION,
+  UPDATE_DESCRIPTION,
+} from "@/app/lib/constants";
 import { revalidatePage } from "@/app/lib/revalidate";
 import { getFileContentType } from "@/app/lib/utils";
 import { ErrorModel } from "@/app/models/error_model";
@@ -346,8 +352,9 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
         <div>
           <h1 className="text-2xl font-semibold">{action} Exercise</h1>
           <p className="text-sm text-neutral-600">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit ante ipsum
-            primis in faucibus.
+            {action === "Create"
+              ? CREATE_EXERCISE_DESCRIPTION
+              : UPDATE_DESCRIPTION}
           </p>
         </div>
         <div className="flex ml-auto space-x-3">
@@ -492,7 +499,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
           title={`Are you sure you want to ${
             action === "Create" ? "create this exercise?" : "save this changes?"
           } `}
-          subTitle="Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum been."
+          subTitle={CONFIRM_SAVE_DESCRIPTION}
           isOpen={modalOpen}
           confirmBtnLabel="Save"
           isProcessing={isProcessing}
@@ -502,7 +509,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
         {action === "Edit" && (
           <ConfirmModal
             title="Are you sure you want to delete this exercise?"
-            subTitle="Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum been."
+            subTitle={CONFIRM_DELETE_DESCRIPTION}
             isOpen={deleteModalOpen}
             confirmBtnLabel="Delete"
             isProcessing={isProcessing}
@@ -514,7 +521,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
           title={`Are you sure you want to ${
             isDeleteCat ? "delete this" : "create this new"
           } category?`}
-          subTitle="Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum been."
+          subTitle={CONFIRM_DELETE_DESCRIPTION}
           isOpen={categoryConfirmModalOpen}
           confirmBtnLabel="Confirm"
           isProcessing={isCategoryProcessing}

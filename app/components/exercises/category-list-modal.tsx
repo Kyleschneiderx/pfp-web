@@ -1,6 +1,7 @@
 "use client";
 
 import ModalCmp from "@/app/components/elements/ModalCmp";
+import { LIST_CATEGORIES_DESCRIPTION } from "@/app/lib/constants";
 import { CategoryOptionsModel } from "@/app/models/exercise_model";
 import FilePen from "@/public/svg/file-pen.svg";
 import TrashBin from "@/public/svg/trash-bin.svg";
@@ -31,8 +32,7 @@ export default function CategoryListModal({
       <div className="text-center w-[450px] py-5 px-3">
         <p className="text-2xl font-semibold mb-2">All Categories</p>
         <p className="text-neutral-600 mb-[40px]">
-          Lorem Ipsum is simply dummy text of the printing and typesetting
-          industry Lorem Ipsum been.
+          {LIST_CATEGORIES_DESCRIPTION}
         </p>
         <ul className="border border-neutral-300 rounded-lg text-start overflow-auto h-[200px]">
           {categories.map((item) => (

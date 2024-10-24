@@ -2,6 +2,10 @@
 
 import ActionMenu from "@/app/components/elements/ActionMenu";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
+import {
+  CONFIRM_DELETE_DESCRIPTION,
+  CONFIRM_INVITE_DESCRIPTION,
+} from "@/app/lib/constants";
 import { revalidatePage } from "@/app/lib/revalidate";
 import { ErrorModel } from "@/app/models/error_model";
 import { PatientModel } from "@/app/models/patient_model";
@@ -73,7 +77,7 @@ export default function PatientAction({ patient }: Props) {
         setModalSendInviteOpen(false);
       }
     }
-  }
+  };
 
   return (
     <>
@@ -85,7 +89,7 @@ export default function PatientAction({ patient }: Props) {
       />
       <ConfirmModal
         title="Are you sure you want to delete this account?"
-        subTitle="Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum been."
+        subTitle={CONFIRM_DELETE_DESCRIPTION}
         isOpen={modalOpen}
         confirmBtnLabel="Delete"
         isProcessing={isProcessing}
@@ -94,7 +98,7 @@ export default function PatientAction({ patient }: Props) {
       />
       <ConfirmModal
         title="Are you sure you want to send this invitation?"
-        subTitle="Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum been."
+        subTitle={CONFIRM_INVITE_DESCRIPTION}
         isOpen={modalSendInviteOpen}
         confirmBtnLabel="Send"
         isProcessing={isProcessing}

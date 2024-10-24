@@ -2,10 +2,14 @@
 
 import ActionMenu from "@/app/components/elements/ActionMenu";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
+import { CONFIRM_DELETE_DESCRIPTION } from "@/app/lib/constants";
 import { revalidatePage } from "@/app/lib/revalidate";
 import { EducationModel } from "@/app/models/education_model";
 import { ErrorModel } from "@/app/models/error_model";
-import { deleteEducation, saveEducation } from "@/app/services/client_side/educations";
+import {
+  deleteEducation,
+  saveEducation,
+} from "@/app/services/client_side/educations";
 import { useState } from "react";
 import ConfirmModal from "../elements/ConfirmModal";
 import ModalRename from "../elements/ModalRename";
@@ -94,7 +98,7 @@ export default function EducationAction({ education }: Props) {
       />
       <ConfirmModal
         title="Are you sure you want to delete this education?"
-        subTitle="Lorem Ipsum is simply dummy text of the printing and typesetting industry Lorem Ipsum been."
+        subTitle={CONFIRM_DELETE_DESCRIPTION}
         isOpen={modalOpen}
         confirmBtnLabel="Delete"
         isProcessing={isProcessing}
