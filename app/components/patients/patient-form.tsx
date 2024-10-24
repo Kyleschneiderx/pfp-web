@@ -78,7 +78,6 @@ export default function PatientForm({ action = "Create", patient }: Props) {
       email,
       contactNo,
       birthdate,
-      photo: photo ?? patient?.user_profile.photo,
     });
     setErrors(validationErrors);
     return validationErrors.length === 0;

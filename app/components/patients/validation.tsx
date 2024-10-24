@@ -6,13 +6,11 @@ export const validateForm = ({
   email,
   contactNo,
   birthdate,
-  photo,
 }: {
   name: string;
   email: string;
   contactNo: string;
   birthdate: Date | null;
-  photo?: any,
 }): ValidationErrorModel[] => {
   const errors: ValidationErrorModel[] = [];
 
@@ -40,10 +38,6 @@ export const validateForm = ({
       fieldName: "birthdate",
       message: "Date of birth is required.",
     });
-  }
-
-  if (!photo) {
-    errors.push({ fieldName: "photo", message: "A photo is required." });
   }
 
   return errors;
