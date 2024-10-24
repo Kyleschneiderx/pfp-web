@@ -82,8 +82,8 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
       const exerciseData = workout.workout_exercises.map((exercise) => ({
         ...exercise,
         id: exercise.exercise.id,
+        workout_exercise_id: exercise.id,
       }));
-
       setExercises(exerciseData);
     }
   }, [workout]);
@@ -194,6 +194,7 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
         const body = new FormData();
 
         const exercisePayload = exercises.map((item) => ({
+          workout_exercise_id: item.workout_exercise_id,
           exercise_id: item.id,
           sets: item.sets,
           reps: item.reps,
@@ -271,8 +272,8 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
         <div>
           <h1 className="text-2xl font-semibold">{action} Workout</h1>
           <p className="text-sm text-neutral-600">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit ante ipsum
-            primis in faucibus.
+            Fill out the form below to create a new patient profile with the
+            required details.
           </p>
         </div>
         <div className="flex ml-auto space-x-3">

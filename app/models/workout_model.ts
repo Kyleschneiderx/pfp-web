@@ -19,6 +19,7 @@ interface Status {
 }
 
 export interface WorkoutExerciseModel {
+  workout_exercise_id?: number;
   id: number;
   sets: number;
   reps: number;
