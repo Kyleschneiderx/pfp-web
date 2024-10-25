@@ -48,6 +48,10 @@ export default function UserLineChart({ userSummary }: Props) {
         borderWidth: 3,
         fill: false,
         tension: 0.4,
+        pointRadius: 6,
+        pointBackgroundColor: primaryColor,
+        pointBorderColor: "white",
+        pointBorderWidth: 3,
       },
       {
         label: "Free Users",
@@ -56,6 +60,10 @@ export default function UserLineChart({ userSummary }: Props) {
         borderWidth: 3,
         fill: false,
         tension: 0.4,
+        pointRadius: 6,
+        pointBackgroundColor: secondaryColor,
+        pointBorderColor: "white",
+        pointBorderWidth: 3,
       },
     ],
   };

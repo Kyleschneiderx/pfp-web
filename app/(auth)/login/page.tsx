@@ -84,7 +84,7 @@ export default function Page() {
         width={172}
         height={80}
         quality={100}
-        className="mx-auto"
+        className="mx-auto w-[172px] h-[80px]"
         priority
       />
       <div className="space-y-5 mt-8">

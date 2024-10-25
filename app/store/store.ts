@@ -39,5 +39,15 @@ const usePfPlanDailiesStore = create<PfPlanDailiesState>((set) => ({
   setSelectedDay: (day) => set(() => ({ selectedDay: day })),
 }));
 
-export { usePfPlanDailiesStore };
+interface ToggleState {
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+}
+
+const useToggle = create<ToggleState>((set) => ({
+  isOpen: false,
+  setIsOpen: (open) => set(() => ({ isOpen: open })),
+}));
+
+export { usePfPlanDailiesStore, useToggle };
 

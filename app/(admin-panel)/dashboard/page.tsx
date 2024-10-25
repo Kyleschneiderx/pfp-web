@@ -78,7 +78,7 @@ export default function Page() {
 
     if (selectedOption1?.value === "weekly") {
       dateFrom = formatDate(startOfWeek);
-      dateTo = formatDate(endOfWeek)
+      dateTo = formatDate(endOfWeek);
     }
 
     const params = `period=${selectedOption1?.value}&date_from=${dateFrom}&date_to=${dateTo}`;
@@ -92,7 +92,7 @@ export default function Page() {
 
   return (
     <div className="flex flex-wrap">
-      <Card className="w-[728px] mr-6 mb-6 p-[18px]">
+      <Card className="w-[728px] sm:mr-6 mb-5">
         <div className="flex items-start">
           <div>
             <p className="text-[28px] font-bold">
@@ -100,13 +100,7 @@ export default function Page() {
             </p>
             <p className="text-neutral-600">Total Users</p>
           </div>
-          <div className="flex items-center text-sm mt-3 ml-auto mr-3 space-x-3">
-            <div className="w-3 h-3 rounded-full bg-[#3758F9]"></div>
-            <p>Premium</p>
-            <div className="w-3 h-3 rounded-full bg-secondary-500"></div>
-            <p>Free</p>
-          </div>
-          <div>
+          <div className="sm:flex space-x-3 ml-auto">
             <SelectCmp
               options={options1}
               value={selectedOption1}
@@ -127,7 +121,7 @@ export default function Page() {
           </div>
         </div>
         {selectedOption1?.value === "weekly" && (
-          <div className="flex items-center font-medium text-sm space-x-2 mt-3">
+          <div className="flex items-center justify-center font-medium text-sm space-x-2 mt-3">
             <ChevronLeft
               className="cursor-pointer"
               onClick={goToPreviousWeek}
@@ -140,6 +134,12 @@ export default function Page() {
         )}
         <div className="mt-6 mb-2">
           <UserLineChart userSummary={userSummary} />
+        </div>
+        <div className="flex items-center justify-center text-sm mt-3 space-x-3">
+          <div className="w-3 h-3 rounded-full bg-[#3758F9]"></div>
+          <p>Premium</p>
+          <div className="w-3 h-3 rounded-full bg-secondary-500"></div>
+          <p>Free</p>
         </div>
       </Card>
       <UserDoughnutChart
