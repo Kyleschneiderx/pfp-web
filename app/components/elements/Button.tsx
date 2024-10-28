@@ -3,7 +3,7 @@ import { CirclePlus } from "lucide-react";
 import Loader from "./Loader";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  label: String;
+  label: string;
   showIcon?: boolean;
   icon?: React.ReactNode;
   secondary?: boolean;

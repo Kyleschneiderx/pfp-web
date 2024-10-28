@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import FilterSort from "../elements/FilterSort";
+import FilterSortMobile from "../elements/mobile/FilterSortMobile";
 
 export default function PatientFilterSort() {
   const searchParams = useSearchParams();
@@ -47,6 +48,7 @@ export default function PatientFilterSort() {
 
   return (
     <>
+      {/* For desktop */}
       <FilterSort
         options={filterOptions}
         label="Filter"
@@ -55,6 +57,17 @@ export default function PatientFilterSort() {
       <FilterSort
         options={sortOptions}
         label="Sort"
+        onSelect={handleSortSelect}
+      />
+
+      {/* For mobile */}
+      <FilterSortMobile
+        options={filterOptions}
+        isSort={false}
+        onSelect={handleFilterSelect}
+      />
+      <FilterSortMobile
+        options={sortOptions}
         onSelect={handleSortSelect}
       />
     </>

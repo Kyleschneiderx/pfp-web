@@ -69,7 +69,7 @@ export default function FilterSort({
 
   return (
     <div
-      className="relative flex text-sm font-medium select-none"
+      className="hidden sm:flex relative text-sm font-medium select-none"
       ref={dropdownRef}
     >
       <p className="ml-7 mr-1">{label}</p>

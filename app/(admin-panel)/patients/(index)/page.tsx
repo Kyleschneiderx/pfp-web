@@ -1,4 +1,5 @@
 import Button from "@/app/components/elements/Button";
+import IconAddButton from "@/app/components/elements/mobile/IconAddButton";
 import SearchCmp from "@/app/components/elements/SearchCmp";
 import { fetchPatients } from "@/app/components/patients/actions";
 import PatientFilterSort from "@/app/components/patients/patient-filter-sort";
@@ -43,10 +44,11 @@ export default async function Page({
   return (
     <>
       <div className="flex items-center mb-8">
-        <SearchCmp placeholder="Search patients" />
+        <SearchCmp placeholder="Search patients" className="mr-4 sm:mr-0" />
         <PatientFilterSort />
         <Link href="/patients/create" className="ml-auto">
-          <Button label="Add Patients" showIcon />
+          <Button label="Add Patients" showIcon className="hidden sm:flex" />
+          <IconAddButton className="sm:hidden" />
         </Link>
       </div>
       <div>
