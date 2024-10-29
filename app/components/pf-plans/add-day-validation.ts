@@ -7,16 +7,29 @@ export const validateDayForm = ({
   education,
   exerciseLength,
   days,
+  selectedDay,
 }: {
   name: string;
   education: EducationModel | null;
   exerciseLength: number;
   days: PfPlanDailies[];
+  selectedDay: PfPlanDailies | null;
 }): ValidationErrorModel[] => {
   const errors: ValidationErrorModel[] = [];
 
-  const isNameExists = (arr: PfPlanDailies[], name: string): boolean => {
-    return arr.some((obj) => obj.name.toLowerCase() === name.toLowerCase());
+  const isNameExists = (
+    arr: PfPlanDailies[],
+    name: string,
+    selectedDay: PfPlanDailies | null
+  ): boolean => {
+    const foundItem = arr.find(
+      (obj) => obj.name.toLowerCase() === name.toLowerCase()
+    );
+    // Check if found item exists and is on a different day
+    if (foundItem && foundItem.day !== selectedDay?.day) {
+      return true;
+    }
+    return false;
   };
 
   if (!name.trim()) {
@@ -37,7 +50,7 @@ export const validateDayForm = ({
     });
   }
 
-  if (isNameExists(days, name)) {
+  if (isNameExists(days, name, selectedDay)) {
     errors.push({
       fieldName: "duplicate-name",
       message: "Duplicate PF plan daily content name.",

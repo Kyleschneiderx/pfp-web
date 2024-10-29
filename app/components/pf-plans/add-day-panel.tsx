@@ -127,6 +127,7 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
       education: selectedEducation,
       exerciseLength: exercises.length,
       days,
+      selectedDay,
     });
     setErrors(validationErrors);
     return validationErrors.length === 0;
