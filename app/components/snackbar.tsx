@@ -29,14 +29,20 @@ const SnackBar: React.FC<Props> = ({
   return (
     <div
       className={clsx(
-        "fixed top-5 left-1/2 transform -translate-x-1/2 px-8 py-2 rounded-md shadow-lg transition-all",
-        "whitespace-pre-line", // Ensure newlines are respected
-        isVisible ? "opacity-100" : "opacity-0 pointer-events-none",
-        success ? "bg-success-500 text-white" : "bg-error-300"
+        "w-full sm:w-auto fixed top-5 sm:left-1/2 sm:transform sm:-translate-x-1/2 px-3",
+        isVisible ? "opacity-100" : "opacity-0 pointer-events-none"
       )}
-      role="alert"
     >
-      {message}
+      <div
+        className={clsx(
+          "w-full px-5 py-2 rounded-md shadow-lg transition-all",
+          "whitespace-pre-line",
+          success ? "bg-success-500 text-white" : "bg-error-300"
+        )}
+        role="alert"
+      >
+        {message}
+      </div>
     </div>
   );
 };
