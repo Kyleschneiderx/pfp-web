@@ -3,9 +3,8 @@
 import ModalCmp from "@/app/components/elements/ModalCmp";
 import { LIST_CATEGORIES_DESCRIPTION } from "@/app/lib/constants";
 import { CategoryOptionsModel } from "@/app/models/exercise_model";
-import FilePen from "@/public/svg/file-pen.svg";
-import TrashBin from "@/public/svg/trash-bin.svg";
-import Image from "next/image";
+import FilePenIcon from "../icons/filepen_icon";
+import TrashbinIcon from "../icons/trashbin_icon";
 
 interface Props {
   isOpen: boolean;
@@ -41,15 +40,11 @@ export default function CategoryListModal({
               className="flex w-full py-2 px-4 text-neutral-600 hover:bg-primary-50 hover:text-primary-500 group"
             >
               <span>{item.label}</span>
-              <Image
-                src={FilePen}
-                alt="file pen"
+              <FilePenIcon
                 className="ml-auto mr-2 hidden group-hover:inline-block cursor-pointer"
                 onClick={() => onEditClick(item)}
               />
-              <Image
-                src={TrashBin}
-                alt="file pen"
+              <TrashbinIcon
                 className="hidden group-hover:inline-block cursor-pointer"
                 onClick={() => onDeleteClick(item)}
               />

@@ -63,7 +63,7 @@ export default function PatientList({
         {patients.map((patient) => (
           <Card
             key={patient.id}
-            className="p-4 pr-3 w-[351px] flex mr-7 mb-7 text-neutral-900"
+            className="p-4 pr-3 w-[351px] flex mx-auto sm:mx-0 sm:mr-7 mb-7 text-neutral-900"
           >
             <Image
               src={patient.user_profile.photo || "/images/avatar.png"}

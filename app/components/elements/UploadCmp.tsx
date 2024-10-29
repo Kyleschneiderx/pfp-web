@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { FileImage, Trash2, Upload } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
+import FilePenIcon from "../icons/filepen_icon";
 
 interface Props {
   label: string;
@@ -12,6 +13,7 @@ interface Props {
   clearImagePreview: boolean;
   type: "image" | "video" | "image/video";
   recommendedText?: string;
+  previewImage?: boolean;
 }
 
 export default function UploadCmp({
@@ -20,6 +22,7 @@ export default function UploadCmp({
   clearImagePreview,
   type,
   recommendedText,
+  previewImage = false,
 }: Props) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -70,8 +73,7 @@ export default function UploadCmp({
             message = "Only MP4 files are allowed.";
             break;
           case "image/video":
-            message =
-              "Only JPEG, JPG, PNG, and MP4 files are allowed.";
+            message = "Only JPEG, JPG, PNG, and MP4 files are allowed.";
             break;
           default:
             break;
@@ -142,7 +144,7 @@ export default function UploadCmp({
   return (
     <div>
       <p className="font-medium mb-2">{label}</p>
-      {fileName && fileType && (
+      {fileName && fileType && !previewImage && (
         <div className="flex items-center mb-4">
           <FileImage size={20} className="text-neutral-300 mr-2" />
           <div>
@@ -159,7 +161,7 @@ export default function UploadCmp({
       <div
         {...getRootProps()}
         className={clsx(
-          "flex flex-col items-center py-8 justify-center border-2 border-dashed rounded-md bg-neutral-100 cursor-pointer",
+          "flex flex-row sm:flex-col items-center pt-2 pb-4 sm:py-8 sm:justify-center border-2 border-dashed rounded-md bg-neutral-100 cursor-pointer",
           {
             "border-primary-500": isDragActive,
             "border-red-500": isDragReject,
@@ -167,14 +169,29 @@ export default function UploadCmp({
         )}
       >
         <input {...getInputProps()} />
-        <div className="p-2 border rounded-full w-fit h-fit bg-white">
-          <Upload size={20} className="text-primary-500" />
+        <div className="sm:p-2 border rounded-full w-fit h-fit bg-white mx-4 mt-2 sm:mt-0">
+          <Upload className="text-primary-500 h-5 w-5 hidden sm:block" />
+          {imagePreview && previewImage ? (
+            <div className="relative p-2">
+              <img
+                src={imagePreview}
+                alt="Profile"
+                className="sm:hidden h-[70px] w-[70px] rounded-full"
+              />
+              <FilePenIcon fillColor="#736CED" className="absolute right-0 bottom-0" />
+            </div>
+          ) : (
+            <Upload className="text-primary-500 h-7 w-7 sm:hidden m-5" />
+          )}
         </div>
-        <div className="text-neutral-700 text-center mt-2">
-          <p>
+        <div className="text-neutral-700 sm:text-center mt-2">
+          <p className="hidden sm:block">
             <span className="text-primary-500">Click to upload</span> or drag
             and drop
           </p>
+          <span className="text-primary-500 sm:hidden">
+            Tap to {imagePreview ? "change" : "upload"}
+          </span>
           <p className="mt-2">
             {type === "image"
               ? "JPEG, JPG or PNG"

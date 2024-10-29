@@ -39,6 +39,7 @@ export default function DateInput({
       dateFormat={dateFormat}
       placeholderText={placeholderText}
       maxDate={maxDate}
+      wrapperClassName="w-full"
       {...rest}
     />
   );

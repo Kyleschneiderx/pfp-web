@@ -38,8 +38,8 @@ export default function ModalRename({
 
   return (
     <ModalCmp isOpen={isOpen} contentLabel="Example Modal">
-      <div className="w-[450px] py-5 px-3">
-        <p className="text-2xl font-semibold mb-7 text-center">
+      <div className="w-[300px] sm:w-[450px] py-5 px-3">
+        <p className="text-xl sm:text-2xl font-semibold mb-7 text-center">
           Rename {label}
         </p>
         <div className="border border-neutral-200 rounded py-[9px] px-4 mb-6">

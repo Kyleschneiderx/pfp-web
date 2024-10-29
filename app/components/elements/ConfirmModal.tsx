@@ -24,8 +24,8 @@ export default function ConfirmModal({
 }: Props) {
   return (
     <ModalCmp isOpen={isOpen} contentLabel="Example Modal">
-      <div className="text-center w-[450px]">
-        <p className="text-2xl font-semibold mb-5">{title}</p>
+      <div className="text-center w-[300px] sm:w-[450px]">
+        <p className="text-xl sm:text-2xl font-semibold mb-5">{title}</p>
         <p className="text-neutral-600 mb-[40px]">{subTitle}</p>
         <div className="flex justify-center space-x-3">
           <Button label="Cancel" secondary onClick={onClose} className="px-[50px]" disabled={isProcessing} />
