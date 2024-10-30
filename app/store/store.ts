@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { ExerciseModel } from "../models/exercise_model";
 import { PatientModel } from "../models/patient_model";
 import { PfPlanDailies } from "../models/pfplan_model";
 
@@ -52,7 +53,9 @@ const useToggle = create<ToggleState>((set) => ({
 
 interface ActionMenuState {
   patient: PatientModel | null;
-  setPatient: (day: PatientModel | null) => void;
+  setPatient: (patient: PatientModel | null) => void;
+  exercise: ExerciseModel | null;
+  setExercise: (exercise: ExerciseModel | null) => void;
   editUrl: string;
   setEditUrl: (url: string) => void;
   isOpen: boolean;
@@ -61,9 +64,11 @@ interface ActionMenuState {
 
 const useActionMenuStore = create<ActionMenuState>((set) => ({
   patient: null,
+  exercise: null,
   editUrl: "",
   isOpen: false,
   setPatient: (state) => set(() => ({ patient: state })),
+  setExercise: (state) => set(() => ({ exercise: state })),
   setEditUrl: (state) => set(() => ({ editUrl: state })),
   setIsOpen: (state) => set(() => ({ isOpen: state })),
 }));

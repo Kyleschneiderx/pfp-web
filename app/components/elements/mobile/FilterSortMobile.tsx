@@ -84,7 +84,7 @@ export default function FilterSortMobile({
         )}
       >
         <div className="bg-white p-5 rounded-t-2xl rounded-b-none">
-          <p className="text-xl font-semibold mb-3">
+          <p className="text-xl text-center font-semibold mb-3">
             {isSort ? "Sort by" : "Select Filter"}
           </p>
           <ul className="space-y-4 max-h-[200px] overflow-auto font-semibold mb-3">

@@ -107,6 +107,7 @@ export default function PatientList({
         }
         setIsProcessing(false);
         setModalOpen(false);
+        setIsOpen(false);
       }
     }
   };
@@ -207,7 +208,7 @@ export default function PatientList({
             <PatientAction patient={patient} />
             {/* For mobile */}
             <EllipsisVertical
-              size={25}
+              size={26}
               className="text-neutral-900 cursor-pointer sm:hidden"
               onClick={() => handleActionMenuClick(patient)}
             />

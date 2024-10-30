@@ -1,4 +1,5 @@
 import Button from "@/app/components/elements/Button";
+import IconAddButton from "@/app/components/elements/mobile/IconAddButton";
 import SearchCmp from "@/app/components/elements/SearchCmp";
 import { fetchExercises } from "@/app/components/exercises/actions";
 import ExerciseFilterSort from "@/app/components/exercises/exercise-filter-sort";
@@ -55,10 +56,11 @@ export default async function Page({
   return (
     <>
       <div className="flex items-center mb-8">
-        <SearchCmp placeholder="Search exercises" />
+        <SearchCmp placeholder="Search exercises" className="mr-4 sm:mr-0" />
         <ExerciseFilterSort />
         <Link href="/exercises/create" className="ml-auto">
-          <Button label="Add Exercise" showIcon />
+          <Button label="Add Exercise" showIcon className="hidden sm:flex" />
+          <IconAddButton className="sm:hidden" />
         </Link>
       </div>
       <div>
