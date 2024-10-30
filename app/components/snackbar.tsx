@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 interface Props {
   message: string;
@@ -16,6 +16,8 @@ const SnackBar: React.FC<Props> = ({
   isVisible,
   onClose,
 }) => {
+  const divRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (isVisible) {
       const timer = setTimeout(() => {
@@ -26,8 +28,21 @@ const SnackBar: React.FC<Props> = ({
     }
   }, [isVisible, onClose]);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (divRef.current && !divRef.current.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
     <div
+      ref={divRef}
       className={clsx(
         "w-full z-[999] sm:w-auto fixed top-5 sm:left-1/2 sm:transform sm:-translate-x-1/2 px-3",
         isVisible ? "opacity-100" : "opacity-0 pointer-events-none"

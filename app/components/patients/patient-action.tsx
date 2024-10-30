@@ -19,7 +19,6 @@ interface Props {
 
 export default function PatientAction({ patient }: Props) {
   const { showSnackBar } = useSnackBar();
-  // const { openMenu } = useActionMenu();
   const [modalOpen, setModalOpen] = useState(false);
   const [modalSendInviteOpen, setModalSendInviteOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);

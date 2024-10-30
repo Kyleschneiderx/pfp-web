@@ -1,7 +1,12 @@
 "use client";
 
+import { useSnackBar } from "@/app/contexts/SnackBarContext";
+import { CONFIRM_DELETE_DESCRIPTION, CONFIRM_INVITE_DESCRIPTION } from "@/app/lib/constants";
+import { revalidatePage } from "@/app/lib/revalidate";
 import { formatDateToLocal, getLastLoginStatus } from "@/app/lib/utils";
+import { ErrorModel } from "@/app/models/error_model";
 import { PatientModel } from "@/app/models/patient_model";
+import { deletePatient, sendInvite } from "@/app/services/client_side/patients";
 import { useActionMenuStore } from "@/app/store/store";
 import clsx from "clsx";
 import { EllipsisVertical, Mail, PhoneCall } from "lucide-react";
@@ -9,6 +14,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import Card from "../elements/Card";
+import ConfirmModal from "../elements/ConfirmModal";
 import Loader from "../elements/Loader";
 import ActionMenuMobile from "../elements/mobile/ActionMenuMobile";
 import { fetchPatients } from "./actions";
@@ -27,11 +33,24 @@ export default function PatientList({
   initialList: PatientModel[] | [];
   maxPage: number;
 }) {
-  const { setPatient, setEditUrl, setIsOpen } = useActionMenuStore();
+  const { patient, setPatient, setEditUrl, setIsOpen } = useActionMenuStore();
 
   const [patients, setPatients] = useState(initialList);
   const [page, setPage] = useState(1);
   const [ref, inView] = useInView();
+
+  const { showSnackBar } = useSnackBar();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalSendInviteOpen, setModalSendInviteOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+
+  const handleOpenModal = () => setModalOpen(true);
+  const handleCloseModal = () => {
+    if (!isProcessing) {
+      setModalOpen(false);
+      setModalSendInviteOpen(false);
+    }
+  };
 
   const loadMorePatients = async () => {
     const next = page + 1;
@@ -65,6 +84,56 @@ export default function PatientList({
     setIsOpen(true);
     setPatient(patient);
     setEditUrl(`patients/${patient.id}/edit`);
+  };
+
+  const handleConfirm = async () => {
+    if (!isProcessing) {
+      try {
+        setIsProcessing(true);
+        await deletePatient(patient!.id);
+        await revalidatePage("/patients");
+        setIsProcessing(false);
+        showSnackBar({
+          message: `Patient successfully deleted.`,
+          success: true,
+        });
+        setModalOpen(false);
+        setIsOpen(false);
+      } catch (error) {
+        const apiError = error as ErrorModel;
+
+        if (apiError && apiError.msg) {
+          showSnackBar({ message: apiError.msg, success: false });
+        }
+        setIsProcessing(false);
+        setModalOpen(false);
+      }
+    }
+  };
+
+  const handleSendInviteConfirm = async () => {
+    if (!isProcessing) {
+      try {
+        setIsProcessing(true);
+        await sendInvite(patient!.id);
+        await revalidatePage("/patients");
+        setIsProcessing(false);
+        showSnackBar({
+          message: `Invitation successfully sent.`,
+          success: true,
+        });
+        setModalSendInviteOpen(false);
+        setIsOpen(false);
+      } catch (error) {
+        const apiError = error as ErrorModel;
+
+        if (apiError && apiError.msg) {
+          showSnackBar({ message: apiError.msg, success: false });
+        }
+        setIsProcessing(false);
+        setModalSendInviteOpen(false);
+      }
+    }
   };
 
   return (
@@ -144,11 +213,28 @@ export default function PatientList({
             />
           </Card>
         ))}
-        {/* For desktop */}
+        {/* For mobile */}
         <ActionMenuMobile
-          // onDeleteClick={handleOpenModal}
-          // canInvite={patient.can_invite}
-          // onSendInviteClick={() => setModalSendInviteOpen(true)}
+          onDeleteClick={handleOpenModal}
+          onSendInviteClick={() => setModalSendInviteOpen(true)}
+        />
+        <ConfirmModal
+          title="Are you sure you want to delete this account?"
+          subTitle={CONFIRM_DELETE_DESCRIPTION}
+          isOpen={modalOpen}
+          confirmBtnLabel="Delete"
+          isProcessing={isProcessing}
+          onConfirm={handleConfirm}
+          onClose={handleCloseModal}
+        />
+        <ConfirmModal
+          title="Are you sure you want to send this invitation?"
+          subTitle={CONFIRM_INVITE_DESCRIPTION}
+          isOpen={modalSendInviteOpen}
+          confirmBtnLabel="Send"
+          isProcessing={isProcessing}
+          onConfirm={handleSendInviteConfirm}
+          onClose={handleCloseModal}
         />
       </div>
       {page < maxPage && (

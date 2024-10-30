@@ -9,14 +9,12 @@ interface Props {
   onDeleteClick?: () => void;
   onRenameClick?: () => void;
   onSendInviteClick?: () => void;
-  canInvite?: boolean;
 }
 
 export default function ActionMenuMobile({
   onDeleteClick,
   onRenameClick,
   onSendInviteClick,
-  canInvite,
 }: Props) {
   const { patient, editUrl, isOpen, setIsOpen } = useActionMenuStore();
 
@@ -60,7 +58,7 @@ export default function ActionMenuMobile({
                 </Link>
               </li>
             )}
-            {onSendInviteClick && canInvite && (
+            {onSendInviteClick && patient?.can_invite && (
               <li>
                 <Link
                   href="#"

@@ -56,13 +56,13 @@ export default function ModalRename({
             label="Cancel"
             secondary
             onClick={onClose}
-            className="px-[50px]"
+            className="sm:px-[50px]"
             disabled={isProcessing}
           />
           <Button
             label="Save"
             onClick={handlSaveClick}
-            className="px-[50px]"
+            className="sm:px-[50px]"
             disabled={newName.trim() === ""}
             isProcessing={isProcessing}
           />
