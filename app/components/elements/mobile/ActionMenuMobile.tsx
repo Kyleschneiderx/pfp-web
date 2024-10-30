@@ -16,12 +16,13 @@ export default function ActionMenuMobile({
   onRenameClick,
   onSendInviteClick,
 }: Props) {
-  const { patient, exercise, editUrl, isOpen, setIsOpen } = useActionMenuStore();
+  const { patient, exercise, editUrl, isOpen, setIsOpen } =
+    useActionMenuStore();
 
   useEffect(() => {
     return () => {
       setIsOpen(false);
-    }
+    };
   }, []);
 
   const itemClass =
@@ -44,10 +45,16 @@ export default function ActionMenuMobile({
         )}
       >
         <div className="bg-white p-5 font-semibold rounded-t-2xl rounded-b-none">
-          <p className="text-xl text-center mb-2">{patient?.user_profile?.name || exercise?.name}</p>
+          <p className="text-xl text-center mb-2">
+            {patient?.user_profile?.name || exercise?.name}
+          </p>
           <ul>
             <li>
-              <Link href={editUrl} className={itemClass}>
+              <Link
+                href={editUrl}
+                className={itemClass}
+                onClick={() => setIsOpen(false)}
+              >
                 <span>Edit</span>
               </Link>
             </li>
