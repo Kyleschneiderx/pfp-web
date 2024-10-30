@@ -29,7 +29,7 @@ const SnackBar: React.FC<Props> = ({
   return (
     <div
       className={clsx(
-        "w-full sm:w-auto fixed top-5 sm:left-1/2 sm:transform sm:-translate-x-1/2 px-3",
+        "w-full z-[999] sm:w-auto fixed top-5 sm:left-1/2 sm:transform sm:-translate-x-1/2 px-3",
         isVisible ? "opacity-100" : "opacity-0 pointer-events-none"
       )}
     >

@@ -1,7 +1,6 @@
 "use client";
 
 import Button from "@/app/components/elements/Button";
-import Card from "@/app/components/elements/Card";
 import ConfirmModal from "@/app/components/elements/ConfirmModal";
 import DateInput from "@/app/components/elements/DateInput";
 import Input from "@/app/components/elements/Input";
@@ -10,6 +9,7 @@ import Textarea from "@/app/components/elements/Textarea";
 import ToggleSwitch from "@/app/components/elements/ToggleSwitch";
 import UploadCmp from "@/app/components/elements/UploadCmp";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
+import { useWindowSizeCheck } from "@/app/hooks/useWindowSizeCheck";
 import {
   CONFIRM_DELETE_DESCRIPTION,
   CONFIRM_SAVE_DESCRIPTION,
@@ -38,6 +38,7 @@ interface Props {
 export default function PatientForm({ action = "Create", patient }: Props) {
   const { showSnackBar } = useSnackBar();
   const router = useRouter();
+  const { isMobile } = useWindowSizeCheck();
 
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
@@ -184,80 +185,6 @@ export default function PatientForm({ action = "Create", patient }: Props) {
     setPhoto(null);
   };
 
-  const PatientDetails = () => {
-    return (
-      <>
-        <div>
-          <div className="flex justify-between items-end mb-2">
-            <p className="font-medium">
-              Patient Name <ReqIndicator />
-            </p>
-            <ToggleSwitch
-              label1="Free"
-              label2="Premium"
-              active={userType === 1 ? "Free" : "Premium"}
-              onToggle={handleToggle}
-            />
-          </div>
-          <Input
-            type="text"
-            placeholder="Enter patient name"
-            value={name}
-            invalid={hasError("name")}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
-        <div>
-          <p className="font-medium mb-2">
-            Email Address <ReqIndicator />
-          </p>
-          <Input
-            type="email"
-            placeholder="Enter patient's email address"
-            value={email}
-            invalid={hasError("email")}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-        <div className="flex flex-col sm:flex-row sm:space-x-3">
-          <div className="w-full mb-3 sm:mb-0">
-            <p className="font-medium mb-2">
-              Contact Number <ReqIndicator />
-            </p>
-            <Input
-              type="text"
-              placeholder="xxx xxx xxx"
-              value={contactNo}
-              invalid={hasError("contactNo")}
-              onChange={(e) => setContactNo(e.target.value)}
-              onKeyDown={onPhoneNumKeyDown}
-            />
-          </div>
-          <div className="w-full">
-            <p className="font-medium mb-2">
-              Date of Birth <ReqIndicator />
-            </p>
-            <DateInput
-              selected={birthdate}
-              invalid={hasError("birthdate")}
-              maxDate={new Date()}
-              onChange={(date) => setBirthdate(date)}
-            />
-          </div>
-        </div>
-        <div>
-          <p className="font-medium mb-2">Description</p>
-          <Textarea
-            placeholder="Enter the patient's description"
-            // rows={3}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </div>
-      </>
-    );
-  };
-
   return (
     <>
       <div className="flex items-center mb-5 sm:mb-7">
@@ -278,30 +205,16 @@ export default function PatientForm({ action = "Create", patient }: Props) {
       </div>
       <hr />
       <div className="flex flex-col sm:flex-row mt-3 sm:mt-8">
-        <div className="sm:hidden mb-3">
-          <UploadCmp
-            label="Upload a Photo"
-            onFileSelect={handleFileSelect}
-            clearImagePreview={photo === null}
-            type="image"
-            previewImage
-          />
-        </div>
-        <Card className="hidden sm:block sm:w-[636px] p-[22px] space-y-4 sm:mr-6">
-          <PatientDetails />
-        </Card>
-        <div className="sm:hidden w-full space-y-4">
-          <PatientDetails />
-        </div>
-        <div>
-          <Card className="w-[446px] h-fit p-[22px] hidden sm:block">
+        <div className="mb-3 order-first sm:order-2">
+          <div className="sm:w-[446px] sm:h-fit z-10 rounded-lg sm:bg-white sm:p-5 sm:drop-shadow-center">
             <UploadCmp
               label="Upload a Photo"
               onFileSelect={handleFileSelect}
               clearImagePreview={photo === null}
               type="image"
+              previewImage={isMobile}
             />
-          </Card>
+          </div>
           {action === "Edit" && (
             <Button
               label="Delete"
@@ -311,7 +224,75 @@ export default function PatientForm({ action = "Create", patient }: Props) {
             />
           )}
         </div>
-        <div className="sm:hidden flex flex-col w-full mt-3 space-y-3">
+        <div className="w-full order-2 sm:order-first sm:w-[636px] sm:p-5 space-y-4 sm:mr-6 z-10 rounded-lg sm:bg-white sm:drop-shadow-center">
+          <div>
+            <div className="flex justify-between items-end mb-2">
+              <p className="font-medium">
+                Patient Name <ReqIndicator />
+              </p>
+              <ToggleSwitch
+                label1="Free"
+                label2="Premium"
+                active={userType === 1 ? "Free" : "Premium"}
+                onToggle={handleToggle}
+              />
+            </div>
+            <Input
+              type="text"
+              placeholder="Enter patient name"
+              value={name}
+              invalid={hasError("name")}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+          <div>
+            <p className="font-medium mb-2">
+              Email Address <ReqIndicator />
+            </p>
+            <Input
+              type="email"
+              placeholder="Enter patient's email address"
+              value={email}
+              invalid={hasError("email")}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col sm:flex-row sm:space-x-3">
+            <div className="w-full mb-3 sm:mb-0">
+              <p className="font-medium mb-2">
+                Contact Number <ReqIndicator />
+              </p>
+              <Input
+                type="text"
+                placeholder="xxx xxx xxx"
+                value={contactNo}
+                invalid={hasError("contactNo")}
+                onChange={(e) => setContactNo(e.target.value)}
+                onKeyDown={onPhoneNumKeyDown}
+              />
+            </div>
+            <div className="w-full">
+              <p className="font-medium mb-2">
+                Date of Birth <ReqIndicator />
+              </p>
+              <DateInput
+                selected={birthdate}
+                invalid={hasError("birthdate")}
+                maxDate={new Date()}
+                onChange={(date) => setBirthdate(date)}
+              />
+            </div>
+          </div>
+          <div>
+            <p className="font-medium mb-2">Description</p>
+            <Textarea
+              placeholder="Enter the patient's description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="sm:hidden order-last flex flex-col w-full mt-3 space-y-3">
           <Link href="/patients">
             <Button label="Cancel" secondary className="w-full" />
           </Link>

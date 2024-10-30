@@ -2,13 +2,15 @@
 
 import { formatDateToLocal, getLastLoginStatus } from "@/app/lib/utils";
 import { PatientModel } from "@/app/models/patient_model";
+import { useActionMenuStore } from "@/app/store/store";
 import clsx from "clsx";
-import { Mail, PhoneCall } from "lucide-react";
+import { EllipsisVertical, Mail, PhoneCall } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import Card from "../elements/Card";
 import Loader from "../elements/Loader";
+import ActionMenuMobile from "../elements/mobile/ActionMenuMobile";
 import { fetchPatients } from "./actions";
 import PatientAction from "./patient-action";
 
@@ -25,6 +27,8 @@ export default function PatientList({
   initialList: PatientModel[] | [];
   maxPage: number;
 }) {
+  const { setPatient, setEditUrl, setIsOpen } = useActionMenuStore();
+
   const [patients, setPatients] = useState(initialList);
   const [page, setPage] = useState(1);
   const [ref, inView] = useInView();
@@ -56,6 +60,12 @@ export default function PatientList({
     setPatients(initialList);
     setPage(1);
   }, [sort, name, status_id, initialList]);
+
+  const handleActionMenuClick = (patient: PatientModel) => {
+    setIsOpen(true);
+    setPatient(patient);
+    setEditUrl(`patients/${patient.id}/edit`);
+  };
 
   return (
     <>
@@ -124,9 +134,22 @@ export default function PatientList({
                 </div>
               </div>
             </div>
+            {/* For desktop */}
             <PatientAction patient={patient} />
+            {/* For mobile */}
+            <EllipsisVertical
+              size={25}
+              className="text-neutral-900 cursor-pointer sm:hidden"
+              onClick={() => handleActionMenuClick(patient)}
+            />
           </Card>
         ))}
+        {/* For desktop */}
+        <ActionMenuMobile
+          // onDeleteClick={handleOpenModal}
+          // canInvite={patient.can_invite}
+          // onSendInviteClick={() => setModalSendInviteOpen(true)}
+        />
       </div>
       {page < maxPage && (
         <div ref={ref} className="flex justify-center mt-5">

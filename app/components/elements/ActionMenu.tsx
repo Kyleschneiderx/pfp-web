@@ -47,7 +47,7 @@ export default function ActionMenu({
     "block w-full py-2 px-4 hover:bg-primary-100 hover:text-primary-500 cursor-pointer";
 
   return (
-    <div ref={dropdownRef} className="relative text-neutral-600 text-sm">
+    <div ref={dropdownRef} className="hidden sm:block relative text-neutral-600 text-sm">
       <EllipsisVertical
         size={20}
         className="text-neutral-900 cursor-pointer"

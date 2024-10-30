@@ -19,6 +19,7 @@ interface Props {
 
 export default function PatientAction({ patient }: Props) {
   const { showSnackBar } = useSnackBar();
+  // const { openMenu } = useActionMenu();
   const [modalOpen, setModalOpen] = useState(false);
   const [modalSendInviteOpen, setModalSendInviteOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -81,6 +82,7 @@ export default function PatientAction({ patient }: Props) {
 
   return (
     <>
+    {/* For desktop */}
       <ActionMenu
         editUrl={`patients/${patient.id}/edit`}
         onDeleteClick={handleOpenModal}

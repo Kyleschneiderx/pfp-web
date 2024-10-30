@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import { ArrowDownUp, Filter } from "lucide-react";
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 interface Props {
   options: Array<{ label: string; value: string }>;
@@ -23,7 +23,6 @@ export default function FilterSortMobile({
   const [selectedValue, setSelectedValue] = useState<string | string[]>(
     isMulti ? [] : ""
   );
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
@@ -56,7 +55,7 @@ export default function FilterSortMobile({
   };
 
   return (
-    <div className="relative flex select-none mr-4 sm:hidden" ref={dropdownRef}>
+    <div className="relative flex select-none mr-4 sm:hidden">
       {isSort ? (
         <ArrowDownUp
           size={20}
