@@ -292,7 +292,7 @@ export default function PatientForm({ action = "Create", patient }: Props) {
             />
           </div>
         </div>
-        <div className="sm:hidden order-last flex flex-col w-full mt-3 space-y-3">
+        <div className="sm:hidden order-last flex flex-col w-full mt-4 space-y-3">
           <Link href="/patients">
             <Button label="Cancel" secondary className="w-full" />
           </Link>

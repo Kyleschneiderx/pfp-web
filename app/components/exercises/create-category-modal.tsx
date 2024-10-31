@@ -32,7 +32,7 @@ export default function CreateCategoryModal({
 
   return (
     <ModalCmp isOpen={isOpen} contentLabel="Example Modal">
-      <div className="text-center w-[450px] py-5 px-3">
+      <div className="text-center w-[300px] sm:w-[450px] sm:py-5 sm:px-3">
         <p className="text-2xl font-semibold mb-7">Add a New Category</p>
         <Input
           type="text"
@@ -45,12 +45,12 @@ export default function CreateCategoryModal({
             label="Cancel"
             secondary
             onClick={onClose}
-            className="px-[50px]"
+            className="sm:px-[50px]"
           />
           <Button
             label="Add"
             onClick={handleAddclick}
-            className="px-[50px]"
+            className="sm:px-[50px]"
             disabled={name.trim() === ""}
           />
         </div>

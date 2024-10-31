@@ -1,7 +1,6 @@
 "use client";
 
 import Button from "@/app/components/elements/Button";
-import Card from "@/app/components/elements/Card";
 import Input from "@/app/components/elements/Input";
 import ReqIndicator from "@/app/components/elements/ReqIndicator";
 import Textarea from "@/app/components/elements/Textarea";
@@ -348,7 +347,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
 
   return (
     <>
-      <div className="flex items-center mb-7">
+      <div className="flex items-center mb-5 sm:mb-7">
         <div>
           <h1 className="text-2xl font-semibold">{action} Exercise</h1>
           <p className="text-sm text-neutral-600">
@@ -357,7 +356,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
               : UPDATE_DESCRIPTION}
           </p>
         </div>
-        <div className="flex ml-auto space-x-3">
+        <div className="hidden sm:flex ml-auto space-x-3">
           <Link href="/exercises">
             <Button label="Cancel" secondary />
           </Link>
@@ -365,8 +364,8 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
         </div>
       </div>
       <hr />
-      <div className="flex mt-8 space-x-8">
-        <Card className="w-[636px] p-[22px] space-y-4">
+      <div className="flex flex-col sm:flex-row mt-3 sm:mt-8">
+        <div className="w-full sm:w-[636px] sm:p-5 space-y-4 sm:mr-6 mb-4 sm:mb-0 z-10 rounded-lg sm:bg-white sm:drop-shadow-center">
           <div>
             <Label label="Exercise Name" required />
             <Input
@@ -434,9 +433,9 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
             <Label label="Description" />
             <Textarea
               placeholder="Enter the exercise's description"
-              rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              className="h-[100px]"
             />
           </div>
           <UploadCmp
@@ -446,9 +445,9 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
             clearImagePreview={photo === null}
             type="image"
           />
-        </Card>
+        </div>
         <div>
-          <Card className="w-[446px] h-fit p-[22px]">
+          <div className="sm:w-[446px] sm:h-fit z-10 rounded-lg sm:bg-white sm:p-5 sm:drop-shadow-center">
             <div className="mb-2">
               <Label label="How to" />
               <Textarea
@@ -465,15 +464,21 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
               clearImagePreview={video === null}
               type="video"
             />
-          </Card>
+          </div>
           {action === "Edit" && (
             <Button
               label="Delete"
               outlined
-              className="mt-5 ml-auto"
+              className="mt-5 ml-auto hidden sm:block"
               onClick={() => setDeleteModalOpen(true)}
             />
           )}
+        </div>
+        <div className="sm:hidden order-last flex flex-col w-full mt-6 space-y-3">
+          <Link href="/exercises">
+            <Button label="Cancel" secondary className="w-full" />
+          </Link>
+          <Button label="Save" onClick={onSave} />
         </div>
         <CreateCategoryModal
           isOpen={addCategoryModalOpen}
