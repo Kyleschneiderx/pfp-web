@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { EducationModel } from "../models/education_model";
 import { ExerciseModel } from "../models/exercise_model";
 import { PatientModel } from "../models/patient_model";
 import { PfPlanDailies, PfPlanModel } from "../models/pfplan_model";
@@ -61,6 +62,8 @@ interface ActionMenuState {
   setWorkout: (workout: WorkoutModel | null) => void;
   pfPlan: PfPlanModel | null;
   setPfPlan: (pfPlan: PfPlanModel | null) => void;
+  education: EducationModel | null;
+  setEducation: (education: EducationModel | null) => void;
   editUrl: string;
   setEditUrl: (url: string) => void;
   isOpen: boolean;
@@ -72,12 +75,14 @@ const useActionMenuStore = create<ActionMenuState>((set) => ({
   exercise: null,
   workout: null,
   pfPlan: null,
+  education: null,
   editUrl: "",
   isOpen: false,
   setPatient: (state) => set(() => ({ patient: state })),
   setExercise: (state) => set(() => ({ exercise: state })),
   setWorkout: (state) => set(() => ({ workout: state })),
   setPfPlan: (state) => set(() => ({ pfPlan: state })),
+  setEducation: (state) => set(() => ({ education: state })),
   setEditUrl: (state) => set(() => ({ editUrl: state })),
   setIsOpen: (state) => set(() => ({ isOpen: state })),
 }));

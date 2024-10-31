@@ -16,8 +16,16 @@ export default function ActionMenuMobile({
   onRenameClick,
   onSendInviteClick,
 }: Props) {
-  const { patient, exercise, workout, pfPlan, editUrl, isOpen, setIsOpen } =
-    useActionMenuStore();
+  const {
+    patient,
+    exercise,
+    workout,
+    pfPlan,
+    education,
+    editUrl,
+    isOpen,
+    setIsOpen,
+  } = useActionMenuStore();
 
   useEffect(() => {
     return () => {
@@ -49,7 +57,8 @@ export default function ActionMenuMobile({
             {patient?.user_profile?.name ||
               exercise?.name ||
               workout?.name ||
-              pfPlan?.name}
+              pfPlan?.name ||
+              education?.title}
           </p>
           <ul>
             <li>
