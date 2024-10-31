@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.lakecitypt.pelvic_floor_pro",
+      "sha256_cert_fingerprints": [
+        "12:db:9d:4c:ca:a5:07:49:e2:ee:97:02:0a:fd:b4:cc:e5:5c:12:9b:44:e7:43:7b:53:e6:56:fd:28:44:bc:5f"
+      ]
+    }
+  }
+]

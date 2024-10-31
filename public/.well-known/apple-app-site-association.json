@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "SP8YD9S6TR.com.lakecitypt.pelvic-floor-pro",
+        "components": [
+          {
+            "/": "/app/*"
+          }
+        ]
+      }
+    ]
+  }
+}
