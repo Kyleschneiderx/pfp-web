@@ -12,7 +12,7 @@ export default function Header() {
   const { isOpen, setIsOpen } = useToggle();
 
   return (
-    <header className="py-4 px-4 border-b border-neutral-300 flex items-center">
+    <header className="py-3 px-4 border-b border-neutral-300 flex items-center">
       <Menu className="mr-2 sm:hidden" onClick={() => setIsOpen(!isOpen)}/>
       <Image
         src="/images/logo.jpg"
@@ -32,11 +32,12 @@ export default function Header() {
         </span>
       </div>
       <Image
-        src="/images/sample-avatar.png"
+        src="/images/avatar.png"
         alt="Logo"
-        width={50}
-        height={50}
-        className="rounded-full sm:mr-4"
+        width={55}
+        height={55}
+        quality={100}
+        className="rounded-full sm:mr-3 h-[55px] w-[55px]"
       />
     </header>
   );
