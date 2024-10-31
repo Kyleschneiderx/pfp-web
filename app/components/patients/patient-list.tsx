@@ -1,7 +1,10 @@
 "use client";
 
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
-import { CONFIRM_DELETE_DESCRIPTION, CONFIRM_INVITE_DESCRIPTION } from "@/app/lib/constants";
+import {
+  CONFIRM_DELETE_DESCRIPTION,
+  CONFIRM_INVITE_DESCRIPTION,
+} from "@/app/lib/constants";
 import { revalidatePage } from "@/app/lib/revalidate";
 import { formatDateToLocal, getLastLoginStatus } from "@/app/lib/utils";
 import { ErrorModel } from "@/app/models/error_model";
@@ -160,8 +163,7 @@ export default function PatientList({
               <p
                 className={clsx(
                   "text-xs mb-1",
-                  patient.last_login_at ||
-                    getLastLoginStatus(patient.last_login_at ?? "") === "Active"
+                  getLastLoginStatus(patient.last_login_at ?? "") === "Active"
                     ? "text-green-500"
                     : "text-neutral-500"
                 )}
