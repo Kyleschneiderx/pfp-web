@@ -1,5 +1,6 @@
 import CommonSort from "@/app/components/common-sort";
 import Button from "@/app/components/elements/Button";
+import IconAddButton from "@/app/components/elements/mobile/IconAddButton";
 import SearchCmp from "@/app/components/elements/SearchCmp";
 import { fetchWorkouts } from "@/app/components/workouts/actions";
 import WorkoutList from "@/app/components/workouts/workout-list";
@@ -40,10 +41,11 @@ export default async function Page({
   return (
     <>
       <div className="flex items-center mb-8">
-        <SearchCmp placeholder="Search workouts" />
+        <SearchCmp placeholder="Search workouts" className="mr-4 sm:mr-0" />
         <CommonSort field="name" />
         <Link href="/workouts/create" className="ml-auto">
-          <Button label="Add Workout" showIcon />
+          <Button label="Add Workout" showIcon className="hidden sm:flex" />
+          <IconAddButton className="sm:hidden" />
         </Link>
       </div>
       <div>

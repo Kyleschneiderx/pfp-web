@@ -2,8 +2,9 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import FilterSort from "./elements/FilterSort";
+import FilterSortMobile from "./elements/mobile/FilterSortMobile";
 
-export default function CommonSort({field}: {field: string}) {
+export default function CommonSort({ field }: { field: string }) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
@@ -34,6 +35,9 @@ export default function CommonSort({field}: {field: string}) {
         label="Sort"
         onSelect={handleSortSelect}
       />
+
+      {/* For mobile */}
+      <FilterSortMobile options={sortOptions} onSelect={handleSortSelect} />
     </>
   );
 }
