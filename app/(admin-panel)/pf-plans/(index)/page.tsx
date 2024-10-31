@@ -1,5 +1,6 @@
 import CommonSort from "@/app/components/common-sort";
 import Button from "@/app/components/elements/Button";
+import IconAddButton from "@/app/components/elements/mobile/IconAddButton";
 import SearchCmp from "@/app/components/elements/SearchCmp";
 import { fetchPfPlans } from "@/app/components/pf-plans/action";
 import PfPlanList from "@/app/components/pf-plans/pfplan-list";
@@ -40,10 +41,11 @@ export default async function Page({
   return (
     <>
       <div className="flex items-center mb-8">
-        <SearchCmp placeholder="Search PF Plan" />
+        <SearchCmp placeholder="Search PF Plan" className="mr-4 sm:mr-0" />
         <CommonSort field="name" />
         <Link href="/pf-plans/create" className="ml-auto">
-          <Button label="Add Plan" showIcon />
+          <Button label="Add Plan" showIcon className="hidden sm:flex" />
+          <IconAddButton className="sm:hidden" />
         </Link>
       </div>
       <div>

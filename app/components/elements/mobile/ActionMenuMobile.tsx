@@ -16,7 +16,7 @@ export default function ActionMenuMobile({
   onRenameClick,
   onSendInviteClick,
 }: Props) {
-  const { patient, exercise, editUrl, isOpen, setIsOpen } =
+  const { patient, exercise, workout, pfPlan, editUrl, isOpen, setIsOpen } =
     useActionMenuStore();
 
   useEffect(() => {
@@ -46,7 +46,10 @@ export default function ActionMenuMobile({
       >
         <div className="bg-white p-5 font-semibold rounded-t-2xl rounded-b-none">
           <p className="text-xl text-center mb-2">
-            {patient?.user_profile?.name || exercise?.name}
+            {patient?.user_profile?.name ||
+              exercise?.name ||
+              workout?.name ||
+              pfPlan?.name}
           </p>
           <ul>
             <li>
