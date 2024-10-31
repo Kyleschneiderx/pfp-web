@@ -14,6 +14,7 @@ interface Props {
   type: "image" | "video" | "image/video";
   recommendedText?: string;
   previewImage?: boolean;
+  isEdit?: boolean;
 }
 
 export default function UploadCmp({
@@ -23,6 +24,7 @@ export default function UploadCmp({
   type,
   recommendedText,
   previewImage = false,
+  isEdit = false,
 }: Props) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -178,7 +180,10 @@ export default function UploadCmp({
                 alt="Profile"
                 className="sm:hidden h-[70px] w-[70px] rounded-full"
               />
-              <FilePenIcon fillColor="#736CED" className="absolute right-0 bottom-0" />
+              <FilePenIcon
+                fillColor="#736CED"
+                className="absolute right-0 bottom-0"
+              />
             </div>
           ) : (
             <Upload className="text-primary-500 h-7 w-7 sm:hidden m-5" />
@@ -190,7 +195,8 @@ export default function UploadCmp({
             and drop
           </p>
           <span className="text-primary-500 sm:hidden">
-            Tap to {imagePreview ? "change" : "upload"}
+            Tap to {imagePreview || isEdit ? "change" : "upload"}{" "}
+            {type === "image" ? "photo" : type === "video" ? "video" : ""}
           </span>
           <p className="mt-2">
             {type === "image"

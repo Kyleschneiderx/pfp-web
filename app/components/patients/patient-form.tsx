@@ -213,6 +213,7 @@ export default function PatientForm({ action = "Create", patient }: Props) {
               clearImagePreview={photo === null}
               type="image"
               previewImage={isMobile}
+              isEdit={action === "Edit"}
             />
           </div>
           {action === "Edit" && (

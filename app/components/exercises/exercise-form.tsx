@@ -444,6 +444,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
             onFileSelect={handlePhotoSelect}
             clearImagePreview={photo === null}
             type="image"
+            isEdit={action === "Edit"}
           />
         </div>
         <div>
@@ -463,6 +464,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
               onFileSelect={handleVideoSelect}
               clearImagePreview={video === null}
               type="video"
+              isEdit={action === "Edit"}
             />
           </div>
           {action === "Edit" && (
