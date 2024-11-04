@@ -33,6 +33,7 @@ export default function PfPlanDropdownList({ value = null, setValue, getOptions 
       value={value}
       onChange={(e) => setValue(e)}
       placeholder="Select PF Plan"
+      wrapperClassName="z-50"
     />
   );
 }

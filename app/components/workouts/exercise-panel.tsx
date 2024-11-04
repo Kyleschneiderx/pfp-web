@@ -1,10 +1,11 @@
 "use client";
 
+import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import { ErrorModel } from "@/app/models/error_model";
 import { ExerciseModel } from "@/app/models/exercise_model";
 import { getExercises } from "@/app/services/client_side/exercises";
 import clsx from "clsx";
-import { Plus } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
@@ -23,6 +24,7 @@ export default function ExercisePanel({
   onClose,
   onSelect,
 }: Props) {
+  const { showSnackBar } = useSnackBar();
   const [exercises, setExercises] = useState<ExerciseModel[]>([]);
   const [page, setPage] = useState(1);
   const [maxPage, setMaxPage] = useState(1);
@@ -30,6 +32,7 @@ export default function ExercisePanel({
   const [ref, inView] = useInView();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [activeIndexes, setActiveIndexes] = useState<number[]>([]);
 
   const fetchExercises = async (resetPage = false) => {
     try {
@@ -64,8 +67,14 @@ export default function ExercisePanel({
     }
   }, [inView, page]);
 
-  const truncatedText = (text: string, max: number) => {
-    return text.length > max ? text.substring(0, max) + "..." : text;
+  const handleSelect = (item: ExerciseModel, index: number) => {
+    onSelect(item);
+    showSnackBar({ message: "Exercise was added to workout", success: true });
+    setActiveIndexes((prev) => [...prev, index]);
+    // Remove the index after 2 seconds to revert to the `+` icon
+    setTimeout(() => {
+      setActiveIndexes((prev) => prev.filter((i) => i !== index));
+    }, 2000);
   };
 
   const pClass =
@@ -83,7 +92,7 @@ export default function ExercisePanel({
         {errorMessage ? (
           <p className="text-center mt-[200px]">{errorMessage}</p>
         ) : (
-          exercises.map((item) => (
+          exercises.map((item, index) => (
             <div key={item.id} className="flex items-center">
               <div className="flex items-center shadow-bottom w-[420px] p-2">
                 <Image
@@ -95,23 +104,27 @@ export default function ExercisePanel({
                   blurDataURL="/images/placeholder.jpg"
                   className="w-[80px] h-[56px]"
                 />
-                <div className="ml-3">
+                <div className="ml-3 w-[210px] sm:w-[270px]">
                   <p
                     className={clsx(
                       pClass,
                       "text-sm font-medium text-neutral-800 mb-1"
                     )}
                   >
-                    {truncatedText(item.name, 35)}
+                    {item.name}
                   </p>
                   <p className={clsx(pClass, "text-xs text-neutral-500")}>
-                    {truncatedText(item.description ?? "", 45)}
+                    {item.description}
                   </p>
                 </div>
-                <Plus
-                  className="ml-auto cursor-pointer"
-                  onClick={() => onSelect(item)}
-                />
+                {activeIndexes.includes(index) ? (
+                  <Check className="ml-auto animate-pulse" />
+                ) : (
+                  <Plus
+                    className="ml-auto cursor-pointer"
+                    onClick={() => handleSelect(item, index)}
+                  />
+                )}
               </div>
             </div>
           ))

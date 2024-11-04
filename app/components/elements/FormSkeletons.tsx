@@ -7,7 +7,7 @@ export function FormSkeletons() {
     <div className={`${shimmer} relative w-full overflow-hidden md:col-span-4`}>
       <div className="flex">
         <div className="mb-4 h-10 w-[550px] rounded-md bg-gray-200" />
-        <div className="ml-auto h-10 w-[200px] rounded-md bg-gray-200" />
+        <div className="ml-auto h-10 w-[200px] rounded-md bg-gray-200 hidden sm:block" />
       </div>
       <div className="flex flex-wrap mt-6">
       <div className="mb-5 mr-5 w-[500px] h-[550px] rounded-lg bg-gray-200" />

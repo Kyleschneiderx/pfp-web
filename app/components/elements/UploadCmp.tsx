@@ -207,7 +207,7 @@ export default function UploadCmp({
           </p>
           <p className="text-sm">(Max file size: {limitText})</p>
           {recommendedText && (
-            <p className="text-sm">Recomended Dimentions: {recommendedText}</p>
+            <p className="text-sm">Recomended Dimentions: <br /> {recommendedText}</p>
           )}
         </div>
       </div>

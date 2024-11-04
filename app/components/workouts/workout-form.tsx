@@ -9,7 +9,6 @@ import {
   UPDATE_DESCRIPTION,
 } from "@/app/lib/constants";
 import { revalidatePage } from "@/app/lib/revalidate";
-import { truncatedText } from "@/app/lib/utils";
 import { ErrorModel } from "@/app/models/error_model";
 import { ExerciseModel } from "@/app/models/exercise_model";
 import { SelectOptionsModel } from "@/app/models/global_model";
@@ -29,13 +28,16 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Card from "../elements/Card";
 import Input from "../elements/Input";
-import SelectCmp from "../elements/SelectCmp";
 import StatusBadge from "../elements/StatusBadge";
 import Textarea from "../elements/Textarea";
 import UploadCmp from "../elements/UploadCmp";
 import MoveTaskIcon from "../icons/move_task_icon";
 import PencilIcon from "../icons/pencil_icon";
 import { validateForm } from "./validation";
+
+const SelectCmp = dynamic(() => import("@/app/components/elements/SelectCmp"), {
+  ssr: false,
+});
 const ExercisePanel = dynamic(
   () => import("@/app/components/workouts/exercise-panel"),
   { ssr: false }
@@ -272,9 +274,11 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
     setExercises([]);
   };
 
+  const exerciseInputClass = "!w-[55px] sm:!w-[120px]";
+
   return (
     <>
-      <div className="flex items-center mb-7">
+      <div className="flex items-center mb-4 sm:mb-7">
         <div>
           <h1 className="text-2xl font-semibold">{action} Workout</h1>
           <p className="text-sm text-neutral-600">
@@ -283,7 +287,7 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
               : UPDATE_DESCRIPTION}
           </p>
         </div>
-        <div className="flex ml-auto space-x-3">
+        <div className="hidden sm:flex ml-auto space-x-3">
           <Link href="/workouts">
             <Button label="Cancel" secondary />
           </Link>
@@ -292,29 +296,54 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
         </div>
       </div>
       <hr />
-      <div className="mt-6 border-l-4 border-primary-500 pl-4">
-        <div className="flex space-x-4 items-center">
-          {editInfo ? (
-            <>
-              <Input
-                type="text"
-                placeholder="Workout name"
-                value={name}
-                invalid={false}
-                onChange={(e) => setName(e.target.value)}
-                className="!w-[468px]"
-              />
+      {editInfo && (
+        <div
+          className={clsx(
+            "flex flex-col mt-5 sm:mt-6 border-l-4 border-primary-500 pl-4 sm:space-x-4 items-start",
+            editInfo && "sm:flex-row"
+          )}
+        >
+          <div className="flex flex-col w-full sm:w-[468px] space-y-3">
+            {editInfo && (
+              <>
+                <Input
+                  type="text"
+                  placeholder="Workout name"
+                  value={name}
+                  invalid={false}
+                  onChange={(e) => setName(e.target.value)}
+                />
+                <div className={clsx(editInfo ? "sm:w-[635px]" : "")}>
+                  <Textarea
+                    placeholder="Enter a description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="!h-[100px]"
+                  />
+                </div>
+              </>
+            )}
+          </div>
+          <div className="flex w-full items-center space-x-4 mt-2 sm:mt-0">
+            {editInfo && (
               <SelectCmp
                 options={typeOptions}
                 value={type}
                 invalid={false}
                 onChange={(e) => setType(e)}
                 placeholder="Select"
-                className="!w-[150px]"
+                className="sm:!w-[150px]"
+                wrapperClassName="w-full sm:w-auto"
               />
-            </>
-          ) : (
-            <>
+            )}
+            <StatusBadge label={workout ? workout.status.value : "Draft"} />
+          </div>
+        </div>
+      )}
+      {action === "Edit" && !editInfo && (
+        <div className="mt-5 sm:mt-6 border-l-4 border-primary-500 pl-2 sm:pl-4">
+          <div className="flex sm:space-x-4 space-y-2 sm:space-y-0 flex-col sm:flex-row">
+            <div className="flex space-x-2 sm:space-x-4 items-center">
               <div
                 className={clsx(
                   "flex items-center rounded-md py-[4px] px-[10px]",
@@ -335,38 +364,35 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
                 )}
                 <p>{type?.label}</p>
               </div>
-              <p className="text-2xl font-semibold">{name}</p>
-              <div onClick={() => setEditInfo(true)} className="cursor-pointer">
+              <div className="w-[230px] sm:w-auto">
+                <p className="text-xl sm:text-2xl font-semibold whitespace-nowrap overflow-hidden text-ellipsis">
+                  {name}
+                </p>
+              </div>
+            </div>
+            <div className="flex sm:space-x-4 items-center">
+              <div
+                onClick={() => setEditInfo(true)}
+                className="cursor-pointer mx-2 sm:mx-0"
+              >
                 <PencilIcon />
               </div>
-            </>
-          )}
-          <StatusBadge label={workout ? workout.status.value : "Draft"} />
+              <StatusBadge label={workout ? workout.status.value : "Draft"} />
+            </div>
+          </div>
+          <p className="hidden sm:block">{description}</p>
         </div>
-        <div className={clsx(editInfo ? "w-[635px]" : "")}>
-          {editInfo ? (
-            <Textarea
-              placeholder="Enter a description"
-              rows={3}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="mt-3"
-            />
-          ) : (
-            <p>{description}</p>
-          )}
-        </div>
-      </div>
-      <div className="flex mt-4">
-        <Card className="w-[700px] min-h-[500px] p-[22px] mr-5">
+      )}
+      <div className="flex flex-col sm:flex-row mt-4">
+        <Card className="sm:w-[700px] min-h-[200px] sm:min-h-[500px] px-3 sm:px-5 sm:mr-5 mb-5 sm:mb-0">
           <div className="flex justify-between">
-            <h1 className="text-2xl font-semibold">Workout Order</h1>
+            <h1 className="text-xl sm:text-2xl font-semibold">Workout Order</h1>
             {exercises.length > 0 && (
               <Button
                 label="Add Exercise"
                 outlined
                 onClick={togglePanel}
-                className="!py-2 !px-4"
+                className="!py-[8px] !px-3 !sm:py-2 sm:!px-4"
               />
             )}
           </div>
@@ -408,13 +434,13 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
                               alt="Banner"
                               placeholder="blur"
                               blurDataURL="/images/placeholder.jpg"
-                              className="w-[120px] h-[80px]"
+                              className="w-[80px] h-[50px] sm:w-[120px] sm:h-[80px]"
                             />
-                            <div className="ml-6">
-                              <p className="text-[20px] font-medium">
-                                {truncatedText(item.exercise.name, 35)}
+                            <div className="ml-3 sm:ml-6 w-[200px] sm:w-[450px]">
+                              <p className="text-[18px] sm:text-[20px] font-medium overflow-hidden text-ellipsis whitespace-nowrap">
+                                {item.exercise.name}
                               </p>
-                              <div className="flex space-x-6">
+                              <div className="flex space-x-4 sm:space-x-6">
                                 <div>
                                   <p className="font-medium">Sets</p>
                                   <Input
@@ -428,7 +454,7 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
                                         "sets"
                                       )
                                     }
-                                    className="!w-[120px]"
+                                    className={exerciseInputClass}
                                   />
                                 </div>
                                 <div>
@@ -444,7 +470,7 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
                                         "reps"
                                       )
                                     }
-                                    className="!w-[120px]"
+                                    className={exerciseInputClass}
                                   />
                                 </div>
                                 <div>
@@ -460,7 +486,7 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
                                         "hold"
                                       )
                                     }
-                                    className="!w-[120px]"
+                                    className={exerciseInputClass}
                                   />
                                 </div>
                               </div>
@@ -480,7 +506,7 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
             </Droppable>
           </DragDropContext>
           {exercises.length === 0 && (
-            <div className="flex flex-col justify-center items-center h-full">
+            <div className="flex flex-col justify-center text-center items-center h-full sm:mt-0">
               <p className="text-neutral-400 mb-3">
                 Add exercise from the exercise panel to begin creating your
                 workout
@@ -490,23 +516,31 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
           )}
         </Card>
         <div>
-          <Card className="w-[446px] h-fit p-[22px]">
+          <Card className="sm:w-[446px] h-fit sm:p-[22px]">
             <UploadCmp
               label="Upload a Photo"
               onFileSelect={handleFileSelect}
               clearImagePreview={photo === null}
               type="image"
               recommendedText="405 x 225 pixels"
+              isEdit={action === "Edit"}
             />
           </Card>
           {action === "Edit" && (
             <Button
               label="Delete"
               outlined
-              className="mt-5 ml-auto"
+              className="hidden sm:block mt-5 ml-auto"
               onClick={() => setDeleteModalOpen(true)}
             />
           )}
+        </div>
+        <div className="sm:hidden order-last flex flex-col w-full mt-6 space-y-3">
+          <Link href="/workouts">
+            <Button label="Cancel" secondary className="w-full" />
+          </Link>
+          <Button label="Save as Draft" outlined onClick={onDraft} />
+          <Button label="Save & Publish" onClick={onPublish} />
         </div>
       </div>
       <ExercisePanel

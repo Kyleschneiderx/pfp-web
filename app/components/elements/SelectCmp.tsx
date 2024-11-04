@@ -17,7 +17,7 @@ export default function SelectCmp({
   ...rest
 }: Props) {
   return (
-    <div className={clsx("relative z-50", wrapperClassName)}>
+    <div className={clsx("relative", wrapperClassName)}>
       <Select
         {...rest}
         classNamePrefix="react-select"
