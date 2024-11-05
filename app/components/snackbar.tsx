@@ -22,23 +22,11 @@ const SnackBar: React.FC<Props> = ({
     if (isVisible) {
       const timer = setTimeout(() => {
         onClose();
-      }, 5000);
+      }, 3000);
 
       return () => clearTimeout(timer);
     }
   }, [isVisible, onClose]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (divRef.current && !divRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
 
   return (
     <div
