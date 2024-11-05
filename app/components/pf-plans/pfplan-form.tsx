@@ -307,7 +307,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
 
   return (
     <>
-      <div className="flex items-center mb-7">
+      <div className="flex items-center mb-4 sm:mb-7">
         <div>
           <h1 className="text-2xl font-semibold">{action} PF Plan</h1>
           <p className="text-sm text-neutral-600">
@@ -316,7 +316,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
               : UPDATE_DESCRIPTION}
           </p>
         </div>
-        <div className="flex ml-auto space-x-3">
+        <div className="hidden sm:flex ml-auto space-x-3">
           <Link href="/pf-plans">
             <Button label="Cancel" secondary />
           </Link>
@@ -325,7 +325,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
         </div>
       </div>
       <hr />
-      <div className="mt-6 border-l-4 border-primary-500 pl-4">
+      <div className="mt-5 sm:mt-6 border-l-4 border-primary-500 pl-4">
         <div className="flex space-x-4 items-center">
           {editInfo ? (
             <>
@@ -335,12 +335,14 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
                 value={name}
                 invalid={false}
                 onChange={(e) => setName(e.target.value)}
-                className="!w-[600px]"
+                className="sm:!w-[600px]"
               />
             </>
           ) : (
             <>
-              <p className="text-2xl font-semibold">{name}</p>
+              <p className="text-xl sm:text-2xl font-semibold  whitespace-nowrap overflow-hidden text-ellipsis">
+                {name}
+              </p>
               <div onClick={() => setEditInfo(true)} className="cursor-pointer">
                 <PencilIcon />
               </div>
@@ -348,7 +350,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
           )}
           <StatusBadge label={pfPlan ? pfPlan.status.value : "Draft"} />
         </div>
-        <div className={clsx(editInfo ? "w-[674px]" : "")}>
+        <div className={clsx(editInfo ? "sm:w-[674px]" : "")}>
           {editInfo ? (
             <Textarea
               placeholder="Create a description for your treatment plan"
@@ -362,8 +364,8 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
           )}
         </div>
       </div>
-      <div className="flex mt-4">
-        <Card className="w-[693px] min-h-[300px] p-[22px] mr-5">
+      <div className="flex flex-col sm:flex-row mt-4">
+        <Card className="sm:w-[693px] min-h-[200px] sm:min-h-[300px] px-3 sm:px-5 sm:mr-5 mb-5 sm:mb-0">
           <div className="flex justify-between">
             <h1 className="text-2xl font-semibold">PF Plan</h1>
             {days.length > 0 && (
@@ -395,24 +397,31 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
                           className={clsx(
-                            "flex items-center border rounded-md border-neutral-300 group p-4",
+                            "flex items-center border rounded-md border-neutral-300 group p-3 sm:p-4",
                             snapshot.isDragging
                               ? "drop-shadow-center !top-auto !left-auto bg-white"
                               : ""
                           )}
                         >
                           <MoveTaskIcon className="hidden group-hover:inline-block mr-2" />
-                          <div className="text-[22px] font-medium">
+                          <div className="text-xl sm:text-[22px] font-medium whitespace-nowrap">
                             Day {item.day} -
                           </div>
                           <div className="ml-2 mr-3 text-[18px] font-semibold">
                             {item.name}
                           </div>
-                          <PencilIcon onClick={() => handleEditDay(item)} />
-                          <TrashbinIcon
-                            className="text-error-600 ml-auto"
-                            onClick={() => removeDay(item.day)}
-                          />
+                          <div className="flex space-x-3 ml-auto">
+                            <PencilIcon
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditDay(item);
+                              }}
+                            />
+                            <TrashbinIcon
+                              className="text-error-600 ml-auto"
+                              onClick={() => removeDay(item.day)}
+                            />
+                          </div>
                         </div>
                       )}
                     </Draggable>
@@ -423,7 +432,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
             </Droppable>
           </DragDropContext>
           {days.length === 0 && (
-            <div className="flex flex-col justify-center items-center h-full">
+            <div className="flex flex-col justify-center items-center text-center h-full sm:mt-0">
               <p className="text-neutral-400 mb-3">
                 Add day from the Add Day Panel to begin creating your PF Plan
               </p>
@@ -432,26 +441,27 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
           )}
         </Card>
         <div>
-          <Card className="w-[446px] h-fit p-[22px]">
+          <Card className="sm:w-[446px] h-fit">
             <UploadCmp
               label="Upload a Photo"
               onFileSelect={handleFileSelect}
               clearImagePreview={photo === null}
               type="image"
               recommendedText="405 x 225 pixels"
+              isEdit={action === "Edit"}
             />
           </Card>
           {action === "Edit" && (
             <Button
               label="Delete"
               outlined
-              className="mt-5 ml-auto"
+              className="hidden sm:block mt-5 ml-auto"
               onClick={() => setDeleteModalOpen(true)}
             />
           )}
         </div>
       </div>
-      <Card className="w-[694px] p-5 mt-5">
+      <Card className="sm:w-[694px] mt-5">
         <p className="font-medium mb-2">Content</p>
         <RichTextEditor
           placeholder="Enter the PF Plan's content here"
@@ -461,6 +471,13 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
           isEdit={action === "Edit"}
         />
       </Card>
+      <div className="sm:hidden order-last flex flex-col w-full mt-6 space-y-3">
+        <Link href="/pf-plans">
+          <Button label="Cancel" secondary className="w-full" />
+        </Link>
+        <Button label="Save as Draft" outlined onClick={onDraft} />
+        <Button label="Save & Publish" onClick={onPublish} />
+      </div>
       <AddDayPanel isOpen={isPanelOpen} onClose={togglePanel} />
       <ConfirmModal
         title={`Are you sure you want to ${

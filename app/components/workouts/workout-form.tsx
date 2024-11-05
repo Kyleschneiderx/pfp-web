@@ -516,7 +516,7 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
           )}
         </Card>
         <div>
-          <Card className="sm:w-[446px] h-fit sm:p-[22px]">
+          <Card className="sm:w-[446px] h-fit">
             <UploadCmp
               label="Upload a Photo"
               onFileSelect={handleFileSelect}

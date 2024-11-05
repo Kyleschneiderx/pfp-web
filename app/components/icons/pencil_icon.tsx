@@ -1,6 +1,6 @@
 interface Props {
   className?: string;
-  onClick?: () => void;
+  onClick?: (event: React.MouseEvent<SVGSVGElement>) => void;
 }
 export default function PencilIcon({ className, onClick }: Props) {
   return (

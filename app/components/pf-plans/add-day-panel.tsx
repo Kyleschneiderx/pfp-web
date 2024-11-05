@@ -176,9 +176,9 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
   return (
     <div
       className={clsx(
-        "fixed flex top-[83px] right-0 h-[calc(100vh-83px)] bg-white shadow-lg z-50 transform transition-transform duration-300 ease-in-out",
+        "fixed flex top-[80px] right-0 h-[calc(100vh-83px)] bg-white shadow-lg z-40 transform transition-transform duration-300 ease-in-out",
         isOpen ? "translate-x-0" : "translate-x-full",
-        isOpenSelectList ? "w-[1043px]" : "w-[593px]"
+        isOpenSelectList ? "w-[1043px]" : "sm:w-[593px]"
       )}
     >
       <ExerciseEducationPanel
@@ -212,7 +212,7 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
                 value={name}
                 invalid={false}
                 onChange={(e) => setName(e.target.value)}
-                className="!w-[440px]"
+                className="sm:!w-[440px]"
               />
             </div>
 

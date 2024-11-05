@@ -53,7 +53,7 @@ export default function NavigationMobile() {
   const { setIsOpen } = useToggle();
 
   return (
-    <aside className="w-[250px] shadow-xl flex flex-col h-[calc(100vh-138px)] bg-white pt-8">
+    <aside className="w-[250px] shadow-xl flex flex-col h-[calc(100vh-138px)] bg-white pt-8 z-50">
       <nav>
         {navItems.map(({ title, url, icon }, index) => (
           <Link
