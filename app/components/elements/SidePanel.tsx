@@ -21,7 +21,7 @@ export default function SidePanel({ isOpen, onClose, children }: Props) {
           <Button
             label="Done"
             secondary
-            className="mr-2 sm:mr-0 !py-2 !px-4 ml-auto"
+            className="mr-2 sm:mr-0 mb-2 !py-2 !px-4 ml-auto"
             onClick={onClose}
           />
         </div>
