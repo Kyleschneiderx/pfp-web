@@ -1,8 +1,9 @@
+import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import { ErrorModel } from "@/app/models/error_model";
 import { ExerciseModel } from "@/app/models/exercise_model";
 import { getExercises } from "@/app/services/client_side/exercises";
 import clsx from "clsx";
-import { Plus } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
@@ -11,16 +12,18 @@ import Loader from "../elements/Loader";
 interface Props {
   name?: string;
   onSelect: (exercise: ExerciseModel) => void;
-  isOpen: boolean,
+  isOpen: boolean;
 }
 
 export default function ExerciseList({ name = "", onSelect, isOpen }: Props) {
+  const { showSnackBar } = useSnackBar();
   const [exercises, setExercises] = useState<ExerciseModel[]>([]);
   const [page, setPage] = useState(1);
   const [maxPage, setMaxPage] = useState(1);
   const [ref, inView] = useInView();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [activeIndexes, setActiveIndexes] = useState<number[]>([]);
 
   const fetchExercises = async (resetPage = false) => {
     try {
@@ -59,15 +62,24 @@ export default function ExerciseList({ name = "", onSelect, isOpen }: Props) {
     return text.length > max ? text.substring(0, max) + "..." : text;
   };
 
-  const pClass =
-    "truncate max-w-xs overflow-hidden text-ellipsis whitespace-nowrap";
+  const pClass = "overflow-hidden text-ellipsis whitespace-nowrap";
+
+  const handleSelect = (item: ExerciseModel, index: number) => {
+    onSelect(item);
+    showSnackBar({ message: "Exercise was added to your day", success: true });
+    setActiveIndexes((prev) => [...prev, index]);
+    // Remove the index after 2 seconds to revert to the `+` icon
+    setTimeout(() => {
+      setActiveIndexes((prev) => prev.filter((i) => i !== index));
+    }, 2000);
+  };
 
   return (
     <div className={clsx("space-y-3 mt-2", !isOpen && "hidden")}>
       {errorMessage ? (
         <p className="text-center mt-[200px]">{errorMessage}</p>
       ) : (
-        exercises.map((item) => (
+        exercises.map((item, index) => (
           <div key={item.id} className="flex items-center">
             <div className="flex items-center shadow-bottom w-full p-2">
               <Image
@@ -79,7 +91,7 @@ export default function ExerciseList({ name = "", onSelect, isOpen }: Props) {
                 blurDataURL="/images/placeholder.jpg"
                 className="w-[80px] h-[56px]"
               />
-              <div className="ml-3">
+              <div className="ml-3 w-[calc(100vw-180px)] sm:w-auto">
                 <p
                   className={clsx(
                     pClass,
@@ -92,10 +104,14 @@ export default function ExerciseList({ name = "", onSelect, isOpen }: Props) {
                   {truncatedText(item.description ?? "", 45)}
                 </p>
               </div>
-              <Plus
-                className="ml-auto cursor-pointer"
-                onClick={() => onSelect(item)}
-              />
+              {activeIndexes.includes(index) ? (
+                <Check className="ml-auto animate-pulse" />
+              ) : (
+                <Plus
+                  className="ml-auto cursor-pointer"
+                  onClick={() => handleSelect(item, index)}
+                />
+              )}
             </div>
           </div>
         ))

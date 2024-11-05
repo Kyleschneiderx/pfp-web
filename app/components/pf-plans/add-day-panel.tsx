@@ -173,21 +173,25 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
   const pClass =
     "truncate max-w-xs overflow-hidden text-ellipsis whitespace-nowrap";
 
+  const exerciseInputClass = "!w-[55px] sm:!w-[80px]";
+
   return (
     <div
       className={clsx(
-        "fixed flex top-[80px] right-0 h-[calc(100vh-83px)] bg-white shadow-lg z-40 transform transition-transform duration-300 ease-in-out",
+        "fixed flex top-0 right-0 h-full bg-white shadow-lg z-40 transform transition-transform duration-300 ease-in-out",
         isOpen ? "translate-x-0" : "translate-x-full",
-        isOpenSelectList ? "w-[1043px]" : "sm:w-[593px]"
+        isOpenSelectList ? "sm:w-[1043px]" : "sm:w-[593px]"
       )}
     >
-      <ExerciseEducationPanel
-        tab={activeTab}
-        isOpen={isOpenSelectList}
-        onClose={() => setIsOpenSelectList(false)}
-        onSelectExercise={onSelectExercise}
-        onSelectEducation={onSelectEducation}
-      />
+      <div className="order-last sm:order-first">
+        <ExerciseEducationPanel
+          tab={activeTab}
+          isOpen={isOpenSelectList}
+          onClose={() => setIsOpenSelectList(false)}
+          onSelectExercise={onSelectExercise}
+          onSelectEducation={onSelectEducation}
+        />
+      </div>
       <div className="flex flex-col h-full shadow-left">
         <div className="flex-grow overflow-auto p-4">
           <div className="flex items-center mb-4">
@@ -201,7 +205,7 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
             />
             <Button label="Save" onClick={onSave} />
           </div>
-          <Card className="p-4">
+          <Card className="px-3 sm:p-4">
             <div className="flex items-center justify-center mb-4">
               <label className="text-[22px] font-medium mr-2">
                 Day&nbsp;{selectedDay?.day || currentDayCount}&nbsp;-
@@ -257,17 +261,17 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
                       blurDataURL="/images/placeholder.jpg"
                       className="w-[80px] h-[56px]"
                     />
-                    <div className="ml-3">
+                    <div className="ml-3 w-[200px] sm:w-auto">
                       <p
                         className={clsx(
                           pClass,
                           "text-sm font-medium text-neutral-800 mb-1"
                         )}
                       >
-                        {truncatedText(selectedEducation.title, 50)}
+                        {selectedEducation.title}
                       </p>
                       <p className={clsx(pClass, "text-xs text-neutral-500")}>
-                        {truncatedText(selectedEducation.description ?? "", 55)}
+                        {selectedEducation.description}
                       </p>
                     </div>
                     <CircleX
@@ -331,13 +335,13 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
                                 alt="Banner"
                                 placeholder="blur"
                                 blurDataURL="/images/placeholder.jpg"
-                                className="w-[120px] h-[80px]"
+                                className="w-[80px] h-[50px]  sm:w-[120px] sm:h-[80px]"
                               />
                               <div className="ml-6">
-                                <p className="text-[20px] font-medium">
-                                  {truncatedText(item.exercise.name, 25)}
+                                <p className="text-[20px] font-medium w-[200px] sm:w-[330px] whitespace-nowrap overflow-hidden text-ellipsis">
+                                  {item.exercise.name}
                                 </p>
-                                <div className="flex space-x-6">
+                                <div className="flex space-x-4 sm:space-x-6">
                                   <div>
                                     <p className="font-medium">Sets</p>
                                     <Input
@@ -351,7 +355,7 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
                                           "sets"
                                         )
                                       }
-                                      className="!w-[80px]"
+                                      className={exerciseInputClass}
                                     />
                                   </div>
                                   <div>
@@ -367,7 +371,7 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
                                           "reps"
                                         )
                                       }
-                                      className="!w-[80px]"
+                                      className={exerciseInputClass}
                                     />
                                   </div>
                                   <div>
@@ -383,7 +387,7 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
                                           "hold"
                                         )
                                       }
-                                      className="!w-[80px]"
+                                      className={exerciseInputClass}
                                     />
                                   </div>
                                 </div>

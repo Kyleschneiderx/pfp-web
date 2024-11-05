@@ -340,7 +340,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
             </>
           ) : (
             <>
-              <p className="text-xl sm:text-2xl font-semibold  whitespace-nowrap overflow-hidden text-ellipsis">
+              <p className="text-xl sm:text-2xl font-semibold whitespace-nowrap overflow-hidden text-ellipsis">
                 {name}
               </p>
               <div onClick={() => setEditInfo(true)} className="cursor-pointer">

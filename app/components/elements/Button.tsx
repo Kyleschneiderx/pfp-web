@@ -30,7 +30,7 @@ export default function Button({
       {...rest}
       type="button"
       className={clsx(
-        "flex justify-center items-center py-3 px-6 rounded-md font-medium",
+        "flex justify-center items-center py-3 px-6 rounded-md font-medium whitespace-nowrap",
         disabled || isProcessing
           ? "bg-neutral-300 cursor-default text-white"
           : secondary

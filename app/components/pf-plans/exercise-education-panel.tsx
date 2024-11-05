@@ -46,8 +46,8 @@ export default function ExerciseEducationPanel({
   };
 
   return (
-    <div className={clsx("flex flex-col h-full", !isOpen && "hidden")}>
-      <div className="flex-grow overflow-auto p-4 w-[450px]">
+    <div className={clsx("flex flex-col h-full w-screen sm:w-[450px]", !isOpen && "hidden")}>
+      <div className="flex-grow overflow-auto p-4">
         <SearchCmp
           placeholder="Search exercise or education"
           className="!w-full mt-2"
@@ -72,7 +72,7 @@ export default function ExerciseEducationPanel({
         <Button
           label="Done"
           secondary
-          className="right-4 !py-2 !px-4 ml-auto"
+          className="mr-2 sm:mr-0 mb-2 !py-2 !px-4 ml-auto"
           onClick={onClose}
         />
       </div>
