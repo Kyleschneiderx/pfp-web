@@ -374,7 +374,7 @@ export default function EducationForm({ action = "Create", education }: Props) {
                 key="upload2"
                 label="Upload a video/image"
                 onFileSelect={handleMediaSelect}
-                clearImagePreview={photo === null}
+                clearImagePreview={mediaUpload === null}
                 type="image/video"
                 isEdit={action === "Edit"}
               />
