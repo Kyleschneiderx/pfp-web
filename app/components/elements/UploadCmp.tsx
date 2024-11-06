@@ -148,16 +148,20 @@ export default function UploadCmp({
       <p className="font-medium mb-2">{label}</p>
       {fileName && fileType && !previewImage && (
         <div className="flex items-center mb-4">
-          <FileImage size={20} className="text-neutral-300 mr-2" />
+          <div>
+            <FileImage size={20} className="text-neutral-300 mr-2" />
+          </div>
           <div>
             <p className="text-xs text-neutral-700 font-semibold">{fileName}</p>
             <p className="text-xs text-neutral-400">{fileType} File</p>
           </div>
-          <Trash2
-            size={20}
-            className="ml-auto text-secondary-400 cursor-pointer"
-            onClick={removeSelected}
-          />
+          <div className="ml-auto">
+            <Trash2
+              size={20}
+              className="text-secondary-400 cursor-pointer"
+              onClick={removeSelected}
+            />
+          </div>
         </div>
       )}
       <div
@@ -207,7 +211,9 @@ export default function UploadCmp({
           </p>
           <p className="text-sm">(Max file size: {limitText})</p>
           {recommendedText && (
-            <p className="text-sm">Recomended Dimentions: <br /> {recommendedText}</p>
+            <p className="text-sm">
+              Recomended Dimentions: <br /> {recommendedText}
+            </p>
           )}
         </div>
       </div>

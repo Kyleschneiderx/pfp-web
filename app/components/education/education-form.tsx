@@ -35,6 +35,9 @@ const RichTextEditor = dynamic(
 );
 
 const MobilePreview = dynamic(() => import("./MobilePreview"), { ssr: false });
+const SmMobilePreview = dynamic(() => import("./SmMobilePreview"), {
+  ssr: false,
+});
 
 const ConfirmModal = dynamic(
   () => import("@/app/components/elements/ConfirmModal"),
@@ -72,6 +75,7 @@ export default function EducationForm({ action = "Create", education }: Props) {
   const [editInfo, setEditInfo] = useState<boolean>(
     action === "Create" ? true : false
   );
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -274,109 +278,144 @@ export default function EducationForm({ action = "Create", education }: Props) {
 
   return (
     <>
-      <div className="flex items-center mb-7">
-        <div>
-          <h1 className="text-2xl font-semibold">{action} Education</h1>
-          <p className="text-sm text-neutral-600">
-            {action === "Create"
-              ? CREATE_EDUCATION_DESCRIPTION
-              : UPDATE_DESCRIPTION}
-          </p>
+      <div className={isPreviewOpen ? "hidden" : ""}>
+        <div className="flex items-center mb-4 sm:mb-7">
+          <div>
+            <h1 className="text-2xl font-semibold">{action} Education</h1>
+            <p className="text-sm text-neutral-600">
+              {action === "Create"
+                ? CREATE_EDUCATION_DESCRIPTION
+                : UPDATE_DESCRIPTION}
+            </p>
+          </div>
+          <div className="hidden sm:flex ml-auto space-x-3">
+            <Link href="/education">
+              <Button label="Cancel" secondary />
+            </Link>
+            <Button label="Save as Draft" outlined onClick={onDraft} />
+            <Button label="Save & Publish" onClick={onPublish} />
+          </div>
         </div>
-        <div className="flex ml-auto space-x-3">
-          <Link href="/education">
-            <Button label="Cancel" secondary />
-          </Link>
-          <Button label="Save as Draft" outlined onClick={onDraft} />
-          <Button label="Save & Publish" onClick={onPublish} />
-        </div>
-      </div>
-      <hr />
-      <div className="flex mt-4">
-        <div className="space-y-4">
-          <Card className="w-[592px] h-fit p-[22px]">
-            <UploadCmp
-              key="upload1"
-              label="Thumbnail"
-              onFileSelect={handlePhotoSelect}
-              clearImagePreview={photo === null}
-              type="image"
-              recommendedText="405 x 225 pixels"
-            />
-          </Card>
-          <Card className="w-[592px] p-[22px] mr-5 space-y-3">
-            <div>
-              <Label label="Education Title" required />
-              <Input
-                type="text"
-                placeholder="Enter education title"
-                value={title}
-                invalid={hasError("title")}
-                onChange={(e) => setTitle(e.target.value)}
-              />
-            </div>
-            <div>
-              <div className="flex justify-between items-center">
-                <Label label="Description" required />
-                <span className="text-neutral-600 text-sm">{descCount}/60</span>
-              </div>
-              <Input
-                type="text"
-                placeholder="Enter description"
-                value={description}
-                invalid={hasError("description")}
-                onChange={handleChangeDescription}
-              />
-            </div>
-            <div>
-              <div className="flex justify-between items-center">
-                <Label label="Reference PF plan" />
-              </div>
-              <PfPlanDropdownList
-                value={pfplanRef}
-                setValue={setPfplanRef}
-                getOptions={handleGetPfPlanOptions}
-              />
-            </div>
-            <div>
-              <Label label="Content" />
-              <RichTextEditor
-                placeholder="Enter the education's content here"
-                content={education?.content ?? null}
-                onChange={handleEditorChange}
-                isSaved={isSaved}
+        <hr />
+        <div className="flex mt-5">
+          <div className="space-y-4 w-full sm:w-auto">
+            <Card className="sm:w-[592px] h-fit">
+              <UploadCmp
+                key="upload1"
+                label="Thumbnail"
+                onFileSelect={handlePhotoSelect}
+                clearImagePreview={photo === null}
+                type="image"
+                recommendedText="405 x 225 pixels"
                 isEdit={action === "Edit"}
               />
-            </div>
-          </Card>
-          <Card className="w-[592px] p-[22px] space-y-3">
-            <Label label="Upload Video/Image or URL" />
-            <hr />
-            <div>
-              <Label label="Video/Image URL" />
-              <Input
-                type="text"
-                placeholder="www.yourvideolink.com"
-                value={mediaUrl}
-                onChange={(e) => setMediaUrl(e.target.value)}
+            </Card>
+            <Card className="sm:w-[592px] sm:mr-5 space-y-3">
+              <div>
+                <Label label="Education Title" required />
+                <Input
+                  type="text"
+                  placeholder="Enter education title"
+                  value={title}
+                  invalid={hasError("title")}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+              </div>
+              <div>
+                <div className="flex justify-between items-center">
+                  <Label label="Description" required />
+                  <span className="text-neutral-600 text-sm">
+                    {descCount}/60
+                  </span>
+                </div>
+                <Input
+                  type="text"
+                  placeholder="Enter description"
+                  value={description}
+                  invalid={hasError("description")}
+                  onChange={handleChangeDescription}
+                />
+              </div>
+              <div>
+                <div className="flex justify-between items-center">
+                  <Label label="Reference PF plan" />
+                </div>
+                <PfPlanDropdownList
+                  value={pfplanRef}
+                  setValue={setPfplanRef}
+                  getOptions={handleGetPfPlanOptions}
+                />
+              </div>
+              <div>
+                <Label label="Content" />
+                <RichTextEditor
+                  placeholder="Enter the education's content here"
+                  content={education?.content ?? null}
+                  onChange={handleEditorChange}
+                  isSaved={isSaved}
+                  isEdit={action === "Edit"}
+                />
+              </div>
+            </Card>
+            <Card className="sm:w-[592px] space-y-3">
+              <Label label="Upload Video/Image or URL" />
+              <hr />
+              <div>
+                <Label label="Video/Image URL" />
+                <Input
+                  type="text"
+                  placeholder="www.yourvideolink.com"
+                  value={mediaUrl}
+                  onChange={(e) => setMediaUrl(e.target.value)}
+                />
+              </div>
+              <p className="text-sm font-medium mb-2 text-center">OR</p>
+              <UploadCmp
+                key="upload2"
+                label="Upload a video/image"
+                onFileSelect={handleMediaSelect}
+                clearImagePreview={photo === null}
+                type="image/video"
+                isEdit={action === "Edit"}
               />
+            </Card>
+            <div className="sm:hidden order-last flex flex-col w-full mt-6 space-y-3">
+              <div className="flex w-full space-x-3">
+                <Link href="/education" className="flex-1">
+                  <Button label="Cancel" secondary className="w-full" />
+                </Link>
+                <div className="flex-1">
+                  <Button
+                    label="Save as Draft"
+                    secondary
+                    onClick={onDraft}
+                    className="w-full"
+                  />
+                </div>
+              </div>
+              <Button label="Preview" onClick={() => setIsPreviewOpen(true)} />
+              <Button label="Save & Publish" onClick={onPublish} />
             </div>
-            <p className="text-sm font-medium mb-2 text-center">OR</p>
-            <UploadCmp
-              key="upload2"
-              label="Upload a video/image"
-              onFileSelect={handleMediaSelect}
-              clearImagePreview={photo === null}
-              type="image/video"
+          </div>
+          <div className="hidden sm:block">
+            <MobilePreview
+              banner={photo || education?.photo}
+              title={title}
+              description={description}
+              media={mediaUpload || mediaUrl || education?.media_upload}
+              content={content}
             />
-          </Card>
+          </div>
         </div>
-        <MobilePreview
+      </div>
+      <div className={!isPreviewOpen ? "hidden" : ""}>
+        <SmMobilePreview
           banner={photo || education?.photo}
           title={title}
           description={description}
           media={mediaUpload || mediaUrl || education?.media_upload}
           content={content}
+          closePreview={() => setIsPreviewOpen(false)}
         />
       </div>
       <ConfirmModal
