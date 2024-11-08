@@ -8,7 +8,14 @@ export function middleware(request: NextRequest) {
   const normalizedPath = pathname.replace(/\/$/, "");
 
   // Define the paths that don't require authentication
-  const publicPaths = ["/", "/login", "/forgot-password", "/reset-password", "/mobile-app"];
+  const publicPaths = [
+    "/",
+    "/login",
+    "/forgot-password",
+    "/reset-password",
+    "/mobile-app",
+    "/.well-known",
+  ];
 
   // Function to handle dynamic reset-password route
   const isPublicPath = publicPaths.some(
@@ -20,8 +27,22 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (token && isPublicPath) {
+  if (
+    token &&
+    isPublicPath &&
+    pathname !== "/.well-known/apple-app-site-association" &&
+    pathname !== "/.well-known/assetlinks.json"
+  ) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  // Serve files with application/json MIME type for .well-known paths
+  if (pathname.startsWith("/.well-known/")) {
+    return NextResponse.next({
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
   }
 
   // If authenticated, proceed as normal
@@ -31,5 +52,8 @@ export function middleware(request: NextRequest) {
 // Specify paths for which middleware should run
 export const config = {
   // Skip API routes, Next.js static assets, and all public folder assets
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|images|svg|.well-known).*)"],
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|images|svg).*)",
+    "/.well-known/:path*",
+  ],
 };
