@@ -2,7 +2,7 @@
 
 import Button from "@/app/components/elements/Button";
 import { useDetectOS } from "@/app/hooks/useDetectOS";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export default function Page() {
   const os = useDetectOS();
@@ -15,6 +15,10 @@ export default function Page() {
     window.location.href = appLink;
     setAttempted(true); // Set state to show "Download App" button if app doesn't open
   }, []);
+
+  useEffect(() => {
+    openApp();
+  }, [openApp]);
 
   return (
     <div className="flex flex-col w-auto sm:w-[300px] pt-[50px] space-x-4 items-center">
