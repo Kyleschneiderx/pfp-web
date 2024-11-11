@@ -6,5 +6,5 @@ export default function Page({
   searchParams?: { token: String };
 }) {
   const token = searchParams?.token;
-  return <OpenApp path={`setup?token=${token}`} />;
+  return <OpenApp path={`account?token=${token}`} />;
 }
