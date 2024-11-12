@@ -30,23 +30,16 @@ export default function ExerciseEducationPanel({
     setActiveTab(tab);
   }, [tab]);
 
-  const TabElement = ({ label, tab }: { label: string; tab: number }) => {
-    return (
-      <div
-        className={clsx(
-          "w-1/2 py-3 mt-3 font-medium text-center cursor-pointer",
-          activeTab === tab &&
-            "border-b-[3px] border-primary-500 bg-primary-100"
-        )}
-        onClick={() => setActiveTab(tab)}
-      >
-        {label}
-      </div>
-    );
-  };
+  const tabClass = "w-1/2 py-3 mt-3 font-medium text-center cursor-pointer";
+  const activeTabClass = "border-b-[3px] border-primary-500 bg-primary-100";
 
   return (
-    <div className={clsx("flex flex-col h-full w-screen sm:w-[450px]", !isOpen && "hidden")}>
+    <div
+      className={clsx(
+        "flex flex-col h-full w-screen sm:w-[450px]",
+        !isOpen && "hidden"
+      )}
+    >
       <div className="flex-grow overflow-auto p-4">
         <SearchCmp
           placeholder="Search exercise or education"
@@ -54,8 +47,18 @@ export default function ExerciseEducationPanel({
           onChange={setName}
         />
         <div className="flex">
-          <TabElement label="Exercises" tab={1} />
-          <TabElement label="Education" tab={2} />
+          <div
+            className={clsx(tabClass, activeTab === 1 && activeTabClass)}
+            onClick={() => setActiveTab(1)}
+          >
+            Exercises
+          </div>
+          <div
+            className={clsx(tabClass, activeTab === 2 && activeTabClass)}
+            onClick={() => setActiveTab(2)}
+          >
+            Education
+          </div>
         </div>
         <ExerciseList
           onSelect={onSelectExercise}

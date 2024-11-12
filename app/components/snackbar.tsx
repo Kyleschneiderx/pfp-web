@@ -28,6 +28,13 @@ const SnackBar: React.FC<Props> = ({
     }
   }, [isVisible, onClose]);
 
+  useEffect(() => {
+    document.addEventListener("mousedown", onClose);
+    return () => {
+      document.removeEventListener("mousedown", onClose);
+    };
+  }, []);
+
   return (
     <div
       ref={divRef}
