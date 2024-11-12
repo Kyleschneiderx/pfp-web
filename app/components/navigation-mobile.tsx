@@ -80,7 +80,7 @@ export default function NavigationMobile() {
           </nav>
           <div
             onClick={logout}
-            className="flex items-center pl-9 mb-[25px] space-x-2 text-red-400 cursor-pointer"
+            className="flex items-center pl-9 mb-[70px] space-x-2 text-red-400 cursor-pointer select-none"
           >
             <LogOut size={16} />
             <p>Logout</p>
