@@ -58,7 +58,7 @@ export default function Page() {
         setCookie("token", response.token.access);
         setCookie("user_name", response.user.user_profile.name);
         setCookie("user_email", response.user.email);
-        
+
         // window.location.replace("/dashboard");
         router.push("/dashboard");
       } catch (error) {
@@ -112,7 +112,6 @@ export default function Page() {
         />
         <Link href="/forgot-password">
           <p className="text-center mt-7">Forgot Password?</p>
-          <p className="text-center">Test only, displaying the env var: {process.env.NEXT_PUBLIC_API_BASE_URL}</p>
         </Link>
       </div>
     </form>
