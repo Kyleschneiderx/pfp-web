@@ -2,6 +2,7 @@
 
 import Button from "@/app/components/elements/Button";
 import { useDetectOS } from "@/app/hooks/useDetectOS";
+import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 
 interface Props {
@@ -38,7 +39,15 @@ export default function OpenApp({ path }: Props) {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <Button label="Download on google play" />
+              <Image
+                src="/images/google-play-btn.png"
+                alt="Google Play Button"
+                width={200}
+                height={60}
+                quality={100}
+                className="mx-auto w-[200px] h-[60px]"
+                priority
+              />
             </a>
           ) : os === "iOS" ? (
             <a
@@ -46,7 +55,15 @@ export default function OpenApp({ path }: Props) {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <Button label="Download on app store" />
+              <Image
+                src="/images/app-store-btn.png"
+                alt="Google Play Button"
+                width={200}
+                height={60}
+                quality={100}
+                className="mx-auto w-[200px] h-[60px]"
+                priority
+              />
             </a>
           ) : null}
         </div>
