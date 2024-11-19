@@ -1,7 +1,6 @@
 import { UserSummaryModel } from "@/app/models/user_summary_model";
 import { apiClient } from "@/app/services/apiClient";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 interface FormPatientParams {
   method: "POST" | "PUT";
   id?: number | null;
@@ -13,7 +12,7 @@ export const savePatient = async ({
   id,
   body,
 }: FormPatientParams): Promise<{ msg: string }> => {
-  const url = `${API_BASE_URL}/users/${id ?? ""}`;
+  const url = `/users/${id ?? ""}`;
 
   return apiClient<{ msg: string }>({
     url: url,
@@ -23,19 +22,19 @@ export const savePatient = async ({
 };
 
 export const deletePatient = async (id: number): Promise<{ msg: string }> => {
-  const url = `${API_BASE_URL}/users/${id}`;
+  const url = `/users/${id}`;
   return await apiClient<{ msg: string }>({ url: url, method: "DELETE" });
 };
 
 export const getUserSummary = async (
   params: string
 ): Promise<UserSummaryModel> => {
-  const url = `${API_BASE_URL}/users/summary?${params}`;
+  const url = `/users/summary?${params}`;
   return apiClient<UserSummaryModel>({ url: url, method: "GET" });
 };
 
 export const sendInvite = async (id: number): Promise<{ msg: string }> => {
-  const url = `${API_BASE_URL}/users/${id}/invite`;
+  const url = `/users/${id}/invite`;
   return apiClient<{ msg: string }>({
     url: url,
     method: "POST",

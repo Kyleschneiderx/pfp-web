@@ -1,11 +1,13 @@
-import { ExerciseCategoryModel, ExercisesResponse } from "@/app/models/exercise_model";
+import {
+  ExerciseCategoryModel,
+  ExercisesResponse,
+} from "@/app/models/exercise_model";
 import { apiClient } from "@/app/services/apiClient";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 export interface FormExerciseParams {
-  method: "POST" | "PUT",
+  method: "POST" | "PUT";
   id?: number | null;
-  body: FormData,
+  body: FormData;
 }
 
 interface ExerciseCategoriesResponse {
@@ -17,7 +19,7 @@ interface ExerciseCategoriesResponse {
 export const getExercises = async (
   params: string
 ): Promise<ExercisesResponse> => {
-  const url = `${API_BASE_URL}/exercises?${params}`;
+  const url = `/exercises?${params}`;
   console.log(url);
   const data = await apiClient({
     url: url,
@@ -31,7 +33,7 @@ export const saveExercise = async ({
   id,
   body,
 }: FormExerciseParams): Promise<{ msg: string }> => {
-  const url = `${API_BASE_URL}/exercises/${id ?? ""}`;
+  const url = `/exercises/${id ?? ""}`;
 
   return apiClient<{ msg: string }>({
     url: url,
@@ -41,7 +43,7 @@ export const saveExercise = async ({
 };
 
 export const deleteExercise = async (id: number): Promise<{ msg: string }> => {
-  const url = `${API_BASE_URL}/exercises/${id}`;
+  const url = `/exercises/${id}`;
   return await apiClient<{ msg: string }>({ url: url, method: "DELETE" });
 };
 
@@ -50,7 +52,7 @@ export const createExerciseCategory = async ({
 }: {
   name: string;
 }): Promise<{ msg: string }> => {
-  const url = `${API_BASE_URL}/selections/exercise-categories`;
+  const url = `/selections/exercise-categories`;
   return apiClient<{ msg: string }>({
     url: url,
     method: "POST",
@@ -61,7 +63,7 @@ export const createExerciseCategory = async ({
 export const getExerciseCategories = async (): Promise<
   ExerciseCategoryModel[]
 > => {
-  const url = `${API_BASE_URL}/selections?exercise_category`;
+  const url = `/selections?exercise_category`;
   const data: ExerciseCategoriesResponse = await apiClient({
     url: url,
     method: "GET",
@@ -76,7 +78,7 @@ export const updateExerciseCategory = async ({
   id: string;
   name: string;
 }): Promise<{ msg: string }> => {
-  const url = `${API_BASE_URL}/selections/exercise-categories/${id}`;
+  const url = `/selections/exercise-categories/${id}`;
   return apiClient<{ msg: string }>({
     url: url,
     method: "PUT",
@@ -87,6 +89,6 @@ export const updateExerciseCategory = async ({
 export const deleteExerciseCategory = async (
   id: string
 ): Promise<{ msg: string }> => {
-  const url = `${API_BASE_URL}/selections/exercise-categories/${id}`;
+  const url = `/selections/exercise-categories/${id}`;
   return await apiClient<{ msg: string }>({ url: url, method: "DELETE" });
 };
