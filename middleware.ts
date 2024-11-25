@@ -13,6 +13,9 @@ export function middleware(request: NextRequest) {
     "/login",
     "/forgot-password",
     "/reset-password",
+  ];
+
+  const publicPaths2 = [
     "/mobile-app",
     "/delete-account",
     "/privacy-policy",
@@ -22,6 +25,14 @@ export function middleware(request: NextRequest) {
   const isPublicPath = publicPaths.some(
     (path) => normalizedPath === path || normalizedPath.startsWith(`${path}/`)
   );
+  
+  const isPublicPath2 = publicPaths2.some(
+    (path) => normalizedPath === path || normalizedPath.startsWith(`${path}/`)
+  );
+
+  if (isPublicPath2) {
+    return NextResponse.next();
+  }
 
   // Check if token is missing and the route is protected
   if (!token && !isPublicPath) {
