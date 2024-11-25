@@ -195,7 +195,15 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
       <div className="flex flex-col h-full shadow-left">
         <div className="flex-grow overflow-auto p-4">
           <div className="flex items-center mb-4">
-            <Image src={ArrowLeft} alt="Arrow left" />
+            <Image
+              src={ArrowLeft}
+              alt="Arrow left"
+              className="cursor-pointer"
+              onClick={() => {
+                setIsOpenSelectList(false);
+                onClose();
+              }}
+            />
             <p className="text-2xl font-semibold ml-2">Add Day</p>
             <Button
               label="Cancel"

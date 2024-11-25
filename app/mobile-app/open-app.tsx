@@ -35,7 +35,7 @@ export default function OpenApp({ path }: Props) {
           <p>If the app didn’t open, please download it:</p>
           {os === "Android" ? (
             <a
-              href="https://play.google.com/store/apps/details?id=com.example.pelvicfloorpro"
+              href="https://play.google.com/store/apps/details?id=com.lakecitypt.pelvic_floor_pro"
               target="_blank"
               rel="noopener noreferrer"
             >
