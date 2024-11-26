@@ -33,23 +33,7 @@ export default function OpenApp({ path }: Props) {
       {attempted && (
         <div className="flex flex-col items-center mt-8 space-y-3">
           <p>If the app didn’t open, please download it:</p>
-          {os === "Android" ? (
-            <a
-              href="https://play.google.com/store/apps/details?id=com.lakecitypt.pelvic_floor_pro"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Image
-                src="/images/google-play-btn.png"
-                alt="Google Play Button"
-                width={200}
-                height={60}
-                quality={100}
-                className="mx-auto w-[200px] h-[60px]"
-                priority
-              />
-            </a>
-          ) : os === "iOS" ? (
+          {os === "iOS" ? (
             <a
               href="https://apps.apple.com/app/id1234567890"
               target="_blank"
@@ -65,7 +49,23 @@ export default function OpenApp({ path }: Props) {
                 priority
               />
             </a>
-          ) : null}
+          ) : (
+            <a
+              href="https://play.google.com/store/apps/details?id=com.lakecitypt.pelvic_floor_pro"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Image
+                src="/images/google-play-btn.png"
+                alt="Google Play Button"
+                width={200}
+                height={60}
+                quality={100}
+                className="mx-auto w-[200px] h-[60px]"
+                priority
+              />
+            </a>
+          )}
         </div>
       )}
     </div>
