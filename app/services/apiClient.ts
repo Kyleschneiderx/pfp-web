@@ -7,6 +7,7 @@ interface Props {
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: Record<string, any>;
   retryCount?: number;
+  mobileToken?: string;
 }
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
@@ -17,6 +18,7 @@ export const apiClient = async <T>({
   method,
   body,
   retryCount = MAX_RETRIES,
+  mobileToken,
 }: Props): Promise<T> => {
   const token = Cookies.get("token");
 
@@ -24,7 +26,9 @@ export const apiClient = async <T>({
     url: `${BASE_URL}${url}`,
     method,
     headers: {
-      ...(token && { Authorization: `Bearer ${token}` }),
+      ...(mobileToken
+        ? { Authorization: `Bearer ${mobileToken}` }
+        : token && { Authorization: `Bearer ${token}` }),
       ...(!(body instanceof FormData) && {
         "Content-Type": "application/json",
       }),

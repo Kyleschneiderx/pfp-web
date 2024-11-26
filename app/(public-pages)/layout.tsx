@@ -1,0 +1,15 @@
+import { ReactNode } from "react";
+import Card from "../components/elements/Card";
+
+export default function Layout({ children }: { children: ReactNode }) {
+  return (
+    <main>
+      <div className="relative bg-cover bg-center h-screen bg-[url('/images/login-bg.png')]">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary-50/95 to-primary-50/70" />
+        <div className="flex items-center justify-center h-screen">
+          <Card className="w-[370px] sm:w-[460px] sm:p-10">{children}</Card>
+        </div>
+      </div>
+    </main>
+  );
+}
