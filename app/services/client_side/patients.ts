@@ -40,3 +40,14 @@ export const sendInvite = async (id: number): Promise<{ msg: string }> => {
     method: "POST",
   });
 };
+
+export const deletePatientAccount = async (
+  mobileToken: string
+): Promise<{ msg: string }> => {
+  const url = `/users/delete-account`;
+  return await apiClient<{ msg: string }>({
+    url: url,
+    method: "DELETE",
+    mobileToken: mobileToken,
+  });
+};
