@@ -61,6 +61,7 @@ export default function page({ params }: Props) {
             Once you delete your account, you will not be able to undo it. Are
             you sure you want to delete?
           </p>
+          <p className="font-bold italic text-red-600">Note: Make sure you unsubscribe from premium plan before deleting your account.</p>
           <Button
             label="Delete"
             className="w-full mt-10"
