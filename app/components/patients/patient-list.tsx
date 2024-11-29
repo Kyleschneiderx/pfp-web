@@ -198,7 +198,11 @@ export default function PatientList({
               <div className="text-neutral-700 text-sm">
                 <div className="flex space-x-2 items-center mb-1">
                   <PhoneCall size={14} />
-                  <p>{patient.user_profile.contact_number}</p>
+                  <p>
+                    {patient.user_profile.contact_number === ""
+                      ? "N/A"
+                      : patient.user_profile.contact_number}
+                  </p>
                 </div>
                 <div className="flex space-x-2 items-center">
                   <Mail size={14} />
