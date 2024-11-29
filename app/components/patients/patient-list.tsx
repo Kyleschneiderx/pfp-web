@@ -179,7 +179,7 @@ export default function PatientList({
                   Date of Birth
                 </p>
                 <p className="text-neutral-700">
-                  {formatDateToLocal(patient.user_profile.birthdate)}
+                  {formatDateToLocal(patient.user_profile.birthdate ?? "")}
                 </p>
               </div>
               <div className="flex text-sm mb-1">

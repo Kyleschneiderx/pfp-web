@@ -13,6 +13,10 @@ export const formatDate = (date: Date): string => {
 // return format: December 25, 1998
 export const formatDateToLocal = (dateStr: string | Date) => {
   const date = new Date(dateStr);
+  // Check if the date is invalid
+  if (isNaN(date.getTime())) {
+    return "N/A";
+  }
   const formatter = new Intl.DateTimeFormat("en-US", {
     year: "numeric",
     month: "long",

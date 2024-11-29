@@ -55,13 +55,14 @@ export default function PatientForm({ action = "Create", patient }: Props) {
       setName(patient.user_profile?.name);
       setEmail(patient.email);
       setContactNo(patient.user_profile?.contact_number ?? "");
-      setBirthdate(
-        patient.user_profile.birthdate
-          ? new Date(patient.user_profile.birthdate)
-          : null
-      );
       setUserType(patient.user_type?.id);
       setDescription(patient.user_profile?.description ?? "");
+      if (
+        patient.user_profile.birthdate &&
+        !isNaN(new Date(patient.user_profile.birthdate).getTime())
+      ) {
+        setBirthdate(new Date(patient.user_profile.birthdate));
+      }
     }
   }, [patient]);
 
@@ -83,8 +84,6 @@ export default function PatientForm({ action = "Create", patient }: Props) {
     const validationErrors = validateForm({
       name,
       email,
-      contactNo,
-      birthdate,
     });
     setErrors(validationErrors);
     return validationErrors.length === 0;
@@ -260,9 +259,7 @@ export default function PatientForm({ action = "Create", patient }: Props) {
           </div>
           <div className="flex flex-col sm:flex-row sm:space-x-3">
             <div className="w-full mb-3 sm:mb-0">
-              <p className="font-medium mb-2">
-                Contact Number <ReqIndicator />
-              </p>
+              <p className="font-medium mb-2">Contact Number</p>
               <Input
                 type="text"
                 placeholder="xxx xxx xxx"
@@ -273,9 +270,7 @@ export default function PatientForm({ action = "Create", patient }: Props) {
               />
             </div>
             <div className="w-full">
-              <p className="font-medium mb-2">
-                Date of Birth <ReqIndicator />
-              </p>
+              <p className="font-medium mb-2">Date of Birth</p>
               <DateInput
                 selected={birthdate}
                 invalid={hasError("birthdate")}

@@ -14,7 +14,7 @@ export interface PatientModel {
 
 interface UserProfile {
   name: string;
-  birthdate: string;
+  birthdate: string | null;
   contact_number: string;
   description: string | null;
   photo: string | null;
