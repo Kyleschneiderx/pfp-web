@@ -444,6 +444,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
             onFileSelect={handlePhotoSelect}
             clearImagePreview={photo === null}
             type="image"
+            recommendedText="405 x 225 pixels"
             isEdit={action === "Edit"}
           />
         </div>
