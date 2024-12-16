@@ -12,11 +12,34 @@ export const formatDate = (date: Date): string => {
 
 // return format: December 25, 1998
 export const formatDateToLocal = (dateStr: string | Date) => {
-  const date = new Date(dateStr);
+  let date: Date;
+
+  if (typeof dateStr === "string") {
+    const dateParts = dateStr.split("-").map(Number);
+
+    // Validate the parts of the date
+    if (
+      dateParts.length !== 3 || // Must have 3 parts (year, month, day)
+      dateParts[0] <= 0 || // Year must be positive
+      dateParts[1] <= 0 ||
+      dateParts[1] > 12 || // Month must be between 1 and 12
+      dateParts[2] <= 0 ||
+      dateParts[2] > 31 // Day must be between 1 and 31
+    ) {
+      return "N/A";
+    }
+
+    const [year, month, day] = dateParts;
+    date = new Date(year, month - 1, day); // Month is 0-based
+  } else {
+    date = new Date(dateStr);
+  }
+
   // Check if the date is invalid
   if (isNaN(date.getTime())) {
     return "N/A";
   }
+
   const formatter = new Intl.DateTimeFormat("en-US", {
     year: "numeric",
     month: "long",
