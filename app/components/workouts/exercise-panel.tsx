@@ -38,7 +38,7 @@ export default function ExercisePanel({
     try {
       setIsLoading(true);
       const currentPage = resetPage ? 1 : page;
-      const params = `name=${name}&sort[]=name:ASC&page=${currentPage}&page_items=5`;
+      const params = `name=${name}&sort[]=name:ASC&page=${currentPage}&page_items=20`;
       const { data, max_page } = await getExercises(params);
       setMaxPage(max_page);
       if (currentPage < max_page) {
