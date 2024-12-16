@@ -61,7 +61,7 @@ export default function PatientForm({ action = "Create", patient }: Props) {
         patient.user_profile.birthdate &&
         !isNaN(new Date(patient.user_profile.birthdate).getTime())
       ) {
-        setBirthdate(new Date(patient.user_profile.birthdate));
+        setBirthdate(handleSetBirthDate(patient.user_profile.birthdate));
       }
     }
   }, [patient]);
@@ -78,6 +78,12 @@ export default function PatientForm({ action = "Create", patient }: Props) {
       setModalOpen(false);
       setDeleteModalOpen(false);
     }
+  };
+
+  const handleSetBirthDate = (dateStr: string) => {
+    const [year, month, day] = dateStr.split("-").map(Number);
+    const localDate = new Date(year, month - 1, day); // Create date in local time
+    return localDate;
   };
 
   const isValid = () => {
