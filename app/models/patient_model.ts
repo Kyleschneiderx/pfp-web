@@ -10,7 +10,7 @@ export interface PatientModel {
   user_type: UserType;
   status: Status;
   can_invite: boolean;
-};
+}
 
 interface UserProfile {
   name: string;
@@ -18,7 +18,7 @@ interface UserProfile {
   contact_number: string;
   description: string | null;
   photo: string | null;
-};
+}
 
 interface AccountType {
   id: number;
@@ -40,4 +40,15 @@ export interface PatientsResponse {
   page: number;
   page_items: number;
   max_page: number;
+}
+
+export interface PatientSurveyModel {
+  id: number;
+  question: string;
+  user_survey_question_answer: QuestionAnswer | null;
+}
+
+interface QuestionAnswer {
+  yes_no: "yes" | "no";
+  if_yes_how_much_bother: string;
 }
