@@ -39,7 +39,7 @@ const PatientSurveyModal = dynamic(
 interface Props {
   action: "Create" | "Edit";
   patient?: PatientModel;
-  patientSurvey: PatientSurveyModel[];
+  patientSurvey?: PatientSurveyModel[];
 }
 
 export default function PatientForm({
@@ -305,12 +305,14 @@ export default function PatientForm({
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
-          <span
-            className="text-sm text-neutral-600 cursor-pointer underline"
-            onClick={() => setSurveyModelOpen(true)}
-          >
-            View survey
-          </span>
+          {action === "Edit" && patientSurvey && (
+            <span
+              className="text-sm text-neutral-600 cursor-pointer underline"
+              onClick={() => setSurveyModelOpen(true)}
+            >
+              View survey
+            </span>
+          )}
         </div>
         <div className="sm:hidden order-last flex flex-col w-full mt-4 space-y-3">
           <Link href="/patients">
@@ -342,11 +344,13 @@ export default function PatientForm({
               onConfirm={handleDeleteConfirm}
               onClose={handleCloseModal}
             />
-            <PatientSurveyModal
-              patientSurvey={patientSurvey}
-              isOpen={surveyModalOpen}
-              onClose={() => setSurveyModelOpen(false)}
-            />
+            {patientSurvey && (
+              <PatientSurveyModal
+                patientSurvey={patientSurvey}
+                isOpen={surveyModalOpen}
+                onClose={() => setSurveyModelOpen(false)}
+              />
+            )}
           </>
         )}
       </div>
