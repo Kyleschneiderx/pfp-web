@@ -26,7 +26,6 @@ export default function CategoryListModal({
       isOpen={isOpen}
       handleClose={onClose}
       showCloseBtn
-      contentLabel="Example Modal"
     >
       <div className="text-center w-[300px] sm:w-[450px] sm:py-5 sm:px-3">
         <p className="text-2xl font-semibold mb-2">All Categories</p>
