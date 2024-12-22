@@ -31,7 +31,7 @@ export default function CreateCategoryModal({
   }, [isOpen]);
 
   return (
-    <ModalCmp isOpen={isOpen} contentLabel="Example Modal">
+    <ModalCmp isOpen={isOpen}>
       <div className="text-center w-[300px] sm:w-[450px] sm:py-5 sm:px-3">
         <p className="text-2xl font-semibold mb-7">Add a New Category</p>
         <Input

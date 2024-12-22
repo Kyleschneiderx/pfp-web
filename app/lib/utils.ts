@@ -162,3 +162,10 @@ export const getWeekRange = (date: Date): WeekRange => {
 
   return { startOfWeek, endOfWeek };
 };
+
+export const capitalizeFirstLetter = (
+  string: string | null | undefined
+): string | null | undefined => {
+  if (!string) return string; // Handle empty or undefined strings
+  return string.charAt(0).toUpperCase() + string.slice(1);
+};

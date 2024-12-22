@@ -19,23 +19,34 @@ import {
 import { revalidatePage } from "@/app/lib/revalidate";
 import { formatDate, onPhoneNumKeyDown } from "@/app/lib/utils";
 import { ErrorModel } from "@/app/models/error_model";
-import { PatientModel } from "@/app/models/patient_model";
+import { PatientModel, PatientSurveyModel } from "@/app/models/patient_model";
 import { ValidationErrorModel } from "@/app/models/validation_error_model";
 import {
   deletePatient,
   savePatient,
 } from "@/app/services/client_side/patients";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { validateForm } from "./validation";
 
+const PatientSurveyModal = dynamic(
+  () => import("@/app/components/patients/patient-survey-modal"),
+  { ssr: false }
+);
+
 interface Props {
   action: "Create" | "Edit";
   patient?: PatientModel;
+  patientSurvey?: PatientSurveyModel[];
 }
 
-export default function PatientForm({ action = "Create", patient }: Props) {
+export default function PatientForm({
+  action = "Create",
+  patient,
+  patientSurvey,
+}: Props) {
   const { showSnackBar } = useSnackBar();
   const router = useRouter();
   const { isMobile } = useWindowSizeCheck();
@@ -68,6 +79,7 @@ export default function PatientForm({ action = "Create", patient }: Props) {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [surveyModalOpen, setSurveyModelOpen] = useState(false);
 
   const handleToggle = (label: string) => {
     setUserType(label === "Free" ? 1 : 2);
@@ -293,6 +305,14 @@ export default function PatientForm({ action = "Create", patient }: Props) {
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
+          {action === "Edit" && patientSurvey && (
+            <span
+              className="text-sm text-neutral-600 cursor-pointer underline"
+              onClick={() => setSurveyModelOpen(true)}
+            >
+              View survey
+            </span>
+          )}
         </div>
         <div className="sm:hidden order-last flex flex-col w-full mt-4 space-y-3">
           <Link href="/patients">
@@ -314,15 +334,24 @@ export default function PatientForm({ action = "Create", patient }: Props) {
           onClose={handleCloseModal}
         />
         {action === "Edit" && (
-          <ConfirmModal
-            title="Are you sure you want to delete this account?"
-            subTitle={CONFIRM_DELETE_DESCRIPTION}
-            isOpen={deleteModalOpen}
-            confirmBtnLabel="Delete"
-            isProcessing={isProcessing}
-            onConfirm={handleDeleteConfirm}
-            onClose={handleCloseModal}
-          />
+          <>
+            <ConfirmModal
+              title="Are you sure you want to delete this account?"
+              subTitle={CONFIRM_DELETE_DESCRIPTION}
+              isOpen={deleteModalOpen}
+              confirmBtnLabel="Delete"
+              isProcessing={isProcessing}
+              onConfirm={handleDeleteConfirm}
+              onClose={handleCloseModal}
+            />
+            {patientSurvey && (
+              <PatientSurveyModal
+                patientSurvey={patientSurvey}
+                isOpen={surveyModalOpen}
+                onClose={() => setSurveyModelOpen(false)}
+              />
+            )}
+          </>
         )}
       </div>
     </>
