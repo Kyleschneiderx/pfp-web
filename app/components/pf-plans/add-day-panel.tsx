@@ -45,17 +45,21 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
   }, [days]);
 
   useEffect(() => {
-    if (selectedDay) {
-      setName(selectedDay.name);
-      const firstContent = selectedDay.contents[0];
-      if (firstContent && "title" in firstContent) {
-        setSelectedEducation(firstContent as EducationModel);
-      }
-      const exerciseContents = selectedDay.contents
-        .slice(1)
-        .filter((item): item is PfPlanExerciseModel => "exercise_id" in item);
-      setExercises(exerciseContents);
-    }
+    if (!selectedDay) return;
+
+    setName(selectedDay.name);
+
+    const [firstContent, ...restContents] = selectedDay.contents;
+    const isEducationContent = firstContent && "title" in firstContent;
+
+    setSelectedEducation(
+      isEducationContent ? (firstContent as EducationModel) : null
+    );
+
+    const exerciseContents = (
+      isEducationContent ? restContents : selectedDay.contents
+    ).filter((item): item is PfPlanExerciseModel => "exercise_id" in item);
+    setExercises(exerciseContents);
   }, [selectedDay]);
 
   const handleOnClose = () => {
@@ -78,10 +82,6 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
     if (!itemExists) {
       setExercises((prev) => [...prev, data]);
     }
-  };
-
-  const truncatedText = (text: string, max: number) => {
-    return text.length > max ? text.substring(0, max) + "..." : text;
   };
 
   const onSelectEducation = (education: EducationModel) => {
@@ -124,7 +124,6 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
   const isValid = () => {
     const validationErrors = validateDayForm({
       name,
-      education: selectedEducation,
       exerciseLength: exercises.length,
       days,
       selectedDay,
