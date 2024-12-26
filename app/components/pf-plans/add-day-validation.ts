@@ -1,16 +1,13 @@
-import { EducationModel } from "@/app/models/education_model";
 import { PfPlanDailies } from "@/app/models/pfplan_model";
 import { ValidationErrorModel } from "@/app/models/validation_error_model";
 
 export const validateDayForm = ({
   name,
-  education,
   exerciseLength,
   days,
   selectedDay,
 }: {
   name: string;
-  education: EducationModel | null;
   exerciseLength: number;
   days: PfPlanDailies[];
   selectedDay: PfPlanDailies | null;
@@ -34,13 +31,6 @@ export const validateDayForm = ({
 
   if (!name.trim()) {
     errors.push({ fieldName: "name", message: "Please enter a day name." });
-  }
-
-  if (!education) {
-    errors.push({
-      fieldName: "education",
-      message: "Please add an education.",
-    });
   }
 
   if (exerciseLength === 0) {
