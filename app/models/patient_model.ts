@@ -52,3 +52,11 @@ interface QuestionAnswer {
   yes_no: "yes" | "no";
   if_yes_how_much_bother: string;
 }
+
+export interface PfPlanProgressModel {
+  id: number;
+  name: string;
+  description: string;
+  photo: string;
+  user_pf_plan_progress_percentage: number;
+}
