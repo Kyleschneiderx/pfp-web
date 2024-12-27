@@ -1,4 +1,9 @@
-import { PatientModel, PatientsResponse, PatientSurveyModel } from "@/app/models/patient_model";
+import {
+  PatientModel,
+  PatientsResponse,
+  PatientSurveyModel,
+  PfPlanProgressModel,
+} from "@/app/models/patient_model";
 import { apiServerSide } from "@/app/services/apiServerSide";
 
 export const getPatients = async (
@@ -15,8 +20,18 @@ export const getPatientDetails = async (id: string): Promise<PatientModel> => {
   return data as PatientModel;
 };
 
-export const getPatientSurvey = async (id: string): Promise<PatientSurveyModel[]> => {
+export const getPatientSurvey = async (
+  id: string
+): Promise<PatientSurveyModel[]> => {
   const url = `/users/${id}/survey`;
   const data = await apiServerSide({ url: url, method: "GET" });
   return data as PatientSurveyModel[];
+};
+
+export const getPfPlanProgress = async (
+  id: string
+): Promise<PfPlanProgressModel> => {
+  const url = `/users/${id}/pf-plan-progress`;
+  const data = await apiServerSide({ url: url, method: "GET" });
+  return data as PfPlanProgressModel;
 };
