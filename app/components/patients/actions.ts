@@ -2,7 +2,7 @@
 
 import { ErrorModel } from "@/app/models/error_model";
 import { PatientModel } from "@/app/models/patient_model";
-import { getPatients } from "@/app/services/server_side/patients";
+import { getPatients, getPfPlanProgress } from "@/app/services/server_side/patients";
 
 export async function fetchPatients({
   page = 1,
@@ -29,5 +29,13 @@ export async function fetchPatients({
     const apiError = error as ErrorModel;
     const errorMessage = apiError.msg || "Failed to fetch patients";
     throw new Error(errorMessage);
+  }
+}
+
+export async function fetchPfPlanProgress(id: string) {
+  try {
+    return await getPfPlanProgress(id);
+  } catch (error) {
+    return null;
   }
 }

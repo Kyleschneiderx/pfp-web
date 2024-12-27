@@ -19,16 +19,22 @@ import {
 import { revalidatePage } from "@/app/lib/revalidate";
 import { formatDate, onPhoneNumKeyDown } from "@/app/lib/utils";
 import { ErrorModel } from "@/app/models/error_model";
-import { PatientModel, PatientSurveyModel } from "@/app/models/patient_model";
+import {
+  PatientModel,
+  PatientSurveyModel,
+  PfPlanProgressModel,
+} from "@/app/models/patient_model";
 import { ValidationErrorModel } from "@/app/models/validation_error_model";
 import {
   deletePatient,
   savePatient,
 } from "@/app/services/client_side/patients";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import ProgressBar from "../elements/ProgressBar";
 import { validateForm } from "./validation";
 
 const PatientSurveyModal = dynamic(
@@ -40,12 +46,14 @@ interface Props {
   action: "Create" | "Edit";
   patient?: PatientModel;
   patientSurvey?: PatientSurveyModel[];
+  pfPlanProgress?: PfPlanProgressModel | null;
 }
 
 export default function PatientForm({
   action = "Create",
   patient,
   patientSurvey,
+  pfPlanProgress,
 }: Props) {
   const { showSnackBar } = useSnackBar();
   const router = useRouter();
@@ -312,6 +320,30 @@ export default function PatientForm({
             >
               View survey
             </span>
+          )}
+          {action === "Edit" && pfPlanProgress && (
+            <div>
+              <p className="font-medium mb-2 text-center">Pf Plan Progress</p>
+              <hr className="w-[130px] mx-auto mb-3" />
+              <div className="flex space-x-4 mb-3">
+                <Image
+                  src={pfPlanProgress.photo || "/images/exercise-banner.jpg"}
+                  width={80}
+                  height={56}
+                  alt="Thumbnail"
+                  className="w-[80px] h-[56px] mt-1"
+                />
+                <div>
+                  <p>{pfPlanProgress.name}</p>
+                  <p className="text-sm text-neutral-600">
+                    {pfPlanProgress.description}
+                  </p>
+                </div>
+              </div>
+              <ProgressBar
+                value={pfPlanProgress.user_pf_plan_progress_percentage}
+              />
+            </div>
           )}
         </div>
         <div className="sm:hidden order-last flex flex-col w-full mt-4 space-y-3">
