@@ -58,10 +58,6 @@ export default function EducationList({ title = "", onSelect, isOpen }: Props) {
     }
   }, [inView, page]);
 
-  const truncatedText = (text: string, max: number) => {
-    return text.length > max ? text.substring(0, max) + "..." : text;
-  };
-
   const handleSelect = (item: EducationModel, index: number) => {
     onSelect(item);
     showSnackBar({ message: "Education successfully applied", success: true });
@@ -72,7 +68,8 @@ export default function EducationList({ title = "", onSelect, isOpen }: Props) {
     }, 2000);
   };
 
-  const pClass = "overflow-hidden text-ellipsis whitespace-nowrap";
+  const pClass =
+    "truncate max-w-xs overflow-hidden text-ellipsis whitespace-nowrap";
 
   return (
     <div className={clsx("space-y-3 mt-2", !isOpen && "hidden")}>
@@ -91,17 +88,17 @@ export default function EducationList({ title = "", onSelect, isOpen }: Props) {
                 blurDataURL="/images/placeholder.jpg"
                 className="w-[80px] h-[56px]"
               />
-              <div className="ml-3 w-[calc(100vw-180px)] sm:w-auto">
+              <div className="ml-3 w-[calc(100vw-180px)] sm:w-[270px]">
                 <p
                   className={clsx(
                     pClass,
                     "text-sm font-medium text-neutral-800 mb-1"
                   )}
                 >
-                  {truncatedText(item.title, 35)}
+                  {item.title}
                 </p>
                 <p className={clsx(pClass, "text-xs text-neutral-500")}>
-                  {truncatedText(item.description ?? "", 45)}
+                  {item.description}
                 </p>
               </div>
               {activeIndexes.includes(index) ? (
