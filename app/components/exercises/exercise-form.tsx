@@ -64,8 +64,8 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
 
   const [name, setName] = useState<string>("");
   const [category, setCategory] = useState<CategoryOptionsModel | null>(null);
-  const [sets, setSets] = useState<number>(0);
-  const [reps, setReps] = useState<number>(0);
+  const [sets, setSets] = useState<number>(1);
+  const [reps, setReps] = useState<number>(1);
   const [hold, setHold] = useState<number>(0);
   const [description, setDescription] = useState<string>("");
   const [howTo, setHowTo] = useState<string>("");
@@ -124,6 +124,8 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
       category,
       photo: photo ?? exercise?.photo,
       video: video ?? exercise?.video,
+      sets: sets,
+      reps: reps,
     });
     setErrors(validationErrors);
     return validationErrors.length === 0;
@@ -226,8 +228,8 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
   const clearData = () => {
     setName("");
     setCategory(null);
-    setSets(0);
-    setReps(0);
+    setSets(1);
+    setReps(1);
     setHold(0);
     setDescription("");
     setHowTo("");
@@ -407,6 +409,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
                 type="number"
                 placeholder="0"
                 value={sets}
+                min={1}
                 onChange={(e) => setSets(parseInt(e.target.value))}
               />
             </div>
@@ -416,6 +419,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
                 type="number"
                 placeholder="0"
                 value={reps}
+                min={1}
                 onChange={(e) => setReps(parseInt(e.target.value))}
               />
             </div>
@@ -425,6 +429,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
                 type="number"
                 placeholder="0"
                 value={hold}
+                min={0}
                 onChange={(e) => setHold(parseInt(e.target.value))}
               />
             </div>

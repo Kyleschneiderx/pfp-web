@@ -159,7 +159,7 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
       description,
       type: type?.label,
       photo: photo ?? workout?.photo,
-      exerciseLength: exercises.length,
+      exercises: exercises,
     });
     setErrors(validationErrors);
     return validationErrors.length === 0;
@@ -447,6 +447,7 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
                                     type="number"
                                     placeholder="0"
                                     value={item.sets}
+                                    min={1}
                                     onChange={(e) =>
                                       onChangeExercise(
                                         index,
@@ -463,6 +464,7 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
                                     type="number"
                                     placeholder="0"
                                     value={item.reps}
+                                    min={1}
                                     onChange={(e) =>
                                       onChangeExercise(
                                         index,

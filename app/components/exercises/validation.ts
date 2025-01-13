@@ -6,11 +6,15 @@ export const validateForm = ({
   category,
   photo,
   video,
+  sets,
+  reps,
 }: {
   name: string;
   category: CategoryOptionsModel | null | undefined;
   photo?: any;
   video?: any;
+  sets: number;
+  reps: number;
 }): ValidationErrorModel[] => {
   const errors: ValidationErrorModel[] = [];
 
@@ -25,8 +29,17 @@ export const validateForm = ({
   if (!photo) {
     errors.push({ fieldName: "photo", message: "A photo is required." });
   }
+
   if (!video) {
     errors.push({ fieldName: "video", message: "A video is required." });
+  }
+
+  if (!sets || sets <= 0 ) {
+    errors.push({ fieldName: "sets", message: "No. of sets should be greater than zero." });
+  }
+
+  if (!reps || reps <= 0 ) {
+    errors.push({ fieldName: "reps", message: "No. of reps should be greater than zero." });
   }
 
   return errors;
