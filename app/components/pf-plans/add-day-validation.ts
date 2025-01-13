@@ -1,14 +1,14 @@
-import { PfPlanDailies } from "@/app/models/pfplan_model";
+import { PfPlanDailies, PfPlanExerciseModel } from "@/app/models/pfplan_model";
 import { ValidationErrorModel } from "@/app/models/validation_error_model";
 
 export const validateDayForm = ({
   name,
-  exerciseLength,
+  exercises,
   days,
   selectedDay,
 }: {
   name: string;
-  exerciseLength: number;
+  exercises: PfPlanExerciseModel[];
   days: PfPlanDailies[];
   selectedDay: PfPlanDailies | null;
 }): ValidationErrorModel[] => {
@@ -33,10 +33,30 @@ export const validateDayForm = ({
     errors.push({ fieldName: "name", message: "Please enter a day name." });
   }
 
-  if (exerciseLength === 0) {
+  if (exercises.length === 0) {
     errors.push({
       fieldName: "exercise",
       message: "Please add at least 1 exercise.",
+    });
+  } else {
+    let setsErrorAdded = false;
+    let repsErrorAdded = false;
+
+    exercises.forEach((e) => {
+      if (!setsErrorAdded && (!e.sets || e.sets <= 0)) {
+        errors.push({
+          fieldName: "sets",
+          message: "No. of sets should be greater than zero.",
+        });
+        setsErrorAdded = true;
+      }
+      if (!repsErrorAdded && (!e.reps || e.reps <= 0)) {
+        errors.push({
+          fieldName: "reps",
+          message: "No. of reps should be greater than zero.",
+        });
+        repsErrorAdded = true;
+      }
     });
   }
 

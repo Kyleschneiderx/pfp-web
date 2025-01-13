@@ -124,7 +124,7 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
   const isValid = () => {
     const validationErrors = validateDayForm({
       name,
-      exerciseLength: exercises.length,
+      exercises: exercises,
       days,
       selectedDay,
     });
@@ -355,6 +355,7 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
                                       type="number"
                                       placeholder="0"
                                       value={item.sets}
+                                      min={1}
                                       onChange={(e) =>
                                         onChangeExercise(
                                           index,
@@ -371,6 +372,7 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
                                       type="number"
                                       placeholder="0"
                                       value={item.reps}
+                                      min={1}
                                       onChange={(e) =>
                                         onChangeExercise(
                                           index,
