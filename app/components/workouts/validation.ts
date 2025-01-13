@@ -1,17 +1,18 @@
 import { ValidationErrorModel } from "@/app/models/validation_error_model";
+import { WorkoutExerciseModel } from "@/app/models/workout_model";
 
 export const validateForm = ({
   name,
   description,
   type,
   photo,
-  exerciseLength,
+  exercises,
 }: {
   name: string;
   description: string;
   type?: string;
   photo?: any;
-  exerciseLength: number;
+  exercises: WorkoutExerciseModel[];
 }): ValidationErrorModel[] => {
   const errors: ValidationErrorModel[] = [];
 
@@ -34,10 +35,24 @@ export const validateForm = ({
     errors.push({ fieldName: "photo", message: "A photo is required." });
   }
 
-  if (exerciseLength === 0) {
+  if (exercises.length === 0) {
     errors.push({
       fieldName: "exercise",
       message: "Please select at least 1 exercise.",
+    });
+  } else {
+    let setsErrorAdded = false;
+    let repsErrorAdded = false;
+
+    exercises.forEach(e => {
+      if (!setsErrorAdded && (!e.sets || e.sets <= 0)) {
+        errors.push({ fieldName: "sets", message: "No. of sets should be greater than zero." });
+        setsErrorAdded = true;
+      }
+      if (!repsErrorAdded && (!e.reps || e.reps <= 0)) {
+        errors.push({ fieldName: "reps", message: "No. of reps should be greater than zero." });
+        repsErrorAdded = true;
+      }
     });
   }
 
