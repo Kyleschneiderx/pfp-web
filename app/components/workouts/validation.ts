@@ -43,15 +43,29 @@ export const validateForm = ({
   } else {
     let setsErrorAdded = false;
     let repsErrorAdded = false;
+    let holdErrorAdded = false;
 
-    exercises.forEach(e => {
+    exercises.forEach((e) => {
       if (!setsErrorAdded && (!e.sets || e.sets <= 0)) {
-        errors.push({ fieldName: "sets", message: "No. of sets should be greater than zero." });
+        errors.push({
+          fieldName: "sets",
+          message: "No. of sets should be greater than zero.",
+        });
         setsErrorAdded = true;
       }
       if (!repsErrorAdded && (!e.reps || e.reps <= 0)) {
-        errors.push({ fieldName: "reps", message: "No. of reps should be greater than zero." });
+        errors.push({
+          fieldName: "reps",
+          message: "No. of reps should be greater than zero.",
+        });
         repsErrorAdded = true;
+      }
+      if (!holdErrorAdded && (!e.hold || e.hold <= 0)) {
+        errors.push({
+          fieldName: "hold",
+          message: "No. of hold should be greater than zero.",
+        });
+        holdErrorAdded = true;
       }
     });
   }

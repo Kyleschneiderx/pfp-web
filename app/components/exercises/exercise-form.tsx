@@ -66,7 +66,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
   const [category, setCategory] = useState<CategoryOptionsModel | null>(null);
   const [sets, setSets] = useState<number>(1);
   const [reps, setReps] = useState<number>(1);
-  const [hold, setHold] = useState<number>(0);
+  const [hold, setHold] = useState<number>(1);
   const [description, setDescription] = useState<string>("");
   const [howTo, setHowTo] = useState<string>("");
   const [photo, setPhoto] = useState<File | null>(null);
@@ -126,6 +126,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
       video: video ?? exercise?.video,
       sets: sets,
       reps: reps,
+      hold: hold,
     });
     setErrors(validationErrors);
     return validationErrors.length === 0;
@@ -230,7 +231,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
     setCategory(null);
     setSets(1);
     setReps(1);
-    setHold(0);
+    setHold(1);
     setDescription("");
     setHowTo("");
     setPhoto(null);
@@ -429,7 +430,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
                 type="number"
                 placeholder="0"
                 value={hold}
-                min={0}
+                min={1}
                 onChange={(e) => setHold(parseInt(e.target.value))}
               />
             </div>

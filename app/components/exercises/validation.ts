@@ -8,6 +8,7 @@ export const validateForm = ({
   video,
   sets,
   reps,
+  hold,
 }: {
   name: string;
   category: CategoryOptionsModel | null | undefined;
@@ -15,6 +16,7 @@ export const validateForm = ({
   video?: any;
   sets: number;
   reps: number;
+  hold: number;
 }): ValidationErrorModel[] => {
   const errors: ValidationErrorModel[] = [];
 
@@ -40,6 +42,10 @@ export const validateForm = ({
 
   if (!reps || reps <= 0 ) {
     errors.push({ fieldName: "reps", message: "No. of reps should be greater than zero." });
+  }
+
+  if (!hold || hold <= 0 ) {
+    errors.push({ fieldName: "hold", message: "No. of hold should be greater than zero." });
   }
 
   return errors;
