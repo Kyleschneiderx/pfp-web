@@ -481,6 +481,7 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
                                     type="number"
                                     placeholder="0"
                                     value={item.hold}
+                                    min={1}
                                     onChange={(e) =>
                                       onChangeExercise(
                                         index,

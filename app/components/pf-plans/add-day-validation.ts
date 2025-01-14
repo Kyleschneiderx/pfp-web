@@ -41,6 +41,7 @@ export const validateDayForm = ({
   } else {
     let setsErrorAdded = false;
     let repsErrorAdded = false;
+    let holdErrorAdded = false;
 
     exercises.forEach((e) => {
       if (!setsErrorAdded && (!e.sets || e.sets <= 0)) {
@@ -56,6 +57,13 @@ export const validateDayForm = ({
           message: "No. of reps should be greater than zero.",
         });
         repsErrorAdded = true;
+      }
+      if (!holdErrorAdded && (!e.hold || e.hold <= 0)) {
+        errors.push({
+          fieldName: "hold",
+          message: "No. of hold should be greater than zero.",
+        });
+        holdErrorAdded = true;
       }
     });
   }
