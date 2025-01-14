@@ -389,6 +389,7 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
                                       type="number"
                                       placeholder="0"
                                       value={item.hold}
+                                      min={1}
                                       onChange={(e) =>
                                         onChangeExercise(
                                           index,
