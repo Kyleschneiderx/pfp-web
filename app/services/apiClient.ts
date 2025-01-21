@@ -34,7 +34,6 @@ export const apiClient = async <T>({
       }),
     },
     data: body,
-    timeout: 600000, // 10 minutes
   };
 
   const executeRequest = async (retries: number): Promise<AxiosResponse<T>> => {
