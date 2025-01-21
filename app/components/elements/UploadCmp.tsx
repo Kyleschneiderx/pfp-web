@@ -30,7 +30,7 @@ export default function UploadCmp({
   const [fileName, setFileName] = useState<string | null>(null);
   const [fileType, setFileType] = useState<string | null>(null);
   const { showSnackBar } = useSnackBar();
-  const limitText = type === "image" ? "5MB" : "100MB";
+  const limitText = type === "image" ? "5MB" : "1GB";
 
   const acceptedImage = {
     "image/jpeg": [".jpeg", ".jpg"],
@@ -113,7 +113,7 @@ export default function UploadCmp({
               ...acceptedImage,
               ...acceptedVideo,
             },
-      maxSize: type === "image" ? 5242880 : 104857600, // Image: 5mb, Video: 100mb
+      maxSize: type === "image" ? 5242880 : 1073741824, // Image: 5mb, Video: 1 gb
       multiple: false,
     });
 
