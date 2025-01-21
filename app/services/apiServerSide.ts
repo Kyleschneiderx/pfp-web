@@ -29,7 +29,6 @@ export const apiServerSide = async <T>({
       ...(token && { Authorization: `Bearer ${token}` }),
     },
     data: body,
-    timeout: 600000, // 10 minutes
   };
 
   const executeRequest = async (retries: number): Promise<AxiosResponse<T>> => {
