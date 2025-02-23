@@ -13,6 +13,19 @@ const nextConfig = {
         hostname: "**",  // Matches any domain
       }
     ]
+  },
+  async headers() {
+    return [
+      {
+        source: '/:all*',
+        headers: [
+          {
+            key: 'Cross-Origin-Resource-Policy',
+            value: 'cross-origin',
+          },
+        ],
+      }
+    ]
   }
 };
 
