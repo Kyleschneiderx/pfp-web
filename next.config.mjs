@@ -13,7 +13,7 @@ const nextConfig = {
         hostname: "**",  // Matches any domain
       }
     ]
-  }
+  },
 };
 
 export default nextConfig;
