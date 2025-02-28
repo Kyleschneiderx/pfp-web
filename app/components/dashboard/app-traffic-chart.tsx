@@ -15,14 +15,13 @@ export default function AppTrafficChart({
   pages,
   total,
 }: Props) {
-  const labelColor = ["#e45fcf", "#ff6aa0", "#ff9474", "#ffc85d", "#f9f871"];
 
   const chartData = {
     labels: pages.map((page) => capitalizeFirstLetter(page.label.toLowerCase())),
     datasets: [
       {
         data: pages.map((page) => page.percentage),
-        backgroundColor: labelColor,
+        backgroundColor: '#736CED',
         borderWidth: 0,
       },
     ],
