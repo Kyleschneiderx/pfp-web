@@ -6,6 +6,7 @@ export const login = async (
   password: string
 ): Promise<LoginModel> => {
   const url = `/auths/login/admin`;
+  console.log(123);
   return apiClient<LoginModel>({
     url: url,
     method: "POST",
