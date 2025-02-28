@@ -4,6 +4,12 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "http",
+        hostname: "192.168.68.122",
+        port: "43000",
+        pathname: "/**",
+      },
+      {
+        protocol: "http",
         hostname: "pelvic-floor-api-alb-155109791.ap-southeast-1.elb.amazonaws.com",
         port: "",
         pathname: "/**",
