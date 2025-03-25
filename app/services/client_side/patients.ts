@@ -1,4 +1,5 @@
 import { UserSummaryModel } from "@/app/models/user_summary_model";
+import { UserVisitStatsModel } from "@/app/models/user_visit_stats";
 import { apiClient } from "@/app/services/apiClient";
 
 interface FormPatientParams {
@@ -51,3 +52,8 @@ export const deletePatientAccount = async (
     mobileToken: mobileToken,
   });
 };
+
+export const getUserVisitStats = async (): Promise<UserVisitStatsModel> => {
+  const url = `/misc/page-tracking/stats`;
+  return apiClient<UserVisitStatsModel>({ url: url, method: "GET" });
+}
