@@ -18,7 +18,7 @@ interface Props {
   description?: string;
   banner?: File | string | null;
   media?: File | string | null;
-  content?: EditorState;
+  content?: string;
 }
 
 export default function MobilePreview({
@@ -75,8 +75,8 @@ export default function MobilePreview({
 
   useEffect(() => {
     if (content) {
-      const htmlContent = convertDraftjsToHtml(content);
-      setEducContent(htmlContent);
+      // const htmlContent = convertDraftjsToHtml(content);
+      setEducContent(content);
     }
   }, [content]);
 

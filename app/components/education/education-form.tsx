@@ -28,6 +28,7 @@ import Input from "../elements/Input";
 import ReqIndicator from "../elements/ReqIndicator";
 import UploadCmp from "../elements/UploadCmp";
 import { validateForm } from "./validation";
+import TipTapEditor from "../elements/TipTapEditor";
 
 const RichTextEditor = dynamic(
   () => import("@/app/components/elements/RichTextEditor"),
@@ -60,7 +61,7 @@ export default function EducationForm({ action = "Create", education }: Props) {
 
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-  const [content, setContent] = useState(EditorState.createEmpty());
+  const [content, setContent] = useState<string>("");
   const [photo, setPhoto] = useState<File | null>(null);
   const [mediaUrl, setMediaUrl] = useState<string>("");
   const [mediaUpload, setMediaUpload] = useState<File | null>(null);
@@ -100,7 +101,7 @@ export default function EducationForm({ action = "Create", education }: Props) {
           contentBlocks,
           entityMap
         );
-        setContent(EditorState.createWithContent(contentState));
+        setContent(content);
       }
     }
   }, [education, pfplanOptions]);
@@ -168,11 +169,9 @@ export default function EducationForm({ action = "Create", education }: Props) {
         const id = action === "Edit" ? education!.id : null;
         const body = new FormData();
 
-        const htmlContent = convertDraftjsToHtml(content);
-
         body.append("title", title);
         body.append("description", description);
-        body.append("content", htmlContent);
+        body.append("content", content);
         body.append("status_id", statusId);
         if (photo) body.append("photo", photo, photo.name);
         body.append("media_url", mediaUrl);
@@ -202,7 +201,7 @@ export default function EducationForm({ action = "Create", education }: Props) {
         });
         setModalOpen(false);
         clearData();
-        setIsSaved(true);
+        // setIsSaved(true);
       } catch (error) {
         const apiError = error as ErrorModel;
 
@@ -267,9 +266,8 @@ export default function EducationForm({ action = "Create", education }: Props) {
     return errors.some((error) => error.fieldName === fieldName);
   };
 
-  const handleEditorChange = (content: EditorState) => {
+  const handleEditorChange = (content: string) => {
     setContent(content);
-    setIsSaved(false);
   };
 
   const handleGetPfPlanOptions = (data: OptionsModel[]) => {
@@ -348,12 +346,10 @@ export default function EducationForm({ action = "Create", education }: Props) {
               </div>
               <div>
                 <Label label="Content" />
-                <RichTextEditor
+                <TipTapEditor
                   placeholder="Enter the education's content here"
-                  content={education?.content ?? null}
+                  content={education?.content ?? undefined}
                   onChange={handleEditorChange}
-                  isSaved={isSaved}
-                  isEdit={action === "Edit"}
                 />
               </div>
             </Card>
