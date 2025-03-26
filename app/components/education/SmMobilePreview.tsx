@@ -76,10 +76,7 @@ export default function SmMobilePreview({
   }, [media]);
 
   useEffect(() => {
-    if (content) {
-      // const htmlContent = convertDraftjsToHtml(content);
-      setEducContent(content);
-    }
+    setEducContent(content ?? "");
   }, [content]);
 
   const handleNext = () => {
