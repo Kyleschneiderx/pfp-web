@@ -57,44 +57,6 @@ declare module "@tiptap/core" {
   }
 }
 
-// const FontSize = Extension.create({
-//   name: "fontSize",
-
-//   addExtensions() {
-//     return [TextStyle]; // Required to apply styles
-//   },
-
-//   addAttributes() {
-//     return {
-//       fontSize: {
-//         default: null,
-//         parseHTML: (element: HTMLElement) => element.style.fontSize || null,
-//         renderHTML: (attributes: Record<string, any>) => {
-//           if (!attributes.fontSize) return {};
-//           return { style: `font-size: ${attributes.fontSize}` };
-//         },
-//       },
-//     };
-//   },
-
-//   addCommands() {
-//     return {
-//       setFontSize: (size) => {
-//         console.log('seeting font size to', size);
-        
-//         return ({ editor, chain }) => {
-//           console.log('inside chain seeting font size to', size);
-//           // return editor.chain().focus().setStyle({fontSize: size}).run();
-//           return editor.chain().setMark("textStyle", { fontSize: size }).run();
-//         }
-//       },
-//       unsetFontSize: () => ({ chain }) => {
-//           return chain().setMark("textStyle", { fontSize: null }).run();
-//         },
-//     };
-//   },
-// });
-
 const FontSize = TextStyle.extend({
   addAttributes() {
     return {
@@ -236,7 +198,7 @@ const TipTapToolbar = ({
             <input
               type="color"
               onChange={(event) => setColor(event.currentTarget.value)}
-              value={editor.getAttributes('textStyle').color || ""}
+              value={editor.getAttributes('textStyle').color || "#000000"}
               className="w-5 h-3 mt-[-2px] cursor-pointer align-middle"
               data-testid="setColor"
             />
@@ -336,6 +298,7 @@ export default function TipTapEditor({
       
       Image.configure({
         inline: true,
+        allowBase64: true,
       }),
       Link.configure({
         openOnClick: false,
@@ -349,7 +312,7 @@ export default function TipTapEditor({
         },
       }),
     ],
-    content: content || "",
+    content: content,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
@@ -361,6 +324,14 @@ export default function TipTapEditor({
     },
     immediatelyRender: false,
   });
+
+  useEffect(() => {
+    if (!!!content && editor) {
+      editor.commands.clearContent();
+    }
+  }, [content, editor]);
+
+  
 
   if(!editor) return <div>Loading editor...</div>;
 

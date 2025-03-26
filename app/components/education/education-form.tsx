@@ -61,7 +61,7 @@ export default function EducationForm({ action = "Create", education }: Props) {
 
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-  const [content, setContent] = useState<string>("");
+  const [content, setContent] = useState<string>(education?.content ?? "");
   const [photo, setPhoto] = useState<File | null>(null);
   const [mediaUrl, setMediaUrl] = useState<string>("");
   const [mediaUpload, setMediaUpload] = useState<File | null>(null);
@@ -93,16 +93,7 @@ export default function EducationForm({ action = "Create", education }: Props) {
         );
         setPfplanRef(foundItem ?? null);
       }
-      if (typeof window !== "undefined") {
-        const htmlToDraft = require("html-to-draftjs").default;
-        const blocksFromHtml = htmlToDraft(education.content);
-        const { contentBlocks, entityMap } = blocksFromHtml;
-        const contentState = ContentState.createFromBlockArray(
-          contentBlocks,
-          entityMap
-        );
-        setContent(content);
-      }
+      setContent(education.content);
     }
   }, [education, pfplanOptions]);
 
@@ -243,6 +234,7 @@ export default function EducationForm({ action = "Create", education }: Props) {
     setTitle("");
     setDescription("");
     setPhoto(null);
+    setContent("");
     setMediaUrl("");
     setMediaUpload(null);
     setPfplanRef(null);
@@ -348,7 +340,7 @@ export default function EducationForm({ action = "Create", education }: Props) {
                 <Label label="Content" />
                 <TipTapEditor
                   placeholder="Enter the education's content here"
-                  content={education?.content ?? undefined}
+                  content={content ?? undefined}
                   onChange={handleEditorChange}
                 />
               </div>
