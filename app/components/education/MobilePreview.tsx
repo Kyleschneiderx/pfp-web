@@ -74,11 +74,10 @@ export default function MobilePreview({
   }, [media]);
 
   useEffect(() => {
-    if (content) {
-      // const htmlContent = convertDraftjsToHtml(content);
-      setEducContent(content);
-    }
+    setEducContent(content ?? "");
   }, [content]);
+
+ 
 
   const handleNext = () => {
     setCurrentIndex((prev) => (prev === 0 ? 1 : prev));
