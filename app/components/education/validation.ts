@@ -9,7 +9,7 @@ export const validateForm = ({
 }: {
   title: string;
   description: string;
-  content: EditorState;
+  content: string;
   photo?: any;
 }): ValidationErrorModel[] => {
   const errors: ValidationErrorModel[] = [];

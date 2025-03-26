@@ -58,7 +58,7 @@ export default function Page() {
         setCookie("token", response.token.access);
         setCookie("user_name", response.user.user_profile.name);
         setCookie("user_email", response.user.email);
-        
+
         window.location.replace("/dashboard");
         // router.push("/dashboard");
       } catch (error) {
