@@ -10,7 +10,7 @@ export const validateForm = ({
 }: {
   name: string;
   description: string;
-  content: EditorState;
+  content: string;
   photo?: any;
   dayLength: number;
 }): ValidationErrorModel[] => {
