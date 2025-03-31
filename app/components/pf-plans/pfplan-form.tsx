@@ -37,6 +37,7 @@ import PencilIcon from "../icons/pencil_icon";
 import TrashbinIcon from "../icons/trashbin_icon";
 import AddDayPanel from "./add-day-panel";
 import { validateForm } from "./validation";
+import TipTapEditor from "../elements/TipTapEditor";
 
 const ConfirmModal = dynamic(
   () => import("@/app/components/elements/ConfirmModal"),
@@ -60,7 +61,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
 
   const [name, setName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-  const [content, setContent] = useState(EditorState.createEmpty());
+  const [content, setContent] = useState("");
   const [photo, setPhoto] = useState<File | null>(null);
   const [statusId, setStatusId] = useState<"4" | "5">("4");
 
@@ -79,17 +80,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
     if (action === "Edit" && pfPlan) {
       setName(pfPlan.name);
       setDescription(pfPlan.description);
-
-      if (typeof window !== "undefined") {
-        const htmlToDraft = require("html-to-draftjs").default;
-        const blocksFromHtml = htmlToDraft(pfPlan.content);
-        const { contentBlocks, entityMap } = blocksFromHtml;
-        const contentState = ContentState.createFromBlockArray(
-          contentBlocks,
-          entityMap
-        );
-        setContent(EditorState.createWithContent(contentState));
-      }
+      setContent(pfPlan.content);
 
       const dailies = pfPlan.pf_plan_dailies.map(
         (item: {
@@ -157,7 +148,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
     const validationErrors = validateForm({
       name,
       description,
-      content,
+      content: content,
       photo: photo ?? pfPlan?.photo,
       dayLength: days.length,
     });
@@ -229,11 +220,9 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
             .filter(Boolean),
         }));
 
-        const htmlContent = convertDraftjsToHtml(content);
-
         body.append("name", name);
         if (description) body.append("description", description);
-        body.append("content", htmlContent);
+        body.append("content", content);
         body.append("status_id", statusId);
         if (photo) body.append("photo", photo);
         if (dailiesPayload.length) {
@@ -251,7 +240,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
         });
         setModalOpen(false);
         clearData();
-        setIsSaved(true);
+        // setIsSaved(true);
       } catch (error) {
         const apiError = error as ErrorModel;
         if (apiError && apiError.msg) {
@@ -292,14 +281,15 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
     setIsPanelOpen(true);
   };
 
-  const handleEditorChange = (content: EditorState) => {
+  const handleEditorChange = (content: string) => {
     setContent(content);
-    setIsSaved(false);
+    // setIsSaved(false);
   };
 
   const clearData = () => {
     setName("");
     setDescription("");
+    setContent("");
     setPhoto(null);
     setSelectedDay(null);
     setDays([]);
@@ -463,12 +453,10 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
       </div>
       <Card className="sm:w-[694px] mt-5">
         <p className="font-medium mb-2">Content</p>
-        <RichTextEditor
+        <TipTapEditor
           placeholder="Enter the PF Plan's content here"
-          content={pfPlan?.content ?? null}
+          content={content ?? undefined}
           onChange={handleEditorChange}
-          isSaved={isSaved}
-          isEdit={action === "Edit"}
         />
       </Card>
       <div className="sm:hidden order-last flex flex-col w-full mt-6 space-y-3">

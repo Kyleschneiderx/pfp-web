@@ -61,7 +61,7 @@ export default function EducationForm({ action = "Create", education }: Props) {
 
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-  const [content, setContent] = useState<string>(education?.content ?? "");
+  const [content, setContent] = useState<string>("");
   const [photo, setPhoto] = useState<File | null>(null);
   const [mediaUrl, setMediaUrl] = useState<string>("");
   const [mediaUpload, setMediaUpload] = useState<File | null>(null);
@@ -87,13 +87,14 @@ export default function EducationForm({ action = "Create", education }: Props) {
       setDescription(education.description);
       setMediaUrl(education.media_url ?? "");
       setDescCount(education.description.length);
+      setContent(education.content);
       if (education.reference_pf_plan_id) {
         const foundItem = pfplanOptions.find(
           (el) => el.value === education.reference_pf_plan_id!.toString()
         );
         setPfplanRef(foundItem ?? null);
       }
-      setContent(education.content);
+      
     }
   }, [education, pfplanOptions]);
 

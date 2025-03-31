@@ -326,9 +326,11 @@ export default function TipTapEditor({
   });
 
   useEffect(() => {
-    if (!!!content && editor) {
-      editor.commands.clearContent();
-    }
+    if (!editor || editor.getHTML() === content) return;
+
+    const pos = editor.state.selection.$head.pos;
+    editor.commands.insertContent(content ?? "");
+    editor.commands.setTextSelection(pos);
   }, [content, editor]);
 
   
