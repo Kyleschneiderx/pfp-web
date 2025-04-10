@@ -8,6 +8,7 @@ export interface PfPlanModel {
 	content: string;
 	photo: string;
 	is_premium: boolean | null;
+	is_custom: boolean | null;
 	created_at: string;
 	updated_at: string;
 	status: Status;

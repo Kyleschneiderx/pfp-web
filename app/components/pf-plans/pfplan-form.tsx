@@ -36,6 +36,7 @@ import { validateForm } from "./validation";
 import TipTapEditor from "../elements/TipTapEditor";
 import SelectCmp from "../elements/SelectCmp";
 import { getSurveyGroups } from "@/app/services/client_side/surveys";
+import ToggleSwitch from "../elements/ToggleSwitch";
 
 const ConfirmModal = dynamic(() => import("@/app/components/elements/ConfirmModal"), { ssr: false });
 
@@ -52,6 +53,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
 	const [name, setName] = useState<string>("");
 	const [description, setDescription] = useState<string>("");
 	const [category, setCategory] = useState<CategoryOptionsModel[] | null>(null);
+	const [isCustom, setIsCustom] = useState<boolean>(false);
 	const [content, setContent] = useState("");
 	const [photo, setPhoto] = useState<File | null>(null);
 	const [statusId, setStatusId] = useState<"4" | "5">("4");
@@ -80,6 +82,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
 						}))
 					: null,
 			);
+			setIsCustom(pfPlan.is_custom ?? false);
 			const dailies = pfPlan.pf_plan_dailies.map(
 				(item: {
 					id?: number;
@@ -222,6 +225,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
 				body.append("category_id", JSON.stringify(category?.map((el: CategoryOptionsModel) => Number(el.value)) ?? []));
 				body.append("content", content);
 				body.append("status_id", statusId);
+				body.append("is_custom", isCustom.toString());
 				if (photo) body.append("photo", photo);
 				if (dailiesPayload.length) {
 					body.append("dailies", JSON.stringify(dailiesPayload));
@@ -285,6 +289,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
 	const clearData = () => {
 		setName("");
 		setCategory(null);
+		setIsCustom(false);
 		setDescription("");
 		setContent("");
 		setPhoto(null);
@@ -311,6 +316,10 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
 		getCategories();
 	}, []);
 
+	const onToggleSwitch = (value: string) => {
+		setIsCustom(value.toLowerCase() === "custom");
+	};
+
 	return (
 		<>
 			<div className="flex items-center mb-4 sm:mb-7">
@@ -330,7 +339,20 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
 			</div>
 			<hr />
 			<div className="mt-5 sm:mt-6 border-l-4 border-primary-500 pl-4">
-				<div className="flex space-x-4 items-center">
+				<div className="flex flex-row items-center justify-center sm:w-[674px]">
+					<div>
+						<StatusBadge label={pfPlan ? pfPlan.status.value : "Draft"} />
+					</div>
+					<div className="ml-auto">
+						<ToggleSwitch
+							label1="Public"
+							label2="Custom"
+							active={!isCustom ? "Public" : "Custom"}
+							onToggle={onToggleSwitch}
+						/>
+					</div>
+				</div>
+				<div className="flex space-x-4 items-center mt-3">
 					{editInfo ? (
 						<>
 							<Input
@@ -339,7 +361,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
 								value={name}
 								invalid={false}
 								onChange={(e) => setName(e.target.value)}
-								className="sm:!w-[600px]"
+								className="sm:!w-[674px]"
 							/>
 						</>
 					) : (
@@ -352,7 +374,6 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
 							</div>
 						</>
 					)}
-					<StatusBadge label={pfPlan ? pfPlan.status.value : "Draft"} />
 				</div>
 				<div className={clsx(editInfo ? "sm:w-[674px]" : "")}>
 					{editInfo ? (
