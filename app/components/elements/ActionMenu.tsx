@@ -6,85 +6,86 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 interface Props {
-  editUrl: string;
-  onDeleteClick: () => void;
-  onRenameClick?: () => void;
-  onSendInviteClick?: () => void
-  canInvite?: boolean;
+	editUrl: string;
+	onDeleteClick: () => void;
+	onDuplicateClick?: () => void;
+	onRenameClick?: () => void;
+	onSendInviteClick?: () => void;
+	canInvite?: boolean;
 }
 
 export default function ActionMenu({
-  editUrl,
-  onDeleteClick,
-  onRenameClick,
-  onSendInviteClick,
-  canInvite,
+	editUrl,
+	onDeleteClick,
+	onRenameClick,
+	onDuplicateClick,
+	onSendInviteClick,
+	canInvite,
 }: Props) {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+	const [isOpen, setIsOpen] = useState<boolean>(false);
+	const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const toggleDropdown = () => {
-    setIsOpen(!isOpen);
-  };
+	const toggleDropdown = () => {
+		setIsOpen(!isOpen);
+	};
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+				setIsOpen(false);
+			}
+		};
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+		document.addEventListener("mousedown", handleClickOutside);
+		return () => {
+			document.removeEventListener("mousedown", handleClickOutside);
+		};
+	}, []);
 
-  const itemClass =
-    "block w-full py-2 px-4 hover:bg-primary-100 hover:text-primary-500 cursor-pointer";
+	const itemClass = "block w-full py-2 px-4 hover:bg-primary-100 hover:text-primary-500 cursor-pointer";
 
-  return (
-    <div ref={dropdownRef} className="hidden sm:block relative text-neutral-600 text-sm">
-      <EllipsisVertical
-        size={20}
-        className="text-neutral-900 cursor-pointer"
-        onClick={toggleDropdown}
-      />
-      {isOpen && (
-        <div className="absolute mt-1 w-44 z-20 right-0">
-          <Card className="px-0 pt-2 pb-2">
-            <ul>
-              <li>
-                <Link href={editUrl} className={itemClass}>
-                  <span>Edit</span>
-                </Link>
-              </li>
-              {onRenameClick && (
-                <li>
-                  <Link href="#" className={itemClass} onClick={onRenameClick}>
-                    <span>Rename</span>
-                  </Link>
-                </li>
-              )}
-              {onSendInviteClick && canInvite && (
-                <li>
-                  <Link href="#" className={itemClass} onClick={onSendInviteClick}>
-                    <span>Send invite</span>
-                  </Link>
-                </li>
-              )}
-              <li>
-                <Link href="#" className={itemClass} onClick={onDeleteClick}>
-                  <span>Delete</span>
-                </Link>
-              </li>
-            </ul>
-          </Card>
-        </div>
-      )}
-    </div>
-  );
+	return (
+		<div ref={dropdownRef} className="hidden sm:block relative text-neutral-600 text-sm">
+			<EllipsisVertical size={20} className="text-neutral-900 cursor-pointer" onClick={toggleDropdown} />
+			{isOpen && (
+				<div className="absolute mt-1 w-44 z-20 right-0">
+					<Card className="px-0 pt-2 pb-2">
+						<ul>
+							<li>
+								<Link href={editUrl} className={itemClass}>
+									<span>Edit</span>
+								</Link>
+							</li>
+							{onRenameClick && (
+								<li>
+									<Link href="#" className={itemClass} onClick={onRenameClick}>
+										<span>Rename</span>
+									</Link>
+								</li>
+							)}
+							{onDuplicateClick && (
+								<li>
+									<Link href="#" className={itemClass} onClick={onDuplicateClick}>
+										<span>Duplicate</span>
+									</Link>
+								</li>
+							)}
+							{onSendInviteClick && canInvite && (
+								<li>
+									<Link href="#" className={itemClass} onClick={onSendInviteClick}>
+										<span>Send invite</span>
+									</Link>
+								</li>
+							)}
+							<li>
+								<Link href="#" className={itemClass} onClick={onDeleteClick}>
+									<span>Delete</span>
+								</Link>
+							</li>
+						</ul>
+					</Card>
+				</div>
+			)}
+		</div>
+	);
 }
