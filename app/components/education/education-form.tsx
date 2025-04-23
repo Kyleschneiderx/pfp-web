@@ -27,6 +27,7 @@ import { validateForm } from "./validation";
 import TipTapEditor from "../elements/TipTapEditor";
 import SelectCmp from "../elements/SelectCmp";
 import { getSurveyGroups } from "@/app/services/client_side/surveys";
+import ContentCategory from "../content-category";
 
 const MobilePreview = dynamic(() => import("./MobilePreview"), { ssr: false });
 const SmMobilePreview = dynamic(() => import("./SmMobilePreview"), {
@@ -47,7 +48,7 @@ export default function EducationForm({ action = "Create", education }: Props) {
 	const router = useRouter();
 
 	const [title, setTitle] = useState<string>("");
-	const [category, setCategory] = useState<CategoryOptionsModel[] | null>(null);
+	const [category, setCategory] = useState<OptionsModel[] | null>(null);
 	const [description, setDescription] = useState<string>("");
 	const [content, setContent] = useState<string>("");
 	const [photo, setPhoto] = useState<File | null>(null);
@@ -64,8 +65,6 @@ export default function EducationForm({ action = "Create", education }: Props) {
 
 	const [modalOpen, setModalOpen] = useState(false);
 	const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-
-	const [categoryList, setCategoryList] = useState<CategoryOptionsModel[]>([]);
 
 	useEffect(() => {
 		if (action === "Edit" && education) {
@@ -258,25 +257,6 @@ export default function EducationForm({ action = "Create", education }: Props) {
 		setPfplanOptions(data);
 	};
 
-	const getCategories = async () => {
-		try {
-			const list = await getSurveyGroups();
-			const transformList = list.map((el) => ({
-				label: el.description,
-				value: el.id.toString(),
-			}));
-			setCategoryList(transformList);
-		} catch (error) {
-			const apiError = error as ErrorModel;
-			const errorMessage = apiError.msg || "Failed to fetch education categories";
-			throw new Error(errorMessage);
-		}
-	};
-
-	useEffect(() => {
-		getCategories();
-	}, []);
-
 	return (
 		<>
 			<div className={isPreviewOpen ? "hidden" : ""}>
@@ -321,16 +301,10 @@ export default function EducationForm({ action = "Create", education }: Props) {
 								/>
 							</div>
 							<div>
-								<div className="flex justify-between">
-									<Label label="Category" required />
-								</div>
-								<SelectCmp
-									isMulti={true}
-									options={categoryList}
-									value={category}
-									invalid={hasError("category")}
-									onChange={(e) => setCategory(e as CategoryOptionsModel[])}
-									placeholder="Choose category"
+								<ContentCategory
+									className="z-[99]"
+									categories={category}
+									onChange={(e) => setCategory(e as OptionsModel[])}
 								/>
 							</div>
 							<div>

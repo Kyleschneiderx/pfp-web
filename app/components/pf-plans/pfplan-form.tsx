@@ -9,7 +9,6 @@ import {
 	UPDATE_DESCRIPTION,
 } from "@/app/lib/constants";
 import { revalidatePage } from "@/app/lib/revalidate";
-import { convertDraftjsToHtml } from "@/app/lib/utils";
 import type { EducationModel } from "@/app/models/education_model";
 import type { ErrorModel } from "@/app/models/error_model";
 import type { CategoryOptionsModel, PfPlanDailies, PfPlanExerciseModel, PfPlanModel } from "@/app/models/pfplan_model";
@@ -18,7 +17,6 @@ import { deletePfPlan, savePfPlan } from "@/app/services/client_side/pfplans";
 import { usePfPlanDailiesStore } from "@/app/store/store";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import clsx from "clsx";
-import { ContentState, EditorState } from "draft-js";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -34,9 +32,9 @@ import TrashbinIcon from "../icons/trashbin_icon";
 import AddDayPanel from "./add-day-panel";
 import { validateForm } from "./validation";
 import TipTapEditor from "../elements/TipTapEditor";
-import SelectCmp from "../elements/SelectCmp";
-import { getSurveyGroups } from "@/app/services/client_side/surveys";
 import ToggleSwitch from "../elements/ToggleSwitch";
+import type { OptionsModel } from "@/app/models/common_model";
+import ContentCategory from "../content-category";
 
 const ConfirmModal = dynamic(() => import("@/app/components/elements/ConfirmModal"), { ssr: false });
 
@@ -66,8 +64,6 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
 	const [isPanelOpen, setIsPanelOpen] = useState(false);
 	const [modalOpen, setModalOpen] = useState(false);
 	const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-
-	const [categoryList, setCategoryList] = useState<CategoryOptionsModel[]>([]);
 
 	useEffect(() => {
 		if (action === "Edit" && pfPlan) {
@@ -297,25 +293,6 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
 		setDays([]);
 	};
 
-	const getCategories = async () => {
-		try {
-			const list = await getSurveyGroups();
-			const transformList = list.map((el) => ({
-				label: el.description,
-				value: el.id.toString(),
-			}));
-			setCategoryList(transformList);
-		} catch (error) {
-			const apiError = error as ErrorModel;
-			const errorMessage = apiError.msg || "Failed to fetch pf plan categories";
-			throw new Error(errorMessage);
-		}
-	};
-
-	useEffect(() => {
-		getCategories();
-	}, []);
-
 	const onToggleSwitch = (value: string) => {
 		setIsCustom(value.toLowerCase() === "custom");
 	};
@@ -462,14 +439,10 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
 			</div>
 			<Card className="sm:w-[694px] mt-5 space-y-3">
 				<div>
-					<p className="font-medium mb-2">Category</p>
-					<SelectCmp
-						isMulti={true}
-						options={categoryList}
-						value={category}
-						invalid={false}
-						onChange={(e) => setCategory(e as CategoryOptionsModel[])}
-						placeholder="Choose category"
+					<ContentCategory
+						className="z-[99]"
+						categories={category}
+						onChange={(e) => setCategory(e as OptionsModel[])}
 					/>
 				</div>
 				<div>
@@ -489,6 +462,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
 				<Button label="Save & Publish" onClick={onPublish} />
 			</div>
 			<AddDayPanel isOpen={isPanelOpen} onClose={togglePanel} />
+
 			<ConfirmModal
 				title={`Are you sure you want to ${action === "Create" ? "create this PF Plan?" : "save this changes?"} `}
 				subTitle={CONFIRM_SAVE_DESCRIPTION}
