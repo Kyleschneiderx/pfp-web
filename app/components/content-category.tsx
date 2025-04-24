@@ -263,7 +263,11 @@ export default function ContentCategory({ onChange, categories, className }: Pro
 				<span
 					className="text-primary-500 cursor-pointer"
 					onKeyUp={() => {}}
-					onClick={() => setIsContentCategoryFormModalOpen(true)}
+					onClick={() => {
+						setContentCategory(undefined);
+						setIsContentCategoryListModalOpen(false);
+						setIsContentCategoryFormModalOpen(true);
+					}}
 				>
 					+ Add a new category
 				</span>
