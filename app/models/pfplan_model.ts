@@ -39,6 +39,7 @@ export interface PfPlanExerciseModel {
 	sets: number;
 	reps: number;
 	hold: number;
+	rest: number;
 	exercise: ExerciseModel;
 }
 

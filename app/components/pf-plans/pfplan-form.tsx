@@ -97,6 +97,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
 								sets: el.exercise.sets,
 								reps: el.exercise.reps,
 								hold: el.exercise.hold,
+								rest: el.exercise.rest,
 								exercise: el.exercise,
 							};
 						}
@@ -203,6 +204,7 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
 									sets: exercise.sets,
 									reps: exercise.reps,
 									hold: exercise.hold,
+									rest: exercise.rest,
 								};
 								return data;
 							}
