@@ -51,7 +51,8 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
 	const [category, setCategory] = useState<CategoryOptionsModel | null>(null);
 	const [sets, setSets] = useState<number>(1);
 	const [reps, setReps] = useState<number>(1);
-	const [hold, setHold] = useState<number>(1);
+	const [hold, setHold] = useState<number>(0);
+	const [rest, setRest] = useState<number>(1);
 	const [description, setDescription] = useState<string>("");
 	const [howTo, setHowTo] = useState<string>("");
 	const [photo, setPhoto] = useState<File | null>(null);
@@ -85,6 +86,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
 			setSets(exercise.sets);
 			setReps(exercise.reps);
 			setHold(exercise.hold);
+			setRest(exercise.rest);
 			setDescription(exercise.description ?? "");
 			setHowTo(exercise.how_to ?? "");
 		}
@@ -110,6 +112,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
 			sets: sets,
 			reps: reps,
 			hold: hold,
+			rest: rest,
 		});
 		setErrors(validationErrors);
 		return validationErrors.length === 0;
@@ -143,6 +146,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
 				body.append("sets", sets.toString());
 				body.append("reps", reps.toString());
 				body.append("hold", hold.toString());
+				body.append("rest", rest.toString());
 				body.append("description", description);
 				body.append("how_to", howTo);
 				if (photo) body.append("photo", photo, photo.name);
@@ -212,7 +216,8 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
 		setCategory(null);
 		setSets(1);
 		setReps(1);
-		setHold(1);
+		setHold(0);
+		setRest(1);
 		setDescription("");
 		setHowTo("");
 		setPhoto(null);
@@ -378,36 +383,50 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
 							View All Categories
 						</span>
 					</div>
-					<div className="flex space-x-3">
-						<div>
-							<Label label="No. of Sets" />
-							<Input
-								type="number"
-								placeholder="0"
-								value={sets}
-								min={1}
-								onChange={(e) => setSets(parseInt(e.target.value))}
-							/>
+					<div className="flex-row space-y-4">
+						<div className="flex justify-between space-x-3">
+							<div className="w-full">
+								<Label label="No. of Sets" />
+								<Input
+									type="number"
+									placeholder="0"
+									value={sets}
+									min={1}
+									onChange={(e) => setSets(parseInt(e.target.value))}
+								/>
+							</div>
+							<div className="w-full">
+								<Label label="No. of Reps" />
+								<Input
+									type="number"
+									placeholder="0"
+									value={reps}
+									min={0}
+									onChange={(e) => setReps(parseInt(e.target.value))}
+								/>
+							</div>
 						</div>
-						<div>
-							<Label label="No. of Reps" />
-							<Input
-								type="number"
-								placeholder="0"
-								value={reps}
-								min={1}
-								onChange={(e) => setReps(parseInt(e.target.value))}
-							/>
-						</div>
-						<div>
-							<Label label="No. of Hold" />
-							<Input
-								type="number"
-								placeholder="0"
-								value={hold}
-								min={1}
-								onChange={(e) => setHold(parseInt(e.target.value))}
-							/>
+						<div className="flex justify-between space-x-3">
+							<div className="w-full">
+								<Label label="No. of Hold" />
+								<Input
+									type="number"
+									placeholder="0"
+									value={hold}
+									min={1}
+									onChange={(e) => setHold(parseInt(e.target.value))}
+								/>
+							</div>
+							<div className="w-full">
+								<Label label="No. of Rest" />
+								<Input
+									type="number"
+									placeholder="0"
+									value={rest}
+									min={1}
+									onChange={(e) => setRest(parseInt(e.target.value))}
+								/>
+							</div>
 						</div>
 					</div>
 					<div>

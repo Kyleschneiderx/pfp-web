@@ -4,6 +4,7 @@ export interface ExerciseModel {
   sets: number;
   reps: number;
   hold: number;
+  rest: number;
   description: string | null;
   how_to: string | null;
   audio: string;
