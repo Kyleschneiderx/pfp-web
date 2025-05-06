@@ -18,9 +18,9 @@ import {
 } from "@/app/lib/constants";
 import { revalidatePage } from "@/app/lib/revalidate";
 import { formatDate, onPhoneNumKeyDown } from "@/app/lib/utils";
-import { ErrorModel } from "@/app/models/error_model";
-import { PatientModel, PatientSurveyModel, PfPlanProgressModel } from "@/app/models/patient_model";
-import { ValidationErrorModel } from "@/app/models/validation_error_model";
+import type { ErrorModel } from "@/app/models/error_model";
+import type { PatientModel, PatientSurveyModel, PfPlanProgressModel } from "@/app/models/patient_model";
+import type { ValidationErrorModel } from "@/app/models/validation_error_model";
 import { deletePatient, savePatient } from "@/app/services/client_side/patients";
 import dynamic from "next/dynamic";
 import Image from "next/image";
@@ -29,17 +29,27 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ProgressBar from "../elements/ProgressBar";
 import { validateForm } from "./validation";
+import { PfPlanListModal } from "./pf-plan-list.modal";
+import type { PfPlanModel } from "@/app/models/pfplan_model";
+import clsx from "clsx";
 
 const PatientSurveyModal = dynamic(() => import("@/app/components/patients/patient-survey-modal"), { ssr: false });
 
 interface Props {
 	action: "Create" | "Edit";
 	patient?: PatientModel;
+	personalizedPfPlan?: PfPlanModel;
 	patientSurvey?: PatientSurveyModel[];
 	pfPlanProgress?: PfPlanProgressModel | null;
 }
 
-export default function PatientForm({ action = "Create", patient, patientSurvey, pfPlanProgress }: Props) {
+export default function PatientForm({
+	action = "Create",
+	patient,
+	patientSurvey,
+	pfPlanProgress,
+	personalizedPfPlan,
+}: Props) {
 	const { showSnackBar } = useSnackBar();
 	const router = useRouter();
 	const { isMobile } = useWindowSizeCheck();
@@ -53,6 +63,7 @@ export default function PatientForm({ action = "Create", patient, patientSurvey,
 	const [photo, setPhoto] = useState<File | null>(null);
 	const [errors, setErrors] = useState<ValidationErrorModel[]>([]);
 	const [isProcessing, setIsProcessing] = useState<boolean>(false);
+	const [isPfPlanListModalOpen, setIsPfPlanListModalOpen] = useState<boolean>(false);
 
 	useEffect(() => {
 		if (action === "Edit" && patient) {
@@ -61,7 +72,7 @@ export default function PatientForm({ action = "Create", patient, patientSurvey,
 			setContactNo(patient.user_profile?.contact_number ?? "");
 			setUserType(patient.user_type?.id);
 			setDescription(patient.user_profile?.description ?? "");
-			if (patient.user_profile.birthdate && !isNaN(new Date(patient.user_profile.birthdate).getTime())) {
+			if (patient.user_profile.birthdate && !Number.isNaN(new Date(patient.user_profile.birthdate).getTime())) {
 				setBirthdate(handleSetBirthDate(patient.user_profile.birthdate));
 			}
 		}
@@ -136,7 +147,7 @@ export default function PatientForm({ action = "Create", patient, patientSurvey,
 			} catch (error) {
 				const apiError = error as ErrorModel;
 
-				if (apiError && apiError.msg) {
+				if (apiError?.msg) {
 					showSnackBar({ message: apiError.msg, success: false });
 				}
 				setIsProcessing(false);
@@ -159,7 +170,7 @@ export default function PatientForm({ action = "Create", patient, patientSurvey,
 				await revalidatePage("/patients");
 				setIsProcessing(false);
 				showSnackBar({
-					message: `Patient successfully deleted.`,
+					message: "Patient successfully deleted.",
 					success: true,
 				});
 				setModalOpen(false);
@@ -167,7 +178,7 @@ export default function PatientForm({ action = "Create", patient, patientSurvey,
 			} catch (error) {
 				const apiError = error as ErrorModel;
 
-				if (apiError && apiError.msg) {
+				if (apiError?.msg) {
 					showSnackBar({ message: apiError.msg, success: false });
 				}
 				setIsProcessing(false);
@@ -295,14 +306,43 @@ export default function PatientForm({ action = "Create", patient, patientSurvey,
 						<span
 							className="text-sm text-neutral-600 cursor-pointer underline"
 							onClick={() => setSurveyModelOpen(true)}
+							onKeyDown={() => {}}
 						>
 							View survey
 						</span>
 					)}
+					{action === "Edit" && true && (
+						<div>
+							<p className="font-medium mb-2">Personalized PF Plan</p>
+							{/* <hr className="w-[130px] mx-auto mb-3" /> */}
+							<div className={clsx("flex space-x-4 mb-3", !personalizedPfPlan && "items-center justify-center")}>
+								{personalizedPfPlan ? (
+									<Link href={`pf-plan/${personalizedPfPlan.id}`}>
+										<div className="flex space-x-4 mb-3">
+											<Image
+												src={personalizedPfPlan.photo || "/images/exercise-banner.jpg"}
+												width={80}
+												height={56}
+												alt="Thumbnail"
+												className="w-[80px] h-[56px] mt-1"
+											/>
+											<div>
+												<p>{personalizedPfPlan.name}</p>
+												<p className="text-sm text-neutral-600">{personalizedPfPlan.description}</p>
+											</div>
+										</div>
+									</Link>
+								) : (
+									<Button label="Manage PF Plan" onClick={() => setIsPfPlanListModalOpen(true)} />
+								)}
+							</div>
+						</div>
+					)}
+
 					{action === "Edit" && pfPlanProgress && (
 						<div>
-							<p className="font-medium mb-2 text-center">Pf Plan Progress</p>
-							<hr className="w-[130px] mx-auto mb-3" />
+							<p className="font-medium mb-2">PF Plan Progress</p>
+							{/* <hr className="w-[130px] mx-auto mb-3" /> */}
 							<div className="flex space-x-4 mb-3">
 								<Image
 									src={pfPlanProgress.photo || "/images/exercise-banner.jpg"}
@@ -348,6 +388,7 @@ export default function PatientForm({ action = "Create", patient, patientSurvey,
 							onConfirm={handleDeleteConfirm}
 							onClose={handleCloseModal}
 						/>
+						{isPfPlanListModalOpen && <PfPlanListModal onClose={() => setIsPfPlanListModalOpen(false)} />}
 						{patientSurvey && (
 							<PatientSurveyModal
 								patientSurvey={patientSurvey}

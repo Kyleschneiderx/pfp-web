@@ -35,15 +35,18 @@ import TipTapEditor from "../elements/TipTapEditor";
 import ToggleSwitch from "../elements/ToggleSwitch";
 import type { OptionsModel } from "@/app/models/common_model";
 import ContentCategory from "../content-category";
+import type { PatientModel } from "@/app/models/patient_model";
+import { savePersonalizedPfPlan } from "@/app/services/client_side/patients";
 
 const ConfirmModal = dynamic(() => import("@/app/components/elements/ConfirmModal"), { ssr: false });
 
 interface Props {
 	action: "Create" | "Edit";
 	pfPlan?: PfPlanModel;
+	patient?: PatientModel;
 }
 
-export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
+export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props) {
 	const { showSnackBar } = useSnackBar();
 	const router = useRouter();
 	const { days, removeDay, setDays, setSelectedDay } = usePfPlanDailiesStore();
@@ -147,7 +150,9 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
 			name,
 			description,
 			content: content,
-			photo: photo ?? pfPlan?.photo,
+			photo:
+				photo ??
+				(action === "Edit" && ((patient && pfPlan?.user_id === patient.id) || !patient) ? pfPlan?.photo : undefined),
 			dayLength: days.length,
 		});
 		setErrors(validationErrors);
@@ -223,14 +228,31 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
 				body.append("category_id", JSON.stringify(category?.map((el: CategoryOptionsModel) => Number(el.value)) ?? []));
 				body.append("content", content);
 				body.append("status_id", statusId);
-				body.append("is_custom", isCustom.toString());
+				body.append("is_custom", patient ? "false" : isCustom.toString());
 				if (photo) body.append("photo", photo);
 				if (dailiesPayload.length) {
 					body.append("dailies", JSON.stringify(dailiesPayload));
 				}
 
-				await savePfPlan({ method, id, body });
-				await revalidatePage("/pf-plans");
+				if (patient) {
+					const personalizedPfPlanId = pfPlan?.user_id === patient.id ? id : undefined;
+					const personalizedPfPlan = await savePersonalizedPfPlan({
+						method: personalizedPfPlanId ? "PUT" : "POST",
+						id: personalizedPfPlanId,
+						body,
+						userId: patient.id,
+					});
+					await revalidatePage(`/patients/${patient.id}/edit`);
+					if (!personalizedPfPlanId) {
+						action === "Create"
+							? router.replace(`pf-plan/${personalizedPfPlan.id.toString()}`)
+							: router.replace(personalizedPfPlan.id.toString());
+					}
+				} else {
+					await savePfPlan({ method, id, body });
+					await revalidatePage("/pf-plans");
+				}
+
 				setIsProcessing(false);
 				showSnackBar({
 					message: `Pf Plan successfully ${action === "Create" ? "created" : "updated"}.`,
@@ -255,14 +277,19 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
 			try {
 				setIsProcessing(true);
 				await deletePfPlan(pfPlan.id);
-				await revalidatePage("/pf-plans");
+				if (!patient) await revalidatePage("/pf-plans");
 				setIsProcessing(false);
 				showSnackBar({
 					message: "Pf Plan successfully deleted.",
 					success: true,
 				});
 				setModalOpen(false);
-				router.push("/pf-plans");
+				if (patient) {
+					await revalidatePage(`/patients/${patient.id}/edit`);
+					router.push(`/patients/${patient.id}/edit`);
+				} else {
+					router.push("/pf-plans");
+				}
 			} catch (error) {
 				const apiError = error as ErrorModel;
 				if (apiError.msg) {
@@ -303,33 +330,46 @@ export default function PfPlanForm({ action = "Create", pfPlan }: Props) {
 		<>
 			<div className="flex items-center mb-4 sm:mb-7">
 				<div>
-					<h1 className="text-2xl font-semibold">{action} PF Plan</h1>
+					<h1 className="text-2xl font-semibold">{patient ? patient.user_profile.name : action} PF Plan</h1>
 					<p className="text-sm text-neutral-600">
 						{action === "Create" ? CREATE_PFPLAN_DESCRIPTION : UPDATE_DESCRIPTION}
 					</p>
 				</div>
 				<div className="hidden sm:flex ml-auto space-x-3">
-					<Link href="/pf-plans">
-						<Button label="Cancel" secondary />
-					</Link>
-					<Button label="Save as Draft" outlined onClick={onDraft} />
-					<Button label="Save & Publish" onClick={onPublish} />
+					{patient ? (
+						<>
+							<Button label="Cancel" onClick={() => router.back()} secondary />
+							<Button label="Save" onClick={onPublish} />
+						</>
+					) : (
+						<>
+							<Link href="/pf-plans">
+								<Button label="Cancel" secondary />
+							</Link>
+							<Button label="Save as Draft" outlined onClick={onDraft} />
+							<Button label="Save & Publish" onClick={onPublish} />
+						</>
+					)}
 				</div>
 			</div>
 			<hr />
 			<div className="mt-5 sm:mt-6 border-l-4 border-primary-500 pl-4">
 				<div className="flex flex-row items-center justify-center sm:w-[674px]">
-					<div>
-						<StatusBadge label={pfPlan ? pfPlan.status.value : "Draft"} />
-					</div>
-					<div className="ml-auto">
-						<ToggleSwitch
-							label1="Public"
-							label2="Custom"
-							active={!isCustom ? "Public" : "Custom"}
-							onToggle={onToggleSwitch}
-						/>
-					</div>
+					{!patient && (
+						<>
+							<div>
+								<StatusBadge label={pfPlan ? pfPlan.status.value : "Draft"} />
+							</div>
+							<div className="ml-auto">
+								<ToggleSwitch
+									label1="Public"
+									label2="Custom"
+									active={!isCustom ? "Public" : "Custom"}
+									onToggle={onToggleSwitch}
+								/>
+							</div>
+						</>
+					)}
 				</div>
 				<div className="flex space-x-4 items-center mt-3">
 					{editInfo ? (
