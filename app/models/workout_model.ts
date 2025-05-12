@@ -24,6 +24,7 @@ export interface WorkoutExerciseModel {
   sets: number;
   reps: number;
   hold: number;
+  rest: number;
   exercise: Exercise;
 }
 
