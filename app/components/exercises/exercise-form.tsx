@@ -401,7 +401,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
 									type="number"
 									placeholder="0"
 									value={reps}
-									min={0}
+									min={1}
 									onChange={(e) => setReps(parseInt(e.target.value))}
 								/>
 							</div>
@@ -413,7 +413,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
 									type="number"
 									placeholder="0"
 									value={hold}
-									min={1}
+									min={0}
 									onChange={(e) => setHold(parseInt(e.target.value))}
 								/>
 							</div>

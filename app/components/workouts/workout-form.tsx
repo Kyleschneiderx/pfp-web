@@ -100,6 +100,7 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
 			sets: exercise.sets,
 			reps: exercise.reps,
 			hold: exercise.hold,
+			rest: exercise.rest,
 			exercise: {
 				id: exercise.id,
 				name: exercise.name,
@@ -127,7 +128,7 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
 		setExercises(updatedExercises);
 	};
 
-	const onChangeExercise = (index: number, value: number, type: "sets" | "reps" | "hold") => {
+	const onChangeExercise = (index: number, value: number, type: "sets" | "reps" | "hold" | "rest") => {
 		if (index !== -1) {
 			const updatedExercises = [...exercises];
 			updatedExercises[index] = {
@@ -192,6 +193,7 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
 					sets: item.sets,
 					reps: item.reps,
 					hold: item.hold,
+					rest: item.rest,
 				}));
 
 				body.append("name", name);
@@ -257,7 +259,7 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
 		setExercises([]);
 	};
 
-	const exerciseInputClass = "!w-[55px] sm:!w-[120px]";
+	const exerciseInputClass = "";
 
 	return (
 		<>
@@ -386,7 +388,7 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
 													className={clsx(
 														"flex items-center",
 														snapshot.isDragging
-															? "drop-shadow-center !top-auto !left-auto bg-white !p-[20px] !h-[120px]"
+															? "drop-shadow-center !top-auto !left-auto bg-white !p-[20px] !h-[210px]"
 															: "",
 													)}
 												>
@@ -405,39 +407,54 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
 															<p className="text-[18px] sm:text-[20px] font-medium overflow-hidden text-ellipsis whitespace-nowrap">
 																{item.exercise.name}
 															</p>
-															<div className="flex space-x-4 sm:space-x-6">
-																<div>
-																	<p className="font-medium">Sets</p>
-																	<Input
-																		type="number"
-																		placeholder="0"
-																		value={item.sets}
-																		min={1}
-																		onChange={(e) => onChangeExercise(index, parseInt(e.target.value), "sets")}
-																		className={exerciseInputClass}
-																	/>
+															<div className="flex-row space-y-4">
+																<div className="flex justify-between space-x-3">
+																	<div className="w-full">
+																		<p className="font-medium">Sets</p>
+																		<Input
+																			type="number"
+																			placeholder="0"
+																			value={item.sets}
+																			min={1}
+																			onChange={(e) => onChangeExercise(index, parseInt(e.target.value), "sets")}
+																			className={exerciseInputClass}
+																		/>
+																	</div>
+																	<div className="w-full">
+																		<p className="font-medium">Reps</p>
+																		<Input
+																			type="number"
+																			placeholder="0"
+																			value={item.reps}
+																			min={1}
+																			onChange={(e) => onChangeExercise(index, parseInt(e.target.value), "reps")}
+																			className={exerciseInputClass}
+																		/>
+																	</div>
 																</div>
-																<div>
-																	<p className="font-medium">Reps</p>
-																	<Input
-																		type="number"
-																		placeholder="0"
-																		value={item.reps}
-																		min={1}
-																		onChange={(e) => onChangeExercise(index, parseInt(e.target.value), "reps")}
-																		className={exerciseInputClass}
-																	/>
-																</div>
-																<div>
-																	<p className="font-medium">Hold</p>
-																	<Input
-																		type="number"
-																		placeholder="0"
-																		value={item.hold}
-																		min={1}
-																		onChange={(e) => onChangeExercise(index, parseInt(e.target.value), "hold")}
-																		className={exerciseInputClass}
-																	/>
+																<div className="flex justify-between space-x-3">
+																	<div className="w-full">
+																		<p className="font-medium">Hold</p>
+																		<Input
+																			type="number"
+																			placeholder="0"
+																			value={item.hold}
+																			min={0}
+																			onChange={(e) => onChangeExercise(index, parseInt(e.target.value), "hold")}
+																			className={exerciseInputClass}
+																		/>
+																	</div>
+																	<div className="w-full">
+																		<p className="font-medium">Rest</p>
+																		<Input
+																			type="number"
+																			placeholder="0"
+																			value={item.rest}
+																			min={1}
+																			onChange={(e) => onChangeExercise(index, parseInt(e.target.value), "rest")}
+																			className={exerciseInputClass}
+																		/>
+																	</div>
 																</div>
 															</div>
 														</div>
