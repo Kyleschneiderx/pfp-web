@@ -43,7 +43,7 @@ export function ContentCategoryFormModal({ onClose, category, onProceed }: Conte
 		try {
 			const list = await getSurveyQuestions();
 			const transformList = list.map((el) => ({
-				label: el.question,
+				label: `${el.id}. ${el.question}`,
 				value: el.id.toString(),
 			}));
 			setQuestionList(transformList);
