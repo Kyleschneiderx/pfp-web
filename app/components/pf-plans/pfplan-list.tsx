@@ -165,7 +165,7 @@ export default function PfPlanList({ name, sort, initialList, maxPage }: Props) 
 				{pfPlans.map((pfplan) => (
 					<div key={pfplan.id} className="w-[351px] mx-auto sm:mx-0 sm:mr-7 mb-7 text-neutral-900">
 						<CardBanner url={pfplan.photo} />
-						<Card className="min-h-[158px] rounded-t-none py-4 px-5">
+						<Card className="min-h-[202px] rounded-t-none py-4 px-5">
 							<div className="flex">
 								<StatusBadge label={pfplan.status.value} />
 								{/* For desktop */}
@@ -177,8 +177,12 @@ export default function PfPlanList({ name, sort, initialList, maxPage }: Props) 
 									onClick={() => handleActionMenuClick(pfplan)}
 								/>
 							</div>
-							<p className="text-lg font-semibold leading-tight mt-[8px] mb-[6px]">{pfplan.name}</p>
-							<p className="text-sm text-neutral-700 mt-1">{pfplan.description}</p>
+							<p className="text-lg font-semibold leading-tight mt-[8px] mb-[6px] line-clamp-1" title={pfplan.name}>
+								{pfplan.name}
+							</p>
+							<p className="text-sm text-neutral-700 mt-1 line-clamp-5" title={pfplan.description}>
+								{pfplan.description}
+							</p>
 						</Card>
 					</div>
 				))}
