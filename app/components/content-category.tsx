@@ -63,7 +63,7 @@ export function ContentCategoryFormModal({ onClose, category, onProceed }: Conte
 			setName(category.description);
 			setQuestions(
 				category.questions.map((el) => ({
-					label: el.question,
+					label: `${el.id}. ${el.question}`,
 					value: el.id.toString(),
 				})),
 			);
