@@ -177,7 +177,7 @@ export default function PfPlanList({ name, sort, initialList, maxPage }: Props) 
 									onClick={() => handleActionMenuClick(pfplan)}
 								/>
 							</div>
-							<p className="text-lg font-semibold leading-tight mt-[8px] mb-[6px] line-clamp-1" title={pfplan.name}>
+							<p className="text-lg font-semibold leading-tight mt-[8px] mb-[6px]" title={pfplan.name}>
 								{pfplan.name}
 							</p>
 							<p className="text-sm text-neutral-700 mt-1 line-clamp-5" title={pfplan.description}>
