@@ -12,78 +12,72 @@ import ExerciseIcon from "./icons/exercise_icon";
 import PatientIcon from "./icons/patient_icon";
 import PFPlanIcon from "./icons/pfplan_icon";
 import WorkoutIcon from "./icons/workout_icon";
+import ChatIcon from "./icons/chat_icon";
 
 export default function Navigation() {
-  const logout = useLogout();
-  const pathname = usePathname();
+	const logout = useLogout();
+	const pathname = usePathname();
 
-  const navItems = [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: <DashboardIcon activeUrl="/dashboard" />,
-    },
-    {
-      title: "Patients",
-      url: "/patients",
-      icon: <PatientIcon activeUrl="/patients" />,
-    },
-    {
-      title: "Exercises",
-      url: "/exercises",
-      icon: <ExerciseIcon activeUrl="/exercises" />,
-    },
-    {
-      title: "Workouts",
-      url: "/workouts",
-      icon: <WorkoutIcon activeUrl="/workouts" />,
-    },
-    {
-      title: "PF Plans",
-      url: "/pf-plans",
-      icon: <PFPlanIcon activeUrl="/pf-plans" />,
-    },
-    {
-      title: "Education",
-      url: "/education",
-      icon: <EducationIcon activeUrl="/education" />,
-    },
-  ];
+	const navItems = [
+		{
+			title: "Dashboard",
+			url: "/dashboard",
+			icon: <DashboardIcon activeUrl="/dashboard" />,
+		},
+		{
+			title: "Patients",
+			url: "/patients",
+			icon: <PatientIcon activeUrl="/patients" />,
+		},
+		{
+			title: "Exercises",
+			url: "/exercises",
+			icon: <ExerciseIcon activeUrl="/exercises" />,
+		},
+		{
+			title: "Workouts",
+			url: "/workouts",
+			icon: <WorkoutIcon activeUrl="/workouts" />,
+		},
+		{
+			title: "PF Plans",
+			url: "/pf-plans",
+			icon: <PFPlanIcon activeUrl="/pf-plans" />,
+		},
+		{
+			title: "Education",
+			url: "/education",
+			icon: <EducationIcon activeUrl="/education" />,
+		},
+		{
+			title: "Support Chat",
+			url: "/support-chat",
+			icon: <ChatIcon activeUrl="/support-chat" />,
+		},
+	];
 
-  return (
-    <aside className="min-w-[245px] shadow-xl flex flex-col h-screen">
-      <Image
-        src="/images/logo.jpg"
-        alt="Logo"
-        width={172}
-        height={80}
-        quality={100}
-        className="ml-9 my-10"
-        priority
-      />
-      <nav>
-        {navItems.map(({ title, url, icon }, index) => (
-          <Link
-            key={index}
-            href={url}
-            className={clsx(
-              "flex items-center py-4 pl-[35px] hover:bg-primary-50 hover:border-r-4 hover:border-primary-500 group",
-              pathname.startsWith(url) &&
-                "bg-primary-100 border-r-4 border-primary-500"
-            )}
-          >
-            <span className="mr-3">{icon}</span>
-            <span className="text-neutral-600 font-medium">{title}</span>
-          </Link>
-        ))}
-      </nav>
-      <div
-        onClick={logout}
-        className="flex items-center mt-auto mb-10 pl-9 space-x-2 text-red-400 cursor-pointer"
-      >
-        <LogOut size={16} />
-        <p>Logout</p>
-      </div>
-    </aside>
-  );
+	return (
+		<aside className="min-w-[245px] shadow-xl flex flex-col h-screen">
+			<Image src="/images/logo.jpg" alt="Logo" width={172} height={80} quality={100} className="ml-9 my-10" priority />
+			<nav>
+				{navItems.map(({ title, url, icon }, index) => (
+					<Link
+						key={index}
+						href={url}
+						className={clsx(
+							"flex items-center py-4 pl-[35px] hover:bg-primary-50 hover:border-r-4 hover:border-primary-500 group",
+							pathname.startsWith(url) && "bg-primary-100 border-r-4 border-primary-500",
+						)}
+					>
+						<span className="mr-3">{icon}</span>
+						<span className="text-neutral-600 font-medium">{title}</span>
+					</Link>
+				))}
+			</nav>
+			<div onClick={logout} className="flex items-center mt-auto mb-10 pl-9 space-x-2 text-red-400 cursor-pointer">
+				<LogOut size={16} />
+				<p>Logout</p>
+			</div>
+		</aside>
+	);
 }

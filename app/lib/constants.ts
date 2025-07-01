@@ -27,3 +27,5 @@ export const CREATE_PFPLAN_DESCRIPTION =
 
 export const CREATE_EDUCATION_DESCRIPTION =
 	"Compose an education on health or exercise below. Share valuable insights and information to educate your readers effectively.";
+
+export const FIRESTORE_LIMIT = 10;
