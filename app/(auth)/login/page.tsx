@@ -58,6 +58,7 @@ export default function Page() {
 				setCookie("token", response.token.access, response.token.expires);
 				setCookie("user_name", response.user.user_profile.name, response.token.expires);
 				setCookie("user_email", response.user.email, response.token.expires);
+				setCookie("user", JSON.stringify(response.user), response.token.expires);
 
 				window.location.replace("/dashboard");
 				// router.push("/dashboard");
