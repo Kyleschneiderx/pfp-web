@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useWindowSizeCheck } from "@/app/hooks/useWindowSizeCheck";
 import type { ConversationMessageModel, ConversationModel } from "@/app/models/firestore/conversation_model";
 import CreationForm from "./creation-form";
@@ -133,6 +133,10 @@ export default function ChatForm() {
 		if (participants.length) {
 			await getUsersMap(participants);
 		}
+		if (!nextStart) {
+			setConversations(conversations.data);
+			return;
+		}
 
 		setConversations((prev) => [...(prev ? [...prev] : []), ...conversations.data]);
 	};
@@ -148,6 +152,8 @@ export default function ChatForm() {
 
 		const listenConversation = async () => {
 			await getConversationList();
+
+			if (!initialIndexConversation.current) return;
 
 			unsubscribe = onSnapshot(
 				getConversationsQuery({
@@ -191,7 +197,6 @@ export default function ChatForm() {
 		listenConversation();
 
 		return () => {
-			setConversations(undefined);
 			if (unsubscribe) unsubscribe();
 		};
 	}, [isGroup]);
@@ -455,7 +460,6 @@ export default function ChatForm() {
 											const conversationUser: UserModel =
 												usersMap[conversation.participants.filter((participant) => participant !== String(user.id))[0]];
 
-											console.log(conversationUser);
 											return (
 												<Conversation
 													key={index}
@@ -655,33 +659,35 @@ export default function ChatForm() {
 							<MessageListSkeleton count={6} />
 						) : (
 							<div className="flex h-full w-full px-5 items-center !pb-0 text-neutral-300 justify-center">
-								<span>No conversations selected</span>
+								<span>No conversation selected</span>
 							</div>
 						)}
 					</div>
 
 					<div className="p-4 border-t w-full border-gray-200">
-						<div className="flex items-center justify-center space-x-2">
-							<Input
-								ref={postInputRef}
-								onChange={(e) => () => {}}
-								onKeyDown={(e) => {
-									if (e.key === "Enter") {
-										handlePostMessage();
-									}
-								}}
-								placeholder="Type a message..."
-								containerClassName="w-full"
-							/>
-							<Button
-								icon={<Send className="h-4 w-4" />}
-								label=""
-								type="submit"
-								className=" text-white px-2"
-								onClick={handlePostMessage}
-								onKeyDown={() => {}}
-							/>
-						</div>
+						{selectedConversation && (
+							<div className="flex items-center justify-center space-x-2">
+								<Input
+									ref={postInputRef}
+									onChange={(e) => () => {}}
+									onKeyDown={(e) => {
+										if (e.key === "Enter") {
+											handlePostMessage();
+										}
+									}}
+									placeholder="Type a message..."
+									containerClassName="w-full"
+								/>
+								<Button
+									icon={<Send className="h-4 w-4" />}
+									label=""
+									type="submit"
+									className=" text-white px-2"
+									onClick={handlePostMessage}
+									onKeyDown={() => {}}
+								/>
+							</div>
+						)}
 					</div>
 				</div>
 			</Card>
