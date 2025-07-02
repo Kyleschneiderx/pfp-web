@@ -23,7 +23,7 @@ phases:
   build:
     commands:
       - echo "Building the Docker image..."
-      - docker build --build-arg NEXT_PUBLIC_API_BASE_URL="${NEXT_PUBLIC_API_BASE_URL}" -t "${AWS_ACCOUNT_ID}.dkr.ecr.${ECR_REGION}.amazonaws.com/${PROJECT_NAME}-${ENVIRONMENT}:${IMAGE_TAG}" .
+      - docker build --build-arg NEXT_PUBLIC_API_BASE_URL="${NEXT_PUBLIC_API_BASE_URL}" --build-arg NEXT_PUBLIC_FIREBASE_SERVICE_ACCOUNT="${NEXT_PUBLIC_FIREBASE_SERVICE_ACCOUNT}" --build-arg NEXT_PUBLIC_FIREBASE_FIRESTORE_DB="${NEXT_PUBLIC_FIREBASE_FIRESTORE_DB}" -t "${AWS_ACCOUNT_ID}.dkr.ecr.${ECR_REGION}.amazonaws.com/${PROJECT_NAME}-${ENVIRONMENT}:${IMAGE_TAG}" .
 
   post_build:
     commands:
