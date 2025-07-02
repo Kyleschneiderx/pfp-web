@@ -111,8 +111,6 @@ export default function ChatForm() {
 			...(nextStart && { nextAfter: nextStart }),
 		});
 
-		if (!conversations.data.length) return;
-
 		nextStartConversation.current = conversations.nextAfter;
 		if (!conversations.hasNext) {
 			nextStartConversation.current = undefined;
@@ -230,8 +228,6 @@ export default function ChatForm() {
 			],
 			...(nextStart && { nextAfter: nextStart }),
 		});
-
-		if (!response.data.length) return;
 
 		nextStartMessage.current = response.nextAfter;
 		if (!response.hasNext) {
