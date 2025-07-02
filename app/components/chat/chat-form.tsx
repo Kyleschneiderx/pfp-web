@@ -545,7 +545,12 @@ export default function ChatForm() {
 								)}
 
 								<div className="w-12 h-12">
-									{selectedConversation && <Avatar src={""} fallback={stringToInitial(headerName)} />}
+									{selectedConversation && (
+										<Avatar
+											src={headerUserId && usersMap[headerUserId]?.avatar ? usersMap[headerUserId]?.avatar : ""}
+											fallback={stringToInitial(headerName)}
+										/>
+									)}
 								</div>
 								<div className="ml-3">
 									{selectedConversation &&
