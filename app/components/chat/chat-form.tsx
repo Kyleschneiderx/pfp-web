@@ -151,7 +151,7 @@ export default function ChatForm() {
 		const listenConversation = async () => {
 			await getConversationList();
 
-			// if (!initialIndexConversation.current) return;
+			if (!initialIndexConversation.current) return;
 
 			unsubscribe = onSnapshot(
 				getConversationsQuery({
