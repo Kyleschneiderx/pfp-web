@@ -71,10 +71,16 @@ export default function ChatForm() {
 
 	const [conversations, setConversations] = useState<ConversationModel[]>();
 	const nextStartConversation = useRef<QueryDocumentSnapshot>();
-	const initialIndexConversation = useRef<QueryDocumentSnapshot>();
+	const initialIndexConversation = useRef<{
+		personal: QueryDocumentSnapshot | undefined;
+		group: QueryDocumentSnapshot | undefined;
+	}>({
+		personal: undefined,
+		group: undefined,
+	});
 
 	const handleTabChange = async (value: string) => {
-		initialIndexConversation.current = undefined;
+		initialIndexConversation.current[value === "group" ? "personal" : "group"] = undefined;
 		nextStartConversation.current = undefined;
 		setConversations(undefined);
 		setIsGroup(value === "groups");
@@ -116,8 +122,8 @@ export default function ChatForm() {
 			nextStartConversation.current = undefined;
 		}
 
-		if (initialIndexConversation.current === undefined) {
-			initialIndexConversation.current = conversations.initialDocs;
+		if (initialIndexConversation.current[isGroup ? "group" : "personal"] === undefined) {
+			initialIndexConversation.current[isGroup ? "group" : "personal"] = conversations.initialDocs;
 		}
 
 		let participants: string[] = [];
@@ -129,6 +135,7 @@ export default function ChatForm() {
 		participants = Array.from(new Set(participants));
 
 		if (participants.length) {
+			participants = participants.filter((participant) => !Object.keys(usersMap).some((key) => participant !== key));
 			await getUsersMap(participants);
 		}
 		if (!nextStart) {
@@ -151,8 +158,6 @@ export default function ChatForm() {
 		const listenConversation = async () => {
 			await getConversationList();
 
-			if (!initialIndexConversation.current) return;
-
 			unsubscribe = onSnapshot(
 				getConversationsQuery({
 					where: [["isGroup", "==", isGroup]],
@@ -161,7 +166,7 @@ export default function ChatForm() {
 						["__name__", "asc"],
 					],
 					limit: FIRESTORE_LIMIT,
-					nextAfter: initialIndexConversation.current,
+					nextAfter: initialIndexConversation.current[isGroup ? "group" : "personal"],
 				}),
 				async (snapshot) => {
 					const newRooms: ConversationModel[] = [];
@@ -180,6 +185,9 @@ export default function ChatForm() {
 					}
 					participants = Array.from(new Set(participants));
 					if (participants.length) {
+						participants = participants.filter(
+							(participant) => !Object.keys(usersMap).some((key) => participant !== key),
+						);
 						await getUsersMap(participants);
 					}
 
