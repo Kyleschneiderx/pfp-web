@@ -8,11 +8,10 @@ import { formatDate, getWeekRange } from "@/app/lib/utils";
 import { yearOptions } from "@/app/lib/years-options";
 import { OptionsModel } from "@/app/models/common_model";
 import { UserSummaryModel } from "@/app/models/user_summary_model";
-import { getUserSummary, getUserVisitStats } from "@/app/services/client_side/patients";
+import { getUserSummary } from "@/app/services/client_side/patients";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import { UserVisitStatsModel } from "@/app/models/user_visit_stats";
 
 const SelectCmp = dynamic(() => import("@/app/components/elements/SelectCmp"), {
 	ssr: false,
@@ -37,8 +36,9 @@ export default function Page() {
 		label: currentYear.toString(),
 		value: currentYear.toString(),
 	});
+
 	const [userSummary, setUserSummary] = useState<UserSummaryModel | null>(null);
-	const [userVisitStats, setUserVisitStats] = useState<UserVisitStatsModel | null>(null);
+
 	const [startOfWeek, setStartOfWeek] = useState<Date>(getWeekRange(currentDate).startOfWeek);
 	const [endOfWeek, setEndOfWeek] = useState<Date>(getWeekRange(currentDate).endOfWeek);
 
@@ -85,18 +85,9 @@ export default function Page() {
 		setUserSummary(response);
 	};
 
-	const fetchAppTraffic = async () => {
-		const response = await getUserVisitStats();
-		setUserVisitStats(response);
-	};
-
 	useEffect(() => {
 		fetchUserSummary();
 	}, [selectedOption1, selectedYear, startOfWeek]);
-
-	useEffect(() => {
-		fetchAppTraffic();
-	}, []);
 
 	return (
 		<div className="flex flex-wrap">
@@ -147,7 +138,7 @@ export default function Page() {
 					</div>
 				</Card>
 			</div>
-			<AppTrafficChart pages={userVisitStats?.pages ?? []} total={userVisitStats?.total ?? 0} />
+			<AppTrafficChart />
 			<UserDoughnutChart
 				premiumUsers={userSummary?.unique_signups.premium ?? 0}
 				freeUsers={userSummary?.unique_signups.free ?? 0}
