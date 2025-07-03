@@ -46,8 +46,8 @@ export const deletePatientAccount = async (mobileToken: string): Promise<{ msg: 
 	});
 };
 
-export const getUserVisitStats = async (): Promise<UserVisitStatsModel> => {
-	const url = "/misc/page-tracking/stats";
+export const getUserVisitStats = async (params: string): Promise<UserVisitStatsModel> => {
+	const url = `/misc/page-tracking/stats?${params}`;
 	return apiClient<UserVisitStatsModel>({ url: url, method: "GET" });
 };
 
