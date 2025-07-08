@@ -39,9 +39,13 @@ import { useModal } from "@/app/contexts/ModalContext";
 import { Virtuoso } from "react-virtuoso";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
+import firestore from "@/app/lib/firestore";
+import { useLogout } from "@/app/hooks/useLogout";
 
 export default function ChatForm() {
 	const user = useAuth();
+	const logout = useLogout();
 	const modal = useModal();
 	const router = useRouter();
 	const { isMobile, isTablet } = useWindowSizeCheck();
@@ -53,6 +57,26 @@ export default function ChatForm() {
 	const [selectedConversation, setSelectedConversation] = useState<ConversationModel>();
 	const selectedConversationRef = useRef<boolean | undefined>();
 	const [isCreationOpen, setIsCreationOpen] = useState<boolean>(false);
+
+	useEffect(() => {
+		const firestoreAuth = async () => {
+			const token = Cookies.get("firestore_token");
+
+			if (!token) {
+				modal.open({
+					type: "confirm",
+					title: "Session Expired",
+					message: "Your session has ended. Please log in again to continue.",
+					onConfirm: logout,
+				});
+				return;
+			}
+
+			await firestore.auth(token);
+		};
+
+		firestoreAuth();
+	}, []);
 
 	const [usersMap, setUsersMap] = useState<Record<string, UserModel>>({});
 	const getUsersMap = async (userId?: string[]) => {
