@@ -13,7 +13,7 @@ export default function SettingsIcon({ activeUrl }: Props) {
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			className={clsx(
-				"w-6 h-6 text-neutral-400 group-hover:text-primary-500",
+				"w-6 h-6 text-neutral-400 group-hover:text-primary-500 lucide lucide-cog-icon lucide-cog",
 				pathname.startsWith(activeUrl) && "text-primary-500",
 			)}
 			width="24"
@@ -21,10 +21,9 @@ export default function SettingsIcon({ activeUrl }: Props) {
 			viewBox="0 0 24 24"
 			fill="none"
 			stroke="currentColor"
-			stroke-width="2"
-			stroke-linecap="round"
-			stroke-linejoin="round"
-			class="lucide lucide-cog-icon lucide-cog"
+			strokeWidth="2"
+			strokeLinecap="round"
+			strokeLinejoin="round"
 		>
 			<path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z" />
 			<path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
