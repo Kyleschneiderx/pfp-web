@@ -129,6 +129,7 @@ export default function SettingsAiCoachForm({ settings }: { settings: AiCoachSet
 					</div>
 				</div>
 				<div className="sm:hidden flex flex-col w-full mt-4 space-y-3">
+					<Button label="Delete Conversation" outlined onClick={handleDeleteConversation} />
 					<Button label="Save" onClick={handleSave} />
 				</div>
 			</div>
