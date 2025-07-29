@@ -10,6 +10,8 @@ import { useModal } from "@/app/contexts/ModalContext";
 import { revalidatePage } from "@/app/lib/revalidate";
 import { updateAiCoachSettings } from "@/app/services/client_side/settings";
 import type { ErrorModel } from "@/app/models/error_model";
+import InfoPopover from "../../elements/InfoPopover";
+import DeleteConversationModal from "../../modals/delete-conversation-modal";
 
 export default function SettingsAiCoachForm({ settings }: { settings: AiCoachSettingsModel }) {
 	const { showSnackBar } = useSnackBar();
@@ -48,6 +50,13 @@ export default function SettingsAiCoachForm({ settings }: { settings: AiCoachSet
 		});
 	};
 
+	const handleDeleteConversation = () => {
+		modal.open({
+			type: "default",
+			component: <DeleteConversationModal />,
+		});
+	};
+
 	useEffect(() => {
 		if (settings) {
 			setSystemPrompt(settings.prompt);
@@ -71,6 +80,7 @@ export default function SettingsAiCoachForm({ settings }: { settings: AiCoachSet
 					</p>
 				</div>
 				<div className="hidden sm:flex ml-auto space-x-3">
+					<Button label="Delete Conversation" outlined onClick={handleDeleteConversation} />
 					<Button label="Save" onClick={handleSave} />
 				</div>
 			</div>
@@ -89,13 +99,26 @@ export default function SettingsAiCoachForm({ settings }: { settings: AiCoachSet
 						/>
 					</div>
 				</div>
-				<div className="w-full sm:w-2/6 p-5 space-y-4 sm:mr-6 z-10 rounded-lg bg-white drop-shadow-center">
+				<div className="flex flex-col w-full sm:w-2/6 space-y-4 sm:mr-6 p-5 rounded-lg bg-white drop-shadow-center">
 					<div className="flex justify-between items-end mb-2">
 						<p className="font-medium">Other Settings</p>
 					</div>
 					<div>
 						<div className="flex justify-between items-end mb-2">
 							<p className="font-medium">Max Token</p>
+							<InfoPopover
+								content={
+									<div className="space-y-2">
+										<h4 className="font-medium">Max Tokens</h4>
+										<p className="text-sm text-muted-foreground">
+											Max input tokens (or context length) refers to the maximum number of tokens the model can accept
+											in the input prompt, including system messages, user inputs, and any prior conversation history.
+											It defines how much information the model can "see" or consider at once before generating a
+											response.
+										</p>
+									</div>
+								}
+							/>
 						</div>
 						<Input
 							type="number"
