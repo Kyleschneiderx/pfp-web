@@ -12,3 +12,12 @@ export const updateAiCoachSettings = async (
 	});
 	return data as { id: number; key: string; value: string }[];
 };
+
+export const deleteAiCoachConversation = async (userId: number): Promise<void> => {
+	const url = `/chat/ai/user/${userId}`;
+	const data = await apiClient({
+		url: url,
+		method: "DELETE",
+	});
+	return;
+};
