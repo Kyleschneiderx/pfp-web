@@ -1,3 +1,5 @@
 export interface AiCoachSettingsModel {
-	[key: string]: string;
+	prompt: string;
+	max_tokens: string;
+	initiate_prompt: string;
 }
