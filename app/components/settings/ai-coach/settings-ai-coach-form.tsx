@@ -3,7 +3,7 @@
 import Button from "../../elements/Button";
 import Input from "../../elements/Input";
 import Textarea from "../../elements/Textarea";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { AiCoachSettingsModel } from "@/app/models/settings_models";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import { useModal } from "@/app/contexts/ModalContext";
