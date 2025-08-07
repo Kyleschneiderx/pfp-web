@@ -12,6 +12,8 @@ export interface ConversationModel {
 	updatedAt: number;
 	participants: string[];
 	lastMessage: ConversationLastMessageModel;
+	collection: string | null;
+	parentCollection: string | null;
 }
 
 export interface ConversationMessageFilesModel {
@@ -28,4 +30,6 @@ export interface ConversationMessageModel {
 	message: string;
 	createdAt: number;
 	updatedAt: number;
+	collection: string | null;
+	parentCollection: string | null;
 }

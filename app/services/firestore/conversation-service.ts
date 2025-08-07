@@ -60,6 +60,8 @@ export const createGroupConversation = async (name: string) => {
 	const conversation = await firestore.lib.addDoc(
 		firestore.lib.collection(firestore.db, "rooms").withConverter(firestoreTypeCovert<ConversationModel>()),
 		{
+			collection: "rooms",
+			parentCollection: null,
 			name: name,
 			participants: [String(user.id)],
 			isGroup: true,
@@ -77,6 +79,8 @@ export const createGroupConversation = async (name: string) => {
 			.collection(firestore.db, "rooms", conversation.id, "messages")
 			.withConverter(firestoreTypeCovert<ConversationMessageModel>()),
 		{
+			collection: "messages",
+			parentCollection: "rooms",
 			senderId: null,
 			name: "System",
 			avatar: null,
@@ -118,6 +122,8 @@ export const postConversationMessage = async (message: string, conversationId: s
 					.collection(firestore.db, "rooms", conversationId, "messages")
 					.withConverter(firestoreTypeCovert<ConversationMessageModel>()),
 				{
+					collection: "messages",
+					parentCollection: "rooms",
 					senderId: String(user.id),
 					name: user.user_profile.name,
 					avatar: user.user_profile.photo,

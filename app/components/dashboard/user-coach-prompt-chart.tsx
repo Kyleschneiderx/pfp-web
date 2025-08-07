@@ -10,12 +10,14 @@ import { yearOptions } from "@/app/lib/years-options";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getUserVisitStats } from "@/app/services/client_side/patients";
 import { monthOptions } from "@/app/lib/months-options";
+import { getUserCoachPromptStatistics } from "@/app/services/client_side/stats";
+import type { UserCoachPromptStatisticsModel } from "@/app/models/statistics_model";
 
 ChartJS.register(BarElement, Tooltip, Legend);
 
-export default function AppTrafficChart() {
+export default function UserCoachPromptChart() {
 	const [currentDate, setCurrentDate] = useState<Date>(new Date());
-	const [userVisitStats, setUserVisitStats] = useState<UserVisitStatsModel | null>(null);
+	const [userCoachPromptStats, setUserCoachPromptStats] = useState<UserCoachPromptStatisticsModel>();
 	const currentYear = new Date().getFullYear();
 	const currentMonth = new Date().getMonth();
 	const [selectedOption1, setSelectedOption1] = useState<OptionsModel | null>({
@@ -74,10 +76,12 @@ export default function AppTrafficChart() {
 	};
 
 	const chartData = {
-		labels: userVisitStats?.pages.map((page) => capitalizeFirstLetter(page.label.toLowerCase())),
+		labels: userCoachPromptStats ? Object.keys(userCoachPromptStats.stats).map((date) => date) : [],
 		datasets: [
 			{
-				data: userVisitStats?.pages.map((page) => page.percentage),
+				data: userCoachPromptStats
+					? Object.keys(userCoachPromptStats.stats).map((date) => userCoachPromptStats.stats[date])
+					: [],
 				backgroundColor: "#736CED",
 				borderWidth: 0,
 			},
@@ -119,8 +123,8 @@ export default function AppTrafficChart() {
 
 		const params = `period=${selectedOption1?.value}&date_from=${dateFrom}&date_to=${dateTo}`;
 
-		const response = await getUserVisitStats(params);
-		setUserVisitStats(response);
+		const response = await getUserCoachPromptStatistics(params);
+		setUserCoachPromptStats(response);
 	};
 
 	useEffect(() => {
@@ -130,7 +134,7 @@ export default function AppTrafficChart() {
 	return (
 		<div className="w-full mb-5">
 			<Card className="h-full">
-				<span className="text-xl font-bold">App Page Traffics</span>
+				<span className="text-xl font-bold">Users AI Coach Prompts</span>
 				{/* <div className="flex flex-col items-center justify-center"> */}
 				<div className="flex flex-wrap flex-col sm:flex-row">
 					{/* <div className="flex flex-col mr-5">
@@ -138,8 +142,8 @@ export default function AppTrafficChart() {
 							<span className="text-md text-neutral-600">User journey through key app sections</span>
 						</div> */}
 					<div className="flex flex-col">
-						<span className="text-[28px] font-bold">{userVisitStats?.total ?? 0}</span>
-						<span className=" text-neutral-600">Total Devices</span>
+						<span className="text-[28px] font-bold">{userCoachPromptStats?.total ?? 0}</span>
+						<span className=" text-neutral-600">Total Prompts</span>
 					</div>
 					<div className="ml-0 sm:ml-auto">
 						<div className="sm:flex ml-0 sm:space-x-3 sm:ml-auto w-full sm:w-auto mt-5 sm:mt-0">
