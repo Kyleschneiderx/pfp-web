@@ -25,7 +25,7 @@ export const deletePatient = async (id: number): Promise<{ msg: string }> => {
 };
 
 export const getUserSummary = async (params: string): Promise<UserSummaryModel> => {
-	const url = `/users/summary?${params}`;
+	const url = `/stats/user-summary?${params}`;
 	return apiClient<UserSummaryModel>({ url: url, method: "GET" });
 };
 
@@ -47,7 +47,7 @@ export const deletePatientAccount = async (mobileToken: string): Promise<{ msg: 
 };
 
 export const getUserVisitStats = async (params: string): Promise<UserVisitStatsModel> => {
-	const url = `/misc/page-tracking/stats?${params}`;
+	const url = `/stats/page-tracking?${params}`;
 	return apiClient<UserVisitStatsModel>({ url: url, method: "GET" });
 };
 
