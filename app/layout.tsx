@@ -20,12 +20,12 @@ export default function RootLayout({
 	return (
 		<html lang="en">
 			<body className={inter.className}>
-				<ModalProvider>
-					<SnackBarProvider>
+				<SnackBarProvider>
+					<ModalProvider>
 						<div id="modal"></div>
 						<ProgressBarProvider>{children}</ProgressBarProvider>
-					</SnackBarProvider>
-				</ModalProvider>
+					</ModalProvider>
+				</SnackBarProvider>
 			</body>
 		</html>
 	);
