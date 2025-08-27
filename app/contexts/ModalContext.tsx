@@ -38,6 +38,7 @@ interface ModalProvider {
 	isOpen: boolean;
 	open: (options: ModalOptions) => void;
 	close: (open?: boolean) => void;
+	closeAll: () => void;
 }
 
 const ModalContext = createContext<ModalProvider | null>(null);
