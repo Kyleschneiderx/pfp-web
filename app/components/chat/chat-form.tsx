@@ -3,32 +3,16 @@
 import clsx from "clsx";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useWindowSizeCheck } from "@/app/hooks/useWindowSizeCheck";
-import type { ConversationMessageModel, ConversationModel } from "@/app/models/firestore/conversation_model";
+import type { ConversationMessageModel, ConversationModel } from "@/app/models/chat_model";
 import CreationForm from "./creation-form";
 import Card from "../elements/Card";
 import { ArrowLeft, EllipsisIcon, PlusIcon, Send, Trash2Icon } from "lucide-react";
 import { DropdownMenu, Tabs } from "radix-ui";
-import { onSnapshot, type QueryDocumentSnapshot, type Unsubscribe } from "firebase/firestore";
 import { ConversationListSkeleton } from "./conversation-list-skeleton";
 import Conversation from "./conversation";
-import type { UserModel } from "@/app/models/firestore/user_model";
 import { toRelativeTime } from "@/app/lib/to-relative-time";
 import Loader from "../elements/Loader";
 import useAuth from "@/app/hooks/useAuth";
-import {
-	deleteConversation,
-	deleteConversationMessage,
-	getConversationMessages,
-	getConversations,
-	postConversationMessage,
-	removeParticipant,
-} from "@/app/services/firestore/conversation-service";
-import { getUsers } from "@/app/services/firestore/user-service";
-import { FIRESTORE_LIMIT } from "@/app/lib/constants";
-import {
-	getConversationMessagesQuery,
-	getConversationsQuery,
-} from "@/app/services/firestore/queries/conversation-queries";
 import { stringToInitial } from "@/app/lib/string-to-initial";
 import Avatar from "../elements/Avatar";
 import Message from "./message";
@@ -39,9 +23,17 @@ import { useModal } from "@/app/contexts/ModalContext";
 import { Virtuoso } from "react-virtuoso";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Cookies from "js-cookie";
-import firestore from "@/app/lib/firestore";
 import { useLogout } from "@/app/hooks/useLogout";
+import socketClient from "@/app/services/socket-client";
+import {
+	deleteGroup,
+	deleteGroupMessage,
+	getGroupConversationMessages,
+	getGroupConversations,
+	getProviderConversationMessages,
+	getProviderConversations,
+	kickGroupParticipant,
+} from "@/app/services/client_side/chats";
 
 export default function ChatForm() {
 	const user = useAuth();
@@ -51,62 +43,55 @@ export default function ChatForm() {
 	const { isMobile, isTablet } = useWindowSizeCheck();
 	const isSmallDevice = isMobile || isTablet;
 
-	const [isGroup, setIsGroup] = useState<boolean>();
+	const [isGroup, setIsGroup] = useState<boolean>(false);
 	const [showMessageContainer, setShowMessageContainer] = useState<boolean>(!isSmallDevice);
 
 	const [selectedConversation, setSelectedConversation] = useState<ConversationModel>();
 	const selectedConversationRef = useRef<boolean | undefined>();
 	const [isCreationOpen, setIsCreationOpen] = useState<boolean>(false);
 
+	const providerChatSocket = useMemo(() => socketClient({ namespace: "chat-provider" }), []);
+
+	const groupChatSocket = useMemo(() => socketClient({ namespace: "chat-group" }), []);
+
 	useEffect(() => {
-		const firestoreAuth = async () => {
-			const token = Cookies.get("firestore_token");
+		getProviderConversationList();
 
-			if (!token) {
-				modal.open({
-					type: "confirm",
-					title: "Session Expired",
-					message: "Your session has ended. Please log in again to continue.",
-					onConfirm: logout,
-				});
-				return;
-			}
+		getGroupConversationList();
 
-			await firestore.auth(token);
+		providerChatSocket.connect();
+
+		providerChatSocket.on("conversation", (data) => {
+			setProviderConversations((prev) => {
+				const filteredPrev = prev ? prev.filter((conversation) => conversation.id !== data.id) : [];
+
+				return [data, ...filteredPrev];
+			});
+		});
+
+		groupChatSocket.connect();
+
+		groupChatSocket.on("conversation", (data) => {
+			setGroupConversations((prev) => {
+				const filteredPrev = prev ? prev.filter((conversation) => conversation.id !== data.id) : [];
+
+				return [data, ...filteredPrev];
+			});
+		});
+
+		return () => {
+			providerChatSocket.disconnect();
+
+			groupChatSocket.disconnect();
 		};
-
-		firestoreAuth();
 	}, []);
 
-	const [usersMap, setUsersMap] = useState<Record<string, UserModel>>({});
-	const getUsersMap = async (userId?: string[]) => {
-		const filteredUserId = userId ? userId.filter((id) => !Object.keys(usersMap).some((key) => key === id)) : [];
-
-		const users = await getUsers({ userId: filteredUserId, limit: Number.POSITIVE_INFINITY });
-
-		setUsersMap((prev) => {
-			for (const user of users.data) {
-				prev[user.id] = user;
-			}
-
-			return { ...prev };
-		});
-	};
-
-	const [conversations, setConversations] = useState<ConversationModel[]>();
-	const nextStartConversation = useRef<QueryDocumentSnapshot>();
-	const initialIndexConversation = useRef<{
-		personal: QueryDocumentSnapshot | undefined;
-		group: QueryDocumentSnapshot | undefined;
-	}>({
-		personal: undefined,
-		group: undefined,
-	});
+	const [providerConversations, setProviderConversations] = useState<ConversationModel[]>();
+	const [groupConversations, setGroupConversations] = useState<ConversationModel[]>();
+	const providerConversationNextPageId = useRef<string>();
+	const groupConversationNextPageId = useRef<string>();
 
 	const handleTabChange = async (value: string) => {
-		initialIndexConversation.current[value === "group" ? "personal" : "group"] = undefined;
-		nextStartConversation.current = undefined;
-		setConversations(undefined);
 		setIsGroup(value === "groups");
 	};
 
@@ -118,9 +103,9 @@ export default function ChatForm() {
 			onConfirm: async () => {
 				if (!conversation.id) return;
 
-				await deleteConversation(conversation.id);
+				await deleteGroup(conversation.id);
 
-				setConversations((prev) => prev?.filter((c) => c.id !== conversation.id));
+				setGroupConversations((prev) => prev?.filter((c) => c.id !== conversation.id));
 
 				setSelectedConversation(undefined);
 
@@ -131,149 +116,117 @@ export default function ChatForm() {
 		});
 	};
 
-	const getConversationList = async (nextStart?: QueryDocumentSnapshot) => {
-		const conversations = await getConversations({
-			where: [["isGroup", "==", isGroup]],
-			orderBy: [
-				["updatedAt", "desc"],
-				["__name__", "desc"],
-			],
-			...(nextStart && { nextAfter: nextStart }),
-		});
+	const getProviderConversationList = async (nextPageId?: string) => {
+		try {
+			const conversations = await getProviderConversations({
+				next_page_id: nextPageId,
+			});
 
-		nextStartConversation.current = conversations.nextAfter;
-		if (!conversations.hasNext) {
-			nextStartConversation.current = undefined;
+			providerConversationNextPageId.current = undefined;
+			if (conversations.has_next_page) {
+				providerConversationNextPageId.current = conversations.next_page_id;
+			}
+
+			if (!nextPageId) {
+				setProviderConversations(conversations.data);
+				return;
+			}
+
+			setProviderConversations((prev) => [...(prev ? [...prev] : []), ...conversations.data]);
+		} catch (error) {
+			setProviderConversations([]);
 		}
-
-		if (initialIndexConversation.current[isGroup ? "group" : "personal"] === undefined) {
-			initialIndexConversation.current[isGroup ? "group" : "personal"] = conversations.initialDocs;
-		}
-
-		let participants: string[] = [];
-
-		for (const conversation of conversations.data) {
-			participants = [...participants, ...conversation.participants];
-		}
-
-		participants = Array.from(new Set(participants));
-
-		if (participants.length) {
-			participants = participants.filter((participant) => !Object.keys(usersMap).some((key) => participant !== key));
-			await getUsersMap(participants);
-		}
-		if (!nextStart) {
-			setConversations(conversations.data);
-			return;
-		}
-
-		setConversations((prev) => [...(prev ? [...prev] : []), ...conversations.data]);
 	};
 
-	useEffect(() => {
-		setIsGroup(false);
-	}, []);
+	const getGroupConversationList = async (nextPageId?: string) => {
+		try {
+			const conversations = await getGroupConversations({
+				next_page_id: nextPageId,
+			});
 
-	useEffect(() => {
-		if (isGroup === undefined) return;
+			groupConversationNextPageId.current = undefined;
+			if (conversations.has_next_page) {
+				groupConversationNextPageId.current = conversations.next_page_id;
+			}
 
-		let unsubscribe: Unsubscribe;
+			if (!nextPageId) {
+				setGroupConversations(conversations.data);
+				return;
+			}
 
-		const listenConversation = async () => {
-			await getConversationList();
-
-			unsubscribe = onSnapshot(
-				getConversationsQuery({
-					where: [["isGroup", "==", isGroup]],
-					orderBy: [
-						["updatedAt", "asc"],
-						["__name__", "asc"],
-					],
-					limit: FIRESTORE_LIMIT,
-					nextAfter: initialIndexConversation.current[isGroup ? "group" : "personal"],
-				}),
-				async (snapshot) => {
-					const newRooms: ConversationModel[] = [];
-
-					for (const change of snapshot.docChanges()) {
-						if (change.type === "added") {
-							newRooms.push({ ...change.doc.data(), id: change.doc.id });
-						} else if (change.type === "modified") {
-							newRooms.push({ ...change.doc.data(), id: change.doc.id });
-						}
-					}
-
-					let participants: string[] = [];
-					for (const room of newRooms) {
-						participants = [...participants, ...room.participants];
-					}
-					participants = Array.from(new Set(participants));
-					if (participants.length) {
-						participants = participants.filter(
-							(participant) => !Object.keys(usersMap).some((key) => participant !== key),
-						);
-						await getUsersMap(participants);
-					}
-
-					setConversations((prev) => {
-						const filteredPrev = prev ? prev.filter((room) => !newRooms.some((newRoom) => newRoom.id === room.id)) : [];
-
-						return [...newRooms, ...filteredPrev];
-					});
-				},
-			);
-		};
-
-		listenConversation();
-
-		return () => {
-			if (unsubscribe) unsubscribe();
-		};
-	}, [isGroup]);
+			setGroupConversations((prev) => [...(prev ? [...prev] : []), ...conversations.data]);
+		} catch (error) {
+			setGroupConversations([]);
+		}
+	};
 
 	const [messages, setMessages] = useState<ConversationMessageModel[]>();
-	const nextStartMessage = useRef<QueryDocumentSnapshot>();
-	const initialIndexMessage = useRef<QueryDocumentSnapshot>();
+	const messageNextPageId = useRef<string>();
 	const postInputRef = useRef<HTMLInputElement>(null);
 	const messageContainerRef = useRef<HTMLDivElement>(null);
 	const bottomMessageContainerRef = useRef<HTMLDivElement | null>(null);
 	const lastMessageContainerScrollPositionRef = useRef<number>();
-	const [headerName, headerUserId] = useMemo(() => {
-		if (!selectedConversation) return [undefined, undefined];
+	const headerInfo = useMemo(() => {
+		if (!selectedConversation) return null;
 
-		if (!usersMap) return [undefined, undefined];
+		const { participants } = selectedConversation;
 
-		const otherParticipant = selectedConversation.participants.filter((participant) => participant !== String(user.id));
+		const otherParticipant = Object.entries(participants).find(
+			([participantId, _]) => participantId !== String(user.id),
+		);
 
-		return selectedConversation?.isGroup
-			? [selectedConversation?.name]
-			: [usersMap[otherParticipant[0]]?.name, otherParticipant[0]];
-	}, [selectedConversation, usersMap]);
+		return {
+			isGroup: selectedConversation.isGroup,
+			userId: otherParticipant?.[0],
+			...otherParticipant?.[1],
+			...(selectedConversation.isGroup ? { name: selectedConversation.name } : { name: otherParticipant?.[1]?.name }),
+		};
+	}, [selectedConversation]);
 
-	const getMessageList = async (nextStart?: QueryDocumentSnapshot) => {
+	const getProviderMessageList = async (nextPageId?: string) => {
 		if (!selectedConversation?.id) return;
 
-		const response = await getConversationMessages(selectedConversation.id, {
-			orderBy: [
-				["updatedAt", "desc"],
-				["__name__", "desc"],
-			],
-			...(nextStart && { nextAfter: nextStart }),
-		});
+		const messages = await getProviderConversationMessages({ next_page_id: nextPageId, id: selectedConversation.id });
 
-		nextStartMessage.current = response.nextAfter;
-		if (!response.hasNext) {
-			nextStartMessage.current = undefined;
+		messageNextPageId.current = undefined;
+		if (messages.has_next_page) {
+			messageNextPageId.current = messages.next_page_id;
 		}
 
-		if (initialIndexMessage.current === undefined) {
-			initialIndexMessage.current = response.initialDocs;
-		}
+		messages.data.reverse();
 
-		response.data.reverse();
+		if (!nextPageId) {
+			setMessages(messages.data);
+			return;
+		}
 
 		setMessages((prev) => {
-			return [...response.data, ...(prev ? [...prev] : [])];
+			return [...messages.data, ...(prev ? [...prev] : [])];
+		});
+	};
+
+	const getGroupMessageList = async (nextPageId?: string) => {
+		if (!selectedConversation?.id) return;
+
+		const messages = await getGroupConversationMessages({
+			next_page_id: nextPageId,
+			id: selectedConversation.id,
+		});
+
+		messageNextPageId.current = undefined;
+		if (messages.has_next_page) {
+			messageNextPageId.current = messages.next_page_id;
+		}
+
+		messages.data.reverse();
+
+		if (!nextPageId) {
+			setMessages(messages.data);
+			return;
+		}
+
+		setMessages((prev) => {
+			return [...messages.data, ...(prev ? [...prev] : [])];
 		});
 	};
 
@@ -292,17 +245,47 @@ export default function ChatForm() {
 			lastMessageContainerScrollPositionRef.current = messageContainerRef.current.scrollTop;
 		}
 
-		await postConversationMessage(message, selectedConversation.id);
+		if (!selectedConversation.isGroup) {
+			providerChatSocket.emit("message", {
+				message: message,
+				conversation_id: selectedConversation.id,
+			});
+			return;
+		}
+
+		groupChatSocket.emit("message", {
+			message: message,
+			conversation_id: selectedConversation.id,
+		});
 	};
 
 	const handleSelectConversation = (conversation: ConversationModel) => {
 		if (conversation.id === selectedConversation?.id) return;
 
-		initialIndexMessage.current = undefined;
+		if (selectedConversation) {
+			providerChatSocket.emit("leave", { roomId: selectedConversation.id });
+			groupChatSocket.emit("leave", { roomId: selectedConversation.id });
+		}
+
+		if (conversation.isGroup) {
+			groupChatSocket.emit("join", { roomId: conversation.id });
+
+			groupChatSocket.on("reply", (data) => {
+				setMessages((prev) => [...(prev ?? []), data]);
+			});
+		} else {
+			providerChatSocket.emit("join", { roomId: conversation.id });
+
+			providerChatSocket.on("reply", (data) => {
+				setMessages((prev) => [...(prev ?? []), data]);
+			});
+		}
+
+		// initialIndexMessage.current = undefined;
 		setSelectedConversation(conversation);
 		setShowMessageContainer(true);
 		setMessages(undefined);
-		nextStartMessage.current = undefined;
+		messageNextPageId.current = undefined;
 		lastMessageContainerScrollPositionRef.current = undefined;
 
 		if (bottomMessageContainerRef.current) {
@@ -320,7 +303,7 @@ export default function ChatForm() {
 
 				if (!message.id) return;
 
-				await deleteConversationMessage(conversation.id, message.id);
+				await deleteGroupMessage(conversation.id, message.id);
 
 				setMessages((prev) => {
 					const filteredPrev = prev ? prev.filter((msg) => msg.id !== message.id) : [];
@@ -343,7 +326,7 @@ export default function ChatForm() {
 
 				if (!message.senderId) return;
 
-				await removeParticipant(conversation.id, message.senderId);
+				await kickGroupParticipant(conversation.id, message.senderId);
 
 				modal.close();
 			},
@@ -355,50 +338,12 @@ export default function ChatForm() {
 
 		if (!selectedConversation) return;
 
-		let unsubscribe: Unsubscribe;
+		if (!selectedConversation.isGroup) {
+			getProviderMessageList();
+			return;
+		}
 
-		const listenMessages = async () => {
-			if (!selectedConversation.id) return;
-
-			await getMessageList();
-
-			unsubscribe = onSnapshot(
-				getConversationMessagesQuery(selectedConversation.id, {
-					orderBy: [
-						["updatedAt", "asc"],
-						["__name__", "asc"],
-					],
-					limit: FIRESTORE_LIMIT,
-					nextAfter: initialIndexMessage.current,
-				}),
-				async (snapshot) => {
-					const newMessages: ConversationMessageModel[] = [];
-
-					for (const change of snapshot.docChanges()) {
-						if (change.type === "added") {
-							newMessages.push({ ...change.doc.data(), id: change.doc.id });
-						}
-					}
-
-					newMessages.reverse();
-
-					setMessages((prev) => {
-						const filteredNewMessages = newMessages.filter(
-							(newMessage) => !prev?.some((prevMessage) => prevMessage.id === newMessage.id),
-						);
-
-						return [...(prev ? [...prev] : []), ...filteredNewMessages];
-					});
-				},
-			);
-		};
-
-		listenMessages();
-
-		return () => {
-			setMessages(undefined);
-			if (unsubscribe) unsubscribe();
-		};
+		getGroupMessageList();
 	}, [selectedConversation]);
 
 	return (
@@ -457,18 +402,18 @@ export default function ChatForm() {
 
 						<div className="flex-1 overflow-y-auto">
 							<Tabs.Content value="personal" className="mt-0 h-full">
-								{!conversations ? (
+								{!providerConversations ? (
 									<ConversationListSkeleton count={5} />
 								) : (
 									<Virtuoso
-										data={conversations ?? []}
+										data={providerConversations ?? []}
 										components={{
 											EmptyPlaceholder: () => (
 												<div className="flex h-full w-full p-5 mt-auto items-center text-neutral-300 justify-center">
 													<span>No conversations found</span>
 												</div>
 											),
-											Footer: nextStartConversation.current
+											Footer: providerConversationNextPageId.current
 												? () => (
 														<div className="flex w-full items-center justify-center py-5">
 															<Loader />
@@ -478,20 +423,18 @@ export default function ChatForm() {
 												: undefined,
 										}}
 										endReached={
-											nextStartConversation.current
+											providerConversationNextPageId.current
 												? () => {
-														getConversationList(nextStartConversation.current);
+														getProviderConversationList(providerConversationNextPageId.current);
 													}
 												: undefined
 										}
 										itemContent={(index, conversation) => {
-											const conversationUser: UserModel =
-												usersMap[conversation.participants.filter((participant) => participant !== String(user.id))[0]];
-
+											const conversationUser = Object.entries(conversation.participants)[0][1];
 											return (
 												<Conversation
 													key={index}
-													name={conversationUser?.name}
+													name={conversationUser?.name ?? ""}
 													avatar={conversationUser?.avatar ?? ""}
 													message={conversation?.lastMessage?.message}
 													timestamp={toRelativeTime(conversation.updatedAt)}
@@ -505,18 +448,18 @@ export default function ChatForm() {
 							</Tabs.Content>
 
 							<Tabs.Content value="groups" className="mt-0 h-full">
-								{!conversations ? (
+								{!groupConversations ? (
 									<ConversationListSkeleton count={5} />
 								) : (
 									<Virtuoso
-										data={conversations ?? []}
+										data={groupConversations ?? []}
 										components={{
 											EmptyPlaceholder: () => (
 												<div className="flex h-full w-full p-5 mt-auto items-center text-neutral-300 justify-center">
 													<span>No conversations found</span>
 												</div>
 											),
-											Footer: nextStartConversation.current
+											Footer: groupConversationNextPageId.current
 												? () => (
 														<div className="flex w-full items-center justify-center py-5">
 															<Loader />
@@ -526,9 +469,9 @@ export default function ChatForm() {
 												: undefined,
 										}}
 										endReached={
-											nextStartConversation.current
+											groupConversationNextPageId.current
 												? () => {
-														getConversationList(nextStartConversation.current);
+														getGroupConversationList(groupConversationNextPageId.current);
 													}
 												: undefined
 										}
@@ -539,7 +482,7 @@ export default function ChatForm() {
 													isGroup={true}
 													name={conversation.name}
 													message={conversation?.lastMessage?.message}
-													members={conversation.participants.length}
+													members={Object.keys(conversation.participants).length}
 													timestamp={toRelativeTime(conversation.updatedAt)}
 													active={conversation.id === selectedConversation?.id}
 													onClick={() => handleSelectConversation(conversation)}
@@ -579,19 +522,21 @@ export default function ChatForm() {
 								<div className="w-12 h-12">
 									{selectedConversation && (
 										<Avatar
-											src={headerUserId && usersMap[headerUserId]?.avatar ? usersMap[headerUserId]?.avatar : ""}
-											fallback={stringToInitial(headerName)}
+											src={headerInfo?.userId ? (headerInfo?.avatar ?? "") : ""}
+											fallback={stringToInitial(headerInfo?.name ?? "")}
 										/>
 									)}
 								</div>
 								<div className="ml-3">
 									{selectedConversation &&
-										(headerUserId ? (
-											<Link href={`/patients/${headerUserId}/edit`} target="_blank">
-												<h2 className="font-semibold text-neutral-900 hover:text-neutral-600">{headerName}</h2>
+										(headerInfo?.userId ? (
+											<Link href={`/patients/${headerInfo?.userId}/edit`} target="_blank">
+												<h2 className="font-semibold text-neutral-900 hover:text-neutral-600">
+													{headerInfo?.name ?? ""}
+												</h2>
 											</Link>
 										) : (
-											<h2 className="font-semibold text-neutral-900">{headerName}</h2>
+											<h2 className="font-semibold text-neutral-900">{headerInfo?.name ?? ""}</h2>
 										))}
 								</div>
 							</div>
@@ -634,7 +579,7 @@ export default function ChatForm() {
 											<span>Start sending messages...</span>
 										</div>
 									),
-									Header: nextStartMessage.current
+									Header: messageNextPageId.current
 										? () => (
 												<div className="flex w-full items-center justify-center">
 													<Loader />
@@ -649,16 +594,23 @@ export default function ChatForm() {
 								}}
 								initialTopMostItemIndex={messages.length}
 								startReached={
-									nextStartMessage.current
+									messageNextPageId.current
 										? () => {
-												getMessageList(nextStartMessage.current);
+												if (!selectedConversation.isGroup) {
+													getProviderMessageList(messageNextPageId.current);
+													return;
+												}
+												getGroupMessageList(messageNextPageId.current);
 											}
 										: undefined
 								}
 								itemContent={(index, message) => {
 									const realIndex = Math.abs(index + messages.length - 100000 - 1);
 
-									const messageUser = message.senderId ? usersMap[message.senderId] : undefined;
+									const messageUser = Object.entries(selectedConversation.participants).find(
+										([participantId, participant]) => participantId === message.senderId,
+									)?.[1];
+
 									return (
 										<Message
 											key={index}
@@ -666,7 +618,7 @@ export default function ChatForm() {
 											isSystem={!message.senderId}
 											name={
 												message.senderId && messages[realIndex]?.senderId !== message?.senderId
-													? usersMap[message.senderId]?.name
+													? (messageUser?.name ?? "")
 													: undefined
 											}
 											avatar={messageUser?.avatar ?? ""}
@@ -674,7 +626,7 @@ export default function ChatForm() {
 											onArchive={async () => handleRemoveMessage(selectedConversation, message)}
 											onKick={isGroup ? async () => handleKickParticipant(selectedConversation, message) : undefined}
 											onViewProfile={
-												message.senderId && !usersMap[message.senderId]?.isAdmin
+												message.senderId && !messageUser?.isAdmin
 													? () => {
 															if (message.senderId) {
 																router.push(`/patients/${message.senderId}/edit`);
