@@ -245,18 +245,62 @@ export default function ChatForm() {
 			lastMessageContainerScrollPositionRef.current = messageContainerRef.current.scrollTop;
 		}
 
-		if (!selectedConversation.isGroup) {
-			providerChatSocket.emit("message", {
-				message: message,
-				conversation_id: selectedConversation.id,
+		const tempId = String(Date.now());
+
+		setMessages((prev) => {
+			return [
+				...(prev ?? []),
+				{
+					message: message,
+					senderId: String(user.id),
+					createdAt: Date.now(),
+					updatedAt: Date.now(),
+					collection: null,
+					parentCollection: null,
+					files: [],
+					tempId: tempId,
+				},
+			];
+		});
+
+		const acknowledge = (data: ConversationMessageModel) => {
+			// console.log("ack data", data);
+			setMessages((prev) => {
+				const index = prev?.findIndex((msg) => msg.tempId === tempId);
+
+				if (index === -1 || !index) {
+					// not found → just add at the end
+					return [...(prev ?? []), data];
+				}
+
+				const newList = [...(prev ?? [])];
+
+				newList[index] = data;
+
+				return newList;
 			});
+		};
+
+		if (!selectedConversation.isGroup) {
+			providerChatSocket.emit(
+				"message",
+				{
+					message: message,
+					conversation_id: selectedConversation.id,
+				},
+				acknowledge,
+			);
 			return;
 		}
 
-		groupChatSocket.emit("message", {
-			message: message,
-			conversation_id: selectedConversation.id,
-		});
+		groupChatSocket.emit(
+			"message",
+			{
+				message: message,
+				conversation_id: selectedConversation.id,
+			},
+			acknowledge,
+		);
 	};
 
 	const handleSelectConversation = (conversation: ConversationModel) => {
@@ -271,12 +315,16 @@ export default function ChatForm() {
 			groupChatSocket.emit("join", { roomId: conversation.id });
 
 			groupChatSocket.on("reply", (data) => {
+				if (String(data.senderId) === String(user.id)) return;
+
 				setMessages((prev) => [...(prev ?? []), data]);
 			});
 		} else {
 			providerChatSocket.emit("join", { roomId: conversation.id });
 
 			providerChatSocket.on("reply", (data) => {
+				if (String(data.senderId) === String(user.id)) return;
+
 				setMessages((prev) => [...(prev ?? []), data]);
 			});
 		}
@@ -615,6 +663,7 @@ export default function ChatForm() {
 										<Message
 											key={index}
 											isOwn={String(user.id) === message.senderId}
+											isSending={!!message.tempId}
 											isSystem={!message.senderId}
 											name={
 												message.senderId && messages[realIndex]?.senderId !== message?.senderId
@@ -622,7 +671,7 @@ export default function ChatForm() {
 													: undefined
 											}
 											avatar={messageUser?.avatar ?? ""}
-											allowOption={!!message.senderId}
+											allowOption={!!message.senderId && !message.tempId}
 											onArchive={async () => handleRemoveMessage(selectedConversation, message)}
 											onKick={isGroup ? async () => handleKickParticipant(selectedConversation, message) : undefined}
 											onViewProfile={
