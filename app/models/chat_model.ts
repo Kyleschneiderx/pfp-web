@@ -35,4 +35,5 @@ export interface ConversationMessageModel {
 	updatedAt: number;
 	collection: string | null;
 	parentCollection: string | null;
+	tempId?: string;
 }

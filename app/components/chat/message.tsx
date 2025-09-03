@@ -9,6 +9,7 @@ import clsx from "clsx";
 type MessageProps = {
 	className?: string;
 	isOwn: boolean;
+	isSending?: boolean;
 	isSystem: boolean;
 	name?: string;
 	avatar?: string;
@@ -81,6 +82,7 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
 	(
 		{
 			isOwn,
+			isSending = false,
 			isSystem = false,
 			name,
 			avatar,
@@ -114,7 +116,11 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
 						<div
 							className={clsx(
 								"max-w-xs lg:max-w-md px-4 py-2 rounded-2xl",
-								isOwn ? "bg-primary-500 text-white" : "bg-neutral-100 text-neutral-900",
+								isOwn
+									? isSending
+										? "bg-primary-300 text-white"
+										: "bg-primary-500 text-white"
+									: "bg-neutral-100 text-neutral-900",
 								isSystem ? "text-center selft-center bg-transparent !text-neutral-300 text-xs" : "",
 							)}
 						>
@@ -126,7 +132,7 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
 									isSystem ? "!text-neutral-300" : "",
 								)}
 							>
-								{timestamp}
+								{isSending ? "sending..." : timestamp}
 							</p>
 						</div>
 						{!isOwn && allowOption && (
