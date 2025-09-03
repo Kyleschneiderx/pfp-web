@@ -3,7 +3,7 @@ import Button from "../elements/Button";
 import Input from "../elements/Input";
 import { useRef, useState } from "react";
 import Card from "../elements/Card";
-import { createGroupConversation } from "@/app/services/firestore/conversation-service";
+import { createGroup } from "@/app/services/client_side/chats";
 
 export default function CreationForm({ onBack }: { onBack?: () => void }) {
 	const inputRef = useRef<HTMLInputElement>(null);
@@ -22,7 +22,7 @@ export default function CreationForm({ onBack }: { onBack?: () => void }) {
 			return;
 		}
 
-		await createGroupConversation(groupName);
+		await createGroup({ name: groupName });
 
 		setLoading(false);
 	};
