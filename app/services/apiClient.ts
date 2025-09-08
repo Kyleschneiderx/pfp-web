@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
+import axios, { AxiosRequestConfig, AxiosResponse, ResponseType } from "axios";
 import Cookies from "js-cookie";
 import { ErrorModel } from "../models/error_model";
 
@@ -9,6 +9,7 @@ interface Props {
 	params?: Record<string, any>;
 	retryCount?: number;
 	mobileToken?: string;
+	responseType?: ResponseType;
 }
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
@@ -21,6 +22,7 @@ export const apiClient = async <T>({
 	params,
 	retryCount = MAX_RETRIES,
 	mobileToken,
+	responseType,
 }: Props): Promise<T> => {
 	const token = Cookies.get("token");
 
@@ -35,6 +37,7 @@ export const apiClient = async <T>({
 		},
 		data: body,
 		params,
+		responseType,
 	};
 
 	const executeRequest = async (retries: number): Promise<AxiosResponse<T>> => {

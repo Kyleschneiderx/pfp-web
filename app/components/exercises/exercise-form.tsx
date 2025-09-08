@@ -468,7 +468,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
 							fileDownload={
 								exercise?.video
 									? {
-											url: exercise?.video,
+											id: exercise?.id,
 											filename: exercise?.name,
 										}
 									: undefined

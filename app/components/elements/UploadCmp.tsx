@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import FilePenIcon from "../icons/filepen_icon";
 import Button from "./Button";
+import { downloadExerciseVideo } from "@/app/services/client_side/exercises";
 
 interface Props {
 	label: string;
@@ -16,7 +17,7 @@ interface Props {
 	recommendedText?: string;
 	previewImage?: boolean;
 	isEdit?: boolean;
-	fileDownload?: { url: string; filename?: string };
+	fileDownload?: { id: number; filename?: string };
 }
 
 export default function UploadCmp({
@@ -34,6 +35,7 @@ export default function UploadCmp({
 	const [fileType, setFileType] = useState<string | null>(null);
 	const { showSnackBar } = useSnackBar();
 	const limitText = type === "image" ? "5MB" : "150MB";
+	const [isDownloading, setIsDownloading] = useState(false);
 
 	const acceptedImage = {
 		"image/jpeg": [".jpeg", ".jpg"],
@@ -145,21 +147,21 @@ export default function UploadCmp({
 		};
 	}, [imagePreview]);
 
-	const handleDownload = async ({ url, filename }: { url: string; filename?: string }) => {
-		if (!url) return;
+	const handleDownload = async ({ id, filename }: { id: number; filename?: string }) => {
+		setIsDownloading(true);
+		const response = await downloadExerciseVideo(id);
 
-		const response = await fetch(url);
-		const blob = await response.blob();
-		const blobUrl = window.URL.createObjectURL(blob);
+		const blobUrl = window.URL.createObjectURL(response);
 
 		const link = document.createElement("a");
 		link.href = blobUrl;
-		link.download = filename ?? url.split("/").pop() ?? "download";
+		link.download = filename ?? "download";
 		document.body.appendChild(link);
 		link.click();
 
 		link.remove();
 		window.URL.revokeObjectURL(blobUrl);
+		setIsDownloading(false);
 	};
 
 	return (
@@ -167,7 +169,12 @@ export default function UploadCmp({
 			<div className="flex flex-row items-center mb-2">
 				<p className="font-medium mr-auto">{label}</p>
 				{fileDownload && (
-					<Button className="!rounded-full h-8" onClick={() => handleDownload(fileDownload)} label="Download" />
+					<Button
+						isProcessing={isDownloading}
+						className="!rounded-full h-8"
+						onClick={() => handleDownload(fileDownload)}
+						label="Download"
+					/>
 				)}
 			</div>
 			{fileName && fileType && !previewImage && (
