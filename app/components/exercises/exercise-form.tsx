@@ -465,6 +465,14 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
 							onFileSelect={handleVideoSelect}
 							clearImagePreview={video === null}
 							type="video"
+							fileDownload={
+								exercise?.video
+									? {
+											id: exercise?.id,
+											filename: exercise?.name,
+										}
+									: undefined
+							}
 							isEdit={action === "Edit"}
 						/>
 					</div>
