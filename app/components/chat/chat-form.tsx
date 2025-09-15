@@ -34,6 +34,7 @@ import {
 	getProviderConversations,
 	kickGroupParticipant,
 } from "@/app/services/client_side/chats";
+import ResponsiveActionMenu from "../elements/ResponsiveActionMenu";
 
 export default function ChatForm() {
 	const user = useAuth();
@@ -590,25 +591,19 @@ export default function ChatForm() {
 							</div>
 							{selectedConversation?.isGroup && (
 								<div className="flex items-center space-x-2">
-									<DropdownMenu.Root>
-										<DropdownMenu.Trigger asChild className="cursor-pointer">
-											<EllipsisIcon className="h-5 w-5 text-neutral-900 hover:text-neutral-600" />
-										</DropdownMenu.Trigger>
-										<DropdownMenu.Content
-											align="end"
-											className="w-38 drop-shadow-center text-xs p-1 bg-white rounded-md z-10 text-neutral-900"
-										>
-											<DropdownMenu.Item
-												onClick={() => {
+									<ResponsiveActionMenu
+										title={selectedConversation.name}
+										icon={<EllipsisIcon className="h-5 w-5 text-neutral-900 hover:text-neutral-600" />}
+										customActions={[
+											{
+												label: "Delete Group",
+												icon: <Trash2Icon className="mr-2 h-4 w-4" />,
+												onClick: () => {
 													handleDeleteConversation(selectedConversation);
-												}}
-												className="cursor-pointer p-2 bg-white flex items-center justify-center outline-none hover:bg-primary-100"
-											>
-												<Trash2Icon className="mr-2 h-4 w-4" />
-												<span>Delete Group</span>
-											</DropdownMenu.Item>
-										</DropdownMenu.Content>
-									</DropdownMenu.Root>
+												},
+											},
+										]}
+									/>
 								</div>
 							)}
 						</div>

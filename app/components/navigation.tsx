@@ -2,7 +2,7 @@
 
 import { useLogout } from "@/app/hooks/useLogout";
 import clsx from "clsx";
-import { LogOut } from "lucide-react";
+import { LogOut, TabletSmartphoneIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -14,6 +14,7 @@ import PFPlanIcon from "./icons/pfplan_icon";
 import WorkoutIcon from "./icons/workout_icon";
 import ChatIcon from "./icons/chat_icon";
 import SettingsIcon from "./icons/settings";
+import TelehealthIcon from "./icons/telehealth_icon";
 
 export default function Navigation() {
 	const logout = useLogout();
@@ -51,6 +52,21 @@ export default function Navigation() {
 			icon: <EducationIcon activeUrl="/education" />,
 		},
 		{
+			title: "Telehealth",
+			url: "/telehealth",
+			icon: <TelehealthIcon activeUrl="/telehealth" />,
+			subItems: [
+				{
+					title: "Schedules",
+					url: "/telehealth/schedules",
+				},
+				{
+					title: "Meetings",
+					url: "/telehealth/meetings",
+				},
+			],
+		},
+		{
 			title: "Support Chat",
 			url: "/support-chat",
 			icon: <ChatIcon activeUrl="/support-chat" />,
@@ -69,7 +85,7 @@ export default function Navigation() {
 	];
 
 	return (
-		<aside className="min-w-[245px] shadow-xl flex flex-col h-screen">
+		<aside className="min-w-[245px] shadow-xl flex flex-col h-full overflow-auto">
 			<Image src="/images/logo.jpg" alt="Logo" width={172} height={80} quality={100} className="ml-9 my-10" priority />
 			<nav className="flex-1">
 				{navItems.map((item, index) => {
