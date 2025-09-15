@@ -3,29 +3,82 @@
 @tailwind utilities;
 
 .main-inner-left-shadow::before {
-  content: '';
-  position: absolute;
-  inset: 0; /* Covers the entire main */
-  right: auto; /* Remove shadow from the right side */
-  width: 10px; /* Adjust width to control the shadow size */
-  box-shadow: inset 10px 0 8px -8px rgba(0, 0, 0, 0.05); /* Inner shadow on the left side */
-  pointer-events: none; /* Prevent the pseudo-element from blocking clicks */
+	content: "";
+	position: absolute;
+	inset: 0; /* Covers the entire main */
+	right: auto; /* Remove shadow from the right side */
+	width: 10px; /* Adjust width to control the shadow size */
+	box-shadow: inset 10px 0 8px -8px rgba(0, 0, 0, 0.05); /* Inner shadow on the left side */
+	pointer-events: none; /* Prevent the pseudo-element from blocking clicks */
 }
 
 * {
-  scrollbar-width: thin;
-  scrollbar-color: #C9C9C9 #f1f1f1; 
+	scrollbar-width: thin;
+	scrollbar-color: #c9c9c9 #f1f1f1;
 }
 
 .content-preview ul {
-  margin: 0;
+	margin: 0;
 }
 
 .content-preview li {
-  margin: 0;
-  padding: 0;
+	margin: 0;
+	padding: 0;
 }
 
 .content-preview blockquote {
-  font-weight: normal;
+	font-weight: normal;
+}
+
+.react-datepicker__header {
+	background-color: #d0cef9 !important;
+}
+
+.react-datepicker__calendar-icon {
+	fill: #b9b5f6; /* Tailwind's blue-600 */
+	stroke: #5f5ac5;
+}
+
+.react-datepicker__day {
+	color: #272727 !important;
+}
+
+.react-datepicker__day:hover {
+	background-color: #e7e6fc !important; /* Tailwind blue-600 */
+}
+
+.react-datepicker__day--selected {
+	background-color: #b9b5f6 !important; /* Tailwind blue-600 */
+}
+
+.react-datepicker__time-list-item {
+	color: #272727 !important;
+}
+
+.react-datepicker__time-list-item:hover {
+	background-color: #e7e6fc !important; /* Tailwind blue-600 */
+}
+
+.react-datepicker__time-list-item--selected {
+	background-color: #b9b5f6 !important; /* Tailwind blue-600 */
+}
+
+.react-datepicker__month-dropdown,
+.react-datepicker__year-dropdown,
+.react-datepicker__time-container {
+	border: none !important;
+	box-shadow: 0 0px 2px rgba(0, 0, 0, 0.2); /* optional, removes drop shadow */
+}
+
+.react-datepicker {
+	border: none !important;
+	box-shadow: 0 0px 2px rgba(0, 0, 0, 0.2) !important; /* if you also want to remove the drop shadow */
+}
+
+.react-datepicker__triangle {
+	display: none !important;
+}
+
+.react-datepicker-popper {
+	z-index: 25 !important; /* higher than modals, etc. */
 }

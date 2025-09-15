@@ -5,15 +5,27 @@ import { Dialog, VisuallyHidden } from "radix-ui";
 import { createContext, type ReactNode, useContext, useEffect, useRef, useState } from "react";
 import Button from "../components/elements/Button";
 
+interface ComponentProps {
+	close: (callback?: () => void) => void;
+	toggleProcessing: () => void;
+}
+
 interface BaseModalOption {
 	allowClose?: boolean;
 	onClose?: () => void;
+	overlay?: boolean;
 }
 
 interface DefaultModalOption {
 	title?: string;
 	type: "default";
-	component: ReactNode;
+	component: ((props: ComponentProps) => ReactNode) | ReactNode;
+}
+
+interface PanelModalOption {
+	title?: string;
+	type: "panel";
+	component: ((props: ComponentProps) => ReactNode) | ReactNode;
 }
 
 interface AlertModalOption {
@@ -28,11 +40,11 @@ interface ConfirmModalOption {
 	title?: string;
 	message: string;
 	closeLabel?: string;
-	onConfirm?: () => void;
+	onConfirm?: (props: ComponentProps) => void;
 	confirmLabel?: string;
 }
 
-type ModalOptions = BaseModalOption & (DefaultModalOption | AlertModalOption | ConfirmModalOption);
+type ModalOptions = BaseModalOption & (DefaultModalOption | AlertModalOption | ConfirmModalOption | PanelModalOption);
 
 interface ModalProvider {
 	isOpen: boolean;
@@ -45,7 +57,10 @@ const ModalContext = createContext<ModalProvider | null>(null);
 
 interface CreateModalStates {
 	isLoading?: boolean;
-	onToggleProcessing?: () => void;
+	isOpen: boolean;
+	onToggleOpen?: () => void;
+	onToggleProcessing: () => void;
+	close: (callback?: () => void) => void;
 }
 
 const createModal = (options: ModalOptions, states: CreateModalStates) => {
@@ -59,7 +74,14 @@ const createModal = (options: ModalOptions, states: CreateModalStates) => {
 					<div className="flex justify-between">
 						{options?.title && <Dialog.Title className="">{options.title}</Dialog.Title>}
 						{options?.allowClose && (
-							<Dialog.Close asChild>
+							<Dialog.Close
+								onClick={(e) => {
+									e.preventDefault();
+
+									if (states.close) states.close();
+								}}
+								asChild
+							>
 								<button type="button" aria-label="Close">
 									<X className="w-6 h-6 cursor-pointer" />
 								</button>
@@ -67,7 +89,50 @@ const createModal = (options: ModalOptions, states: CreateModalStates) => {
 						)}
 					</div>
 
-					{options.component}
+					{typeof options.component === "function"
+						? options.component({ close: states.close, toggleProcessing: states.onToggleProcessing })
+						: options.component}
+				</Dialog.Content>
+			);
+		case "panel":
+			return (
+				<Dialog.Content
+					onInteractOutside={(e) => e.preventDefault()}
+					onOpenAutoFocus={() => {
+						document.body.style.pointerEvents = "auto";
+					}}
+					className="overflow-auto top-0 right-0 h-full w-full max-w-[450px] sm:min-w-[360px] data-[state=open]:animate-slide-in data-[state=closed]:animate-slide-out fixed bg-white p-6 shadow-left z-50 focus:outline-none"
+				>
+					<VisuallyHidden.Root>
+						<Dialog.Description>Modal</Dialog.Description>
+					</VisuallyHidden.Root>
+					<div className="flex justify-between">
+						{options?.title ? (
+							<Dialog.Title className="">{options.title}</Dialog.Title>
+						) : (
+							<VisuallyHidden.Root>
+								<Dialog.Title className="">{options.title}</Dialog.Title>
+							</VisuallyHidden.Root>
+						)}
+						{options?.allowClose && (
+							<Dialog.Close
+								onClick={(e) => {
+									e.preventDefault();
+
+									if (states.close) states.close();
+								}}
+								asChild
+							>
+								<button type="button" aria-label="Close">
+									<X className="w-6 h-6 cursor-pointer" />
+								</button>
+							</Dialog.Close>
+						)}
+					</div>
+
+					{typeof options.component === "function"
+						? options.component({ close: states.close, toggleProcessing: states.onToggleProcessing })
+						: options.component}
 				</Dialog.Content>
 			);
 		case "alert":
@@ -107,7 +172,14 @@ const createModal = (options: ModalOptions, states: CreateModalStates) => {
 							)}
 							<p className="text-neutral-600 mb-[40px]">{options.message}</p>
 							<div className="flex justify-center space-x-3">
-								<Dialog.Close asChild>
+								<Dialog.Close
+									onClick={(e) => {
+										e.preventDefault();
+
+										if (states.close) states.close();
+									}}
+									asChild
+								>
 									<Button
 										label={options?.closeLabel ?? "Cancel"}
 										secondary
@@ -118,15 +190,28 @@ const createModal = (options: ModalOptions, states: CreateModalStates) => {
 								{options?.onConfirm && (
 									<Button
 										label={options?.confirmLabel ?? "Confirm"}
-										onClick={() => {
-											if (states.onToggleProcessing) states.onToggleProcessing();
+										onClick={
+											states.isLoading
+												? undefined
+												: () => {
+														states.onToggleProcessing();
 
-											if (options.onConfirm) {
-												options.onConfirm();
-											}
+														if (options.onConfirm) {
+															const result: any = options.onConfirm({
+																close: states.close,
+																toggleProcessing: states.onToggleProcessing,
+															});
 
-											if (states.onToggleProcessing) states.onToggleProcessing();
-										}}
+															if (result instanceof Promise) {
+																result.then(() => states.onToggleProcessing());
+
+																return;
+															}
+														}
+
+														states.onToggleProcessing();
+													}
+										}
 										className="sm:px-[50px]"
 										disabled={states.isLoading}
 										isProcessing={states.isLoading}
@@ -150,13 +235,26 @@ const ModalProvider = ({ children }: { children: ReactNode }) => {
 	const stackRef = useRef<ModalOptions[]>([]);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 
-	const open = (options: ModalOptions) => {
-		// setStack((prev) => [...prev, createModal({ ...options })]);
+	const setupOpen = (options: ModalOptions) => {
 		setStack((prev) => [...prev, options]);
 
 		setIsLoading(false);
 
 		setIsOpen(true);
+	};
+
+	const open = (options: ModalOptions) => {
+		if (stackRef.current.length > 0) {
+			setIsOpen(false);
+
+			setTimeout(() => {
+				setupOpen(options);
+			}, 200);
+
+			return;
+		}
+
+		setupOpen(options);
 	};
 
 	const close = (open?: boolean) => {
@@ -167,11 +265,16 @@ const ModalProvider = ({ children }: { children: ReactNode }) => {
 					newStack.pop();
 					return newStack;
 				});
+
+				setIsOpen(true);
+
 				return;
 			}
 
 			setStack([]);
 			setIsOpen(open ?? false);
+
+			return;
 		}
 	};
 
@@ -197,10 +300,37 @@ const ModalProvider = ({ children }: { children: ReactNode }) => {
 			{stack[stack.length - 1] && (
 				<Dialog.Root open={isOpen} onOpenChange={close}>
 					<Dialog.Portal>
-						<Dialog.Overlay className="fixed w-full h-full inset-0 bg-black bg-opacity-50 flex justify-center items-center z-30" />
+						{stack[stack.length - 1].overlay ||
+							(stack[stack.length - 1].overlay === undefined && (
+								<Dialog.Overlay className="fixed w-full h-full inset-0 bg-black bg-opacity-50 flex justify-center items-center z-30" />
+							))}
 						{createModal(stack[stack.length - 1], {
 							isLoading,
-							onToggleProcessing: () => setIsLoading(!isLoading),
+							isOpen,
+							onToggleOpen: () => setIsOpen((prev) => !prev),
+							onToggleProcessing: (state?: boolean) =>
+								state !== undefined ? setIsLoading(state) : setIsLoading((prev) => !prev),
+							close: (callback) => {
+								if (callback) {
+									const result: any = callback();
+
+									if (result instanceof Promise) {
+										result.then(() => setIsOpen(false));
+									} else {
+										setIsOpen(false);
+									}
+								}
+
+								if (stackRef.current.length > 1) {
+									close();
+								} else {
+									setIsOpen(false);
+
+									setTimeout(() => {
+										close();
+									}, 200);
+								}
+							},
 						})}
 					</Dialog.Portal>
 				</Dialog.Root>

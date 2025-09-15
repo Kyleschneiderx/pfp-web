@@ -29,3 +29,9 @@ export const CREATE_EDUCATION_DESCRIPTION =
 	"Compose an education on health or exercise below. Share valuable insights and information to educate your readers effectively.";
 
 export const FIRESTORE_LIMIT = 10;
+
+export const DAYS_OF_WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+export const PAGE_ITEMS = 15;
+
+export const DEFAULT_LIST = { data: [], page: 1, page_items: PAGE_ITEMS, max_page: 2 };

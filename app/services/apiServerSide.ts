@@ -14,7 +14,6 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 const MAX_RETRIES = 3;
 
 export const apiServerSide = async <T>({ url, method, body, params, retryCount = MAX_RETRIES }: Props): Promise<T> => {
-	console.log(url);
 	const cookieStore = cookies();
 	const token = cookieStore.get("token")?.value; // Server-side cookies
 
