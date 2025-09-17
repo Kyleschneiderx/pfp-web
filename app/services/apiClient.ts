@@ -10,7 +10,6 @@ interface Props {
 	retryCount?: number;
 	mobileToken?: string;
 	responseType?: ResponseType;
-	params?: Record<string, any>;
 }
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
