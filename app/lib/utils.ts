@@ -50,6 +50,15 @@ export const formatDateToLocal = (dateStr: string | Date) => {
 	return formatter.format(date);
 };
 
+export const formatDatetime = (date: string | Date, formatString = "yyyy-MM-dd'T'HH:mm:ss'Z'") => {
+	return format(date, formatString);
+};
+
+export const dateToUtc = (date: string | Date) => {
+	const newDate = typeof date === "string" ? new Date(date) : date;
+	return new Date(newDate.getTime() - newDate.getTimezoneOffset() * 60000);
+};
+
 export const validateEmail = (email: string): boolean => {
 	const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 	return re.test(email);
