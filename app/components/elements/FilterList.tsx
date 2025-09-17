@@ -17,6 +17,7 @@ type FilterListProps = {
 	onSearch?: (search: string) => void;
 	searchWrapperClassName?: string;
 	searchPlaceholder?: string;
+	searchValue?: string;
 	className?: string;
 	sort?: Sort;
 	sortWrapperClassName?: string;
@@ -28,6 +29,7 @@ export default function FilterList({
 	onSearch,
 	searchPlaceholder,
 	searchWrapperClassName,
+	searchValue,
 	sort,
 	filter,
 	className,
@@ -38,6 +40,7 @@ export default function FilterList({
 		<div className={clsx("flex flex-row items-center gap-x-2", className)}>
 			<SearchCmp
 				placeholder={searchPlaceholder ?? "Search"}
+				value={searchValue}
 				onChange={onSearch ? onSearch : undefined}
 				className={clsx(searchWrapperClassName)}
 			/>

@@ -9,9 +9,10 @@ interface Prop {
 	placeholder: string;
 	className?: string;
 	onChange?: (text: string) => void;
+	value?: string;
 }
 
-export default function SearchCmp({ placeholder, className, onChange }: Prop) {
+export default function SearchCmp({ placeholder, className, onChange, value }: Prop) {
 	const searchParams = useSearchParams();
 	const pathname = usePathname();
 	const { replace } = useRouter();
@@ -39,7 +40,7 @@ export default function SearchCmp({ placeholder, className, onChange }: Prop) {
 				placeholder={placeholder}
 				icon="Search"
 				onChange={(e) => handleSearch(e.target.value)}
-				defaultValue={searchParams.get("name")?.toString()}
+				defaultValue={value ?? searchParams.get("name")?.toString()}
 			/>
 		</div>
 	);

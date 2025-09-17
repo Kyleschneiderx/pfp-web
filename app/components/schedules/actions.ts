@@ -10,7 +10,7 @@ export const getAvailabilityList = async (params: AvailabilitySearchQuery) => {
 	} catch (error) {
 		const apiError = error as ErrorModel;
 
-		throw new Error(apiError.msg || "Failed to load availabilities");
+		console.error(apiError.msg);
 	}
 };
 
@@ -20,6 +20,6 @@ export const getScheduleList = async (params: ScheduleSearchQuery) => {
 	} catch (error) {
 		const apiError = error as ErrorModel;
 
-		throw new Error(apiError.msg || "Failed to load schedules");
+		console.error(apiError.msg);
 	}
 };

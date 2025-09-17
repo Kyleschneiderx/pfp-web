@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import { Dialog, VisuallyHidden } from "radix-ui";
 import { createContext, type ReactNode, useContext, useEffect, useRef, useState } from "react";
 import Button from "../components/elements/Button";
+import clsx from "clsx";
 
 interface ComponentProps {
 	close: (callback?: () => void) => void;
@@ -14,6 +15,7 @@ interface BaseModalOption {
 	allowClose?: boolean;
 	onClose?: () => void;
 	overlay?: boolean;
+	className?: string;
 }
 
 interface DefaultModalOption {
@@ -67,7 +69,12 @@ const createModal = (options: ModalOptions, states: CreateModalStates) => {
 	switch (options.type) {
 		case "default":
 			return (
-				<Dialog.Content className="top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] fixed  mx-auto bg-white p-6 rounded-2xl shadow-lg z-50 focus:outline-none">
+				<Dialog.Content
+					className={clsx(
+						"top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] fixed  mx-auto bg-white p-6 rounded-2xl shadow-lg z-50 focus:outline-none",
+						options?.className,
+					)}
+				>
 					<VisuallyHidden.Root>
 						<Dialog.Description>Modal</Dialog.Description>
 					</VisuallyHidden.Root>
@@ -101,7 +108,10 @@ const createModal = (options: ModalOptions, states: CreateModalStates) => {
 					onOpenAutoFocus={() => {
 						document.body.style.pointerEvents = "auto";
 					}}
-					className="overflow-auto top-0 right-0 h-full w-full max-w-[450px] sm:min-w-[360px] data-[state=open]:animate-slide-in data-[state=closed]:animate-slide-out fixed bg-white p-6 shadow-left z-50 focus:outline-none"
+					className={clsx(
+						"overflow-auto top-0 right-0 h-full w-full max-w-[450px] sm:min-w-[360px] data-[state=open]:animate-slide-in data-[state=closed]:animate-slide-out fixed bg-white p-6 shadow-left z-50 focus:outline-none",
+						options?.className,
+					)}
 				>
 					<VisuallyHidden.Root>
 						<Dialog.Description>Modal</Dialog.Description>
@@ -137,7 +147,12 @@ const createModal = (options: ModalOptions, states: CreateModalStates) => {
 			);
 		case "alert":
 			return (
-				<Dialog.Content className="top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] fixed  mx-auto bg-white p-6 rounded-2xl shadow-lg z-50 focus:outline-none">
+				<Dialog.Content
+					className={clsx(
+						"top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] fixed  mx-auto bg-white p-6 rounded-2xl shadow-lg z-50 focus:outline-none",
+						options?.className,
+					)}
+				>
 					<VisuallyHidden.Root>
 						<Dialog.Description>Modal</Dialog.Description>
 					</VisuallyHidden.Root>
@@ -161,7 +176,12 @@ const createModal = (options: ModalOptions, states: CreateModalStates) => {
 			);
 		case "confirm":
 			return (
-				<Dialog.Content className="top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] fixed  mx-auto bg-white p-6 rounded-2xl shadow-lg z-50 focus:outline-none">
+				<Dialog.Content
+					className={clsx(
+						"top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] fixed  mx-auto bg-white p-6 rounded-2xl shadow-lg z-50 focus:outline-none",
+						options?.className,
+					)}
+				>
 					<VisuallyHidden.Root>
 						<Dialog.Description>Modal</Dialog.Description>
 					</VisuallyHidden.Root>

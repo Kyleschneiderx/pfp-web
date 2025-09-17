@@ -35,3 +35,5 @@ export const DAYS_OF_WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 export const PAGE_ITEMS = 15;
 
 export const DEFAULT_LIST = { data: [], page: 1, page_items: PAGE_ITEMS, max_page: 2 };
+
+export const DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
