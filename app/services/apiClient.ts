@@ -24,7 +24,6 @@ export const apiClient = async <T>({
 	retryCount = MAX_RETRIES,
 	mobileToken,
 	responseType,
-	params,
 }: Props): Promise<T> => {
 	const token = Cookies.get("token");
 
@@ -40,7 +39,6 @@ export const apiClient = async <T>({
 		data: body,
 		params,
 		responseType,
-		params,
 	};
 
 	const executeRequest = async (retries: number): Promise<AxiosResponse<T>> => {
