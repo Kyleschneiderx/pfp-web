@@ -14,6 +14,7 @@ import PFPlanIcon from "./icons/pfplan_icon";
 import WorkoutIcon from "./icons/workout_icon";
 import ChatIcon from "./icons/chat_icon";
 import SettingsIcon from "./icons/settings";
+import TelehealthIcon from "./icons/telehealth_icon";
 
 export default function NavigationMobile() {
 	const logout = useLogout();
@@ -51,6 +52,21 @@ export default function NavigationMobile() {
 			icon: <EducationIcon activeUrl="/education" />,
 		},
 		{
+			title: "Telehealth",
+			url: "/telehealth",
+			icon: <TelehealthIcon activeUrl="/telehealth" />,
+			subItems: [
+				{
+					title: "Schedules",
+					url: "/telehealth/schedules",
+				},
+				{
+					title: "Meetings",
+					url: "/telehealth/meetings",
+				},
+			],
+		},
+		{
 			title: "Support Chat",
 			url: "/support-chat",
 			icon: <ChatIcon activeUrl="/support-chat" />,
@@ -74,11 +90,11 @@ export default function NavigationMobile() {
 		<>
 			<div
 				className={clsx(
-					"absolute h-full sm:hidden z-50 left-0 top-0 transform transition-transform duration-300 ease-in-out",
+					"absolute h-screen md:hidden z-50 left-0 top-0 transform transition-transform duration-300 ease-in-out",
 					isOpen ? "translate-x-0" : "-translate-x-full",
 				)}
 			>
-				<aside className="w-[250px] shadow-xl flex flex-col bg-white pt-8 h-full z-50">
+				<aside className="w-[250px] shadow-xl flex flex-col bg-white py-8 h-full z-50 overflow-y-auto">
 					<nav className="flex-grow">
 						{navItems.map((item, index) => {
 							return (
@@ -148,7 +164,13 @@ export default function NavigationMobile() {
 				</aside>
 			</div>
 
-			{isOpen && <div className="fixed inset-0 top-[80px] bg-black opacity-50 z-40" onClick={() => setIsOpen(false)} />}
+			{isOpen && (
+				<div
+					className="absolute h-screen inset-0 top-0 bg-black opacity-50 z-40"
+					onKeyDown={undefined}
+					onClick={() => setIsOpen(false)}
+				/>
+			)}
 		</>
 	);
 }

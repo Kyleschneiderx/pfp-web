@@ -10,6 +10,7 @@ interface Props {
 	retryCount?: number;
 	mobileToken?: string;
 	responseType?: ResponseType;
+	params?: Record<string, any>;
 }
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
@@ -23,6 +24,7 @@ export const apiClient = async <T>({
 	retryCount = MAX_RETRIES,
 	mobileToken,
 	responseType,
+	params,
 }: Props): Promise<T> => {
 	const token = Cookies.get("token");
 
@@ -38,6 +40,7 @@ export const apiClient = async <T>({
 		data: body,
 		params,
 		responseType,
+		params,
 	};
 
 	const executeRequest = async (retries: number): Promise<AxiosResponse<T>> => {

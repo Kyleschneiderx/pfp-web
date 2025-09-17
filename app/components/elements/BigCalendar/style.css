@@ -1,0 +1,71 @@
+.rbc-calendar  {
+	@apply text-neutral-900 border-neutral-900;
+}
+
+.rbc-toolbar .rbc-btn-group button {
+  @apply bg-primary-500 text-white border-primary-600 border-none border-separate hover:bg-primary-500/90
+}
+
+.rbc-toolbar .rbc-btn-group button:active, .rbc-toolbar .rbc-btn-group button:focus  {
+  @apply text-white bg-primary-600
+}
+
+.rbc-toolbar .rbc-btn-group .rbc-active {
+  @apply hover:text-white
+}
+
+.rbc-day-slot .rbc-event {
+  @apply !w-full !left-0 !mt-1
+}
+
+.custom-calendar-day .rbc-event {
+	@apply bg-primary-500 !border-primary-600/95 !p-3 flex flex-row shadow-sm outline-none z-10 hover:z-50 transition-transform duration-200 ease-in-out hover:scale-[1.01] hover:drop-shadow-center;
+}
+
+.custom-calendar-month .rbc-event {
+	@apply bg-primary-500 !border-primary-600/95 !p-1 flex flex-row shadow-sm outline-none z-10 hover:z-50 transition-transform duration-200 ease-in-out hover:scale-[1.01] hover:drop-shadow-center;
+}
+
+.rbc-event:focus {
+  @apply !outline-none;
+}
+
+.rbc-event {
+  @apply !hidden md:!flex
+}
+
+.rbc-event-container {
+  @apply !flex !flex-col
+}
+
+.rbc-show-more {
+  @apply !bg-primary-500 !text-white rounded-full py-1 px-2 md:!bg-transparent md:!text-neutral-700 md:p-0 mx-auto md:mx-0;
+}
+
+.rbc-month-view .rbc-today, .custom-calendar-week .rbc-time-view .rbc-today {
+	@apply bg-primary-100;
+}
+
+.custom-calendar-day .rbc-time-view .rbc-today{
+  @apply bg-neutral-50
+}
+
+.rbc-current-time-indicator {
+  @apply bg-primary-800/50
+}
+
+.rbc-button-link.rbc-show-more {
+	@apply text-neutral-900/80 font-semibold bg-transparent;
+}
+
+.rbc-overlay {
+  @apply z-[999] !p-3 overflow-y-auto max-h-[250px] rounded-xl
+}
+
+.rbc-overlay .rbc-overlay-header {
+  @apply !p-3 mb-3
+}
+
+.rbc-overlay .rbc-event {
+  @apply bg-primary-500 my-1 p-1
+}

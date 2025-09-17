@@ -6,41 +6,42 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
 
 interface Prop {
-  placeholder: string;
-  className?: string;
-  onChange?: (text: string) => void;
+	placeholder: string;
+	className?: string;
+	onChange?: (text: string) => void;
+	value?: string;
 }
 
-export default function SearchCmp({ placeholder, className, onChange }: Prop) {
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
-  const { replace } = useRouter();
+export default function SearchCmp({ placeholder, className, onChange, value }: Prop) {
+	const searchParams = useSearchParams();
+	const pathname = usePathname();
+	const { replace } = useRouter();
 
-  const handleSearch = useDebouncedCallback((term: string) => {
-    if (onChange) {
-      onChange(term);
-    } else {
-      const params = new URLSearchParams(searchParams);
-      if (term) {
-        params.set("name", term);
-      } else {
-        params.delete("name");
-      }
-      replace(`${pathname}?${params.toString()}`);
-    }
-  }, 300);
+	const handleSearch = useDebouncedCallback((term: string) => {
+		if (onChange) {
+			onChange(term);
+		} else {
+			const params = new URLSearchParams(searchParams);
+			if (term) {
+				params.set("name", term);
+			} else {
+				params.delete("name");
+			}
+			replace(`${pathname}?${params.toString()}`);
+		}
+	}, 300);
 
-  return (
-    <div className={clsx("w-[540px]", className)}>
-      <Input
-        id="search"
-        type="text"
-        name="search"
-        placeholder={placeholder}
-        icon="Search"
-        onChange={(e) => handleSearch(e.target.value)}
-        defaultValue={searchParams.get("name")?.toString()}
-      />
-    </div>
-  );
+	return (
+		<div className={clsx("w-[540px]", className)}>
+			<Input
+				id="search"
+				type="text"
+				name="search"
+				placeholder={placeholder}
+				icon="Search"
+				onChange={(e) => handleSearch(e.target.value)}
+				defaultValue={value ?? searchParams.get("name")?.toString()}
+			/>
+		</div>
+	);
 }
