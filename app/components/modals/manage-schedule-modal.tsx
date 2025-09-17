@@ -135,7 +135,7 @@ export default function ManageScheduleModal({
 												name: e,
 											});
 
-											return result.data.map((d) => ({ label: d.name, value: d.id! }));
+											return result?.data.map((d) => ({ label: d.name, value: d.id! })) ?? [];
 										}}
 										isClearable
 										onChange={(e) => {

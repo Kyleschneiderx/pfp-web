@@ -10,7 +10,7 @@ import { useModal } from "@/app/contexts/ModalContext";
 import Button from "../elements/Button";
 import IconAddButton from "../elements/mobile/IconAddButton";
 import type { List, PaginationModel } from "@/app/models/global_model";
-import { DAYS_OF_WEEK, PAGE_ITEMS } from "@/app/lib/constants";
+import { DAYS_OF_WEEK, DEFAULT_LIST, PAGE_ITEMS } from "@/app/lib/constants";
 import { getScheduleList } from "./actions";
 import clsx from "clsx";
 import { useDebouncedCallback } from "use-debounce";
@@ -43,11 +43,12 @@ export default function ScheduleList({ scheduleList }: { scheduleList: List<Sche
 	const { showSnackBar } = useSnackBar();
 
 	const getList = async (filter?: ScheduleSearchQuery) => {
-		const { data: list, ...metadata } = await getScheduleList({
-			...filter,
-			page: "1",
-			page_items: `${PAGE_ITEMS}`,
-		});
+		const { data: list, ...metadata } =
+			(await getScheduleList({
+				...filter,
+				page: "1",
+				page_items: `${PAGE_ITEMS}`,
+			})) ?? DEFAULT_LIST;
 
 		setSchedules(list);
 		setPagination(metadata);
@@ -55,10 +56,11 @@ export default function ScheduleList({ scheduleList }: { scheduleList: List<Sche
 
 	const loadMore = useCallback(async () => {
 		try {
-			const response = await getScheduleList({
-				page: String(Number(pagination.page) + 1),
-				page_items: `${PAGE_ITEMS}`,
-			});
+			const response =
+				(await getScheduleList({
+					page: String(Number(pagination.page) + 1),
+					page_items: `${PAGE_ITEMS}`,
+				})) ?? DEFAULT_LIST;
 
 			const { data, ...metadata } = response;
 

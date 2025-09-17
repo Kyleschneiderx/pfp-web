@@ -46,8 +46,8 @@ export default async function Page({
 			}),
 		]);
 
-		availabilities = settlement[0].status === "fulfilled" ? settlement[0].value : availabilities;
-		schedules = settlement[1].status === "fulfilled" ? settlement[1].value : schedules;
+		availabilities = settlement[0].status === "fulfilled" ? (settlement[0].value ?? DEFAULT_LIST) : availabilities;
+		schedules = settlement[1].status === "fulfilled" ? (settlement[1].value ?? DEFAULT_LIST) : schedules;
 	} catch (error) {
 		errorMessage = (error as Error).message;
 	}
