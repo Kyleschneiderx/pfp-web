@@ -13,7 +13,7 @@ import ManageAvailabilityModal from "../modals/manage-availability-modal";
 import type { Availability } from "@/app/models/availabilities";
 import type { List, PaginationModel } from "@/app/models/global_model";
 import { deleteAvailability, saveAvailability } from "@/app/services/client_side/availabilities";
-import { DAYS_OF_WEEK, PAGE_ITEMS } from "@/app/lib/constants";
+import { DAYS_OF_WEEK, DEFAULT_LIST, PAGE_ITEMS } from "@/app/lib/constants";
 import { getAvailabilityList } from "./actions";
 import clsx from "clsx";
 import type { AvailabilitySearchQuery } from "@/app/services/server_side/availabilities";
@@ -39,11 +39,12 @@ export default function AvailabilityList({ availabilityList }: { availabilityLis
 	const { showSnackBar } = useSnackBar();
 
 	const getList = async (filter?: AvailabilitySearchQuery) => {
-		const { data: list, ...metadata } = await getAvailabilityList({
-			...filter,
-			page: "1",
-			page_items: `${PAGE_ITEMS}`,
-		});
+		const { data: list, ...metadata } =
+			(await getAvailabilityList({
+				...filter,
+				page: "1",
+				page_items: `${PAGE_ITEMS}`,
+			})) ?? DEFAULT_LIST;
 
 		setAvailabilities(list);
 		setPagination(metadata);
@@ -51,10 +52,11 @@ export default function AvailabilityList({ availabilityList }: { availabilityLis
 
 	const loadMore = useCallback(async () => {
 		try {
-			const response = await getAvailabilityList({
-				page: String(Number(pagination.page) + 1),
-				page_items: `${PAGE_ITEMS}`,
-			});
+			const response =
+				(await getAvailabilityList({
+					page: String(Number(pagination.page) + 1),
+					page_items: `${PAGE_ITEMS}`,
+				})) ?? DEFAULT_LIST;
 
 			const { data, ...metadata } = response;
 
