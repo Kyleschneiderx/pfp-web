@@ -1,13 +1,17 @@
-import type { Availability, AvailabilityRule } from "./availabilities";
+import type { PatientModel } from "./patient_model";
+
+export interface Availability {
+	day: number;
+	starts_at: string | Date | null;
+	ends_at: string | Date | null;
+}
 
 export interface Schedule {
 	id?: number;
-	name: string;
-	description: string;
-	slug?: string;
-	invite_url?: string;
+	user_id?: number;
+	user?: PatientModel;
+	description?: string;
+	timezone: string;
 	duration: number;
-	availability_id: number | null;
-	availability?: Availability;
-	availability_metadata: AvailabilityRule[];
+	availabilities: Availability[];
 }

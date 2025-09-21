@@ -14,8 +14,8 @@ import clsx from "clsx";
 import { useDebouncedCallback } from "use-debounce";
 import dynamic from "next/dynamic";
 import Badge from "../elements/Badge";
-import { endOfDay, endOfMonth, formatDuration, intervalToDuration, startOfDay, startOfMonth } from "date-fns";
-import { CalendarIcon, ListIcon, MailIcon, TextQuoteIcon, UserIcon } from "lucide-react";
+import { endOfDay, endOfMonth, format, formatDuration, intervalToDuration, startOfDay, startOfMonth } from "date-fns";
+import { CalendarIcon, ClockIcon, ListIcon, MailIcon, TextQuoteIcon, UserIcon } from "lucide-react";
 import type { Meeting } from "@/app/models/meetings";
 import type { MeetingsSearchQuery } from "@/app/services/server_side/meetings";
 import BigCalendar from "../elements/BigCalendar";
@@ -33,7 +33,7 @@ const CalendarMonthEvent = ({ event, title }: EventProps) => {
 			<span className="text-xs">{title}</span>
 			<div className="flex flex-row space-x-1 items-center">
 				<UserIcon className="w-3 h-3" />
-				<span className="text-xs text-ellipsis">{event.resource.user.email}</span>
+				<span className="text-xs text-ellipsis">{event.resource.user.user_profile.name}</span>
 			</div>
 		</div>
 	);
@@ -226,7 +226,11 @@ export default function MeetingList({ meetingList }: { meetingList: List<Meeting
 						</Button>
 					</div>
 				</div>
-				{view === "list" ? (
+				{!meetings.length && view === "list" ? (
+					<div className="col-span-12 text-center">
+						<p className="text-center mx-auto mt-[300px]">No records found.</p>
+					</div>
+				) : view === "list" ? (
 					<div className="grid grid-cols-12 col-span-12 gap-5">
 						{meetings?.map((meeting) => {
 							return (
@@ -241,19 +245,25 @@ export default function MeetingList({ meetingList }: { meetingList: List<Meeting
 									>
 										<div className="flex flex-col mr-auto mb-1 text-neutral-900">
 											<div className="flex flex-row items-center space-x-3">
-												<p className="text-lg font-semibold">{meeting.schedule?.name}</p>
+												<p className="text-lg font-semibold">{meeting.user?.user_profile?.name ?? "Test"}</p>
 												<Badge
 													label={`${formatDuration(intervalToDuration({ start: 0, end: meeting.duration * 60 * 1000 }))}`}
 													className="text-white !bg-primary-500 !py-1"
 												/>
 											</div>
-											<div className="flex flex-col mt-3 space-y-1">
+											<div className="flex flex-col mt-3 space-y-1 text-sm">
 												<div className="flex flex-row items-center space-x-3">
-													<UserIcon className="w-4 h-4 flex-shrink-0" />
-													<p className="text-medium font-semibold">{meeting.user?.user_profile?.name}</p>
+													<ClockIcon className="w-5 h-5 flex-shrink-0" />
+													<div className="flex flex-row items-center space-x-1">
+														<p>{format(new Date(meeting?.starts_at ?? ""), "EEEE, MMMM d")}</p>
+														<p>{"•"}</p>
+														<p>{format(new Date(meeting?.starts_at ?? ""), "hh:mm aa")}</p>
+														<p>{"-"}</p>
+														<p>{format(new Date(meeting?.ends_at ?? ""), "hh:mm aa")}</p>
+													</div>
 												</div>
 												<div className="flex flex-row items-center space-x-3">
-													<MailIcon className="w-4 h-4 flex-shrink-0" />
+													<MailIcon className="w-5 h-5 flex-shrink-0" />
 													<p className="text-sm ">{meeting.user?.email}</p>
 												</div>
 												<div className="flex flex-row space-x-3 items-center">
@@ -280,7 +290,7 @@ export default function MeetingList({ meetingList }: { meetingList: List<Meeting
 							events={meetings.map((meeting) => ({
 								start: new Date(meeting.starts_at),
 								end: new Date(meeting.ends_at),
-								title: meeting.schedule?.name ?? "",
+								title: meeting.schedule?.user?.user_profile?.name ?? "",
 								resource: meeting,
 							}))}
 							components={{
