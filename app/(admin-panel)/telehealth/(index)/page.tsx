@@ -10,7 +10,7 @@ export default async function Page({
 }: {
 	searchParams?: MeetingsSearchQuery;
 }) {
-	let meetings: List<Meeting> = DEFAULT_LIST;
+	let meetings: List<Meeting> | undefined = DEFAULT_LIST;
 	let errorMessage = "";
 
 	const displayNoRecord = (msg: string) => {
@@ -28,9 +28,5 @@ export default async function Page({
 		errorMessage = (error as Error).message;
 	}
 
-	return (
-		<>
-			<div>{errorMessage ? displayNoRecord(errorMessage) : <MeetingList meetingList={meetings} />}</div>
-		</>
-	);
+	return <MeetingList meetingList={meetings} />;
 }

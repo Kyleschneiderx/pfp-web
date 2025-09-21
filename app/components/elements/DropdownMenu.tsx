@@ -17,12 +17,7 @@ export const DropdownMenuContent = forwardRef<
 		<>
 			<DropdownMenuPrimitive.Content
 				ref={ref}
-				className={clsx(
-					"drop-shadow-center bg-white text-neutral-900 p-1 z-10",
-					"bottom-0 left-0 right-0 translate-y-[40%] w-full rounded-md data-[state=open]:animate-slide-up  data-[state=closed]:animate-slide-down",
-					"sm:relative sm:inset-auto sm:translate-y-0 sm:min-w-[150px] sm:rounded-md sm:data-[state=open]:animate-none  sm:data-[state=closed]:animate-none",
-					className,
-				)}
+				className={clsx("drop-shadow-center bg-white text-neutral-900 p-1 z-10 min-w-[150px] rounded-md", className)}
 				{...props}
 			>
 				{children}

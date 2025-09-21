@@ -25,7 +25,7 @@ export default function CalendarEventModal({
 		<div className="flex-1 overflow-y-auto p-6 w-full h-full sm:max-w-[360px]">
 			<div className="flex flex-row items-center text-neutral-900">
 				<Image src={ArrowLeft} alt="Arrow left" className="cursor-pointer flex-shrink-0" onClick={() => onClose()} />
-				<p className="text-2xl font-semibold ml-2">{meeting?.schedule?.name}</p>
+				<p className="text-2xl font-semibold ml-2">{meeting?.user?.user_profile.name}</p>
 			</div>
 			<div className="space-y-3 mt-12 text-neutral-900">
 				<div className="flex flex-row space-x-5">
@@ -52,8 +52,7 @@ export default function CalendarEventModal({
 						<TextQuoteIcon className="w-5 h-5 flex-shrink-0" />
 						<p>{meeting?.schedule?.description}</p>
 					</div>
-					<div className="flex flex-row break-all items-center space-x-5">
-						<VideoIcon className="w-5 h-5 flex-shrink-0" />
+					{/* <div className="flex flex-row w-full justify-center break-all items-center space-x-5">
 						<Link
 							href={`/patients/${meeting?.user?.id}/edit`}
 							className="hover:text-neutral-700 text-blue-500"
@@ -61,7 +60,8 @@ export default function CalendarEventModal({
 						>
 							https://app.pelvicfloorpro.com/meetings/123-456-789/room
 						</Link>
-					</div>
+					</div> */}
+					<Button label="Visit" className="w-full !mt-10" />
 				</div>
 
 				{/* <div className="flex flex-col-reverse sm:flex-row gap-y-3">

@@ -78,8 +78,8 @@ const createModal = (options: ModalOptions, states: CreateModalStates) => {
 					<VisuallyHidden.Root>
 						<Dialog.Description>Modal</Dialog.Description>
 					</VisuallyHidden.Root>
-					<div className="flex justify-between">
-						{options?.title && <Dialog.Title className="">{options.title}</Dialog.Title>}
+					<div className="flex flex-row justify-end items-center py-3">
+						{options?.title && <Dialog.Title className="mr-auto font-semibold text-xl">{options.title}</Dialog.Title>}
 						{options?.allowClose && (
 							<Dialog.Close
 								onClick={(e) => {

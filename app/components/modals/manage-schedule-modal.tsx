@@ -3,89 +3,113 @@ import { useModal } from "@/app/contexts/ModalContext";
 import Input from "../elements/Input";
 import { PlusIcon, XIcon } from "lucide-react";
 import SelectCmp from "../elements/SelectCmp";
-import Image from "next/image";
-import ArrowLeft from "@/public/svg/arrow-left.svg";
-import type { Availability, AvailabilityRule } from "@/app/models/availabilities";
 import { Controller, type ControllerRenderProps, useController, useForm } from "react-hook-form";
 import InputCalendar from "../elements/InputCalendar";
 import { DAYS_OF_WEEK } from "@/app/lib/constants";
-import { format, set } from "date-fns";
 import { timeToDate } from "@/app/lib/utils";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
-import type { Schedule } from "@/app/models/schedules";
+import type { Availability, Schedule } from "@/app/models/schedules";
+import type { ErrorModel } from "@/app/models/error_model";
+import { useSnackBar } from "@/app/contexts/SnackBarContext";
+import { getAccountSchedule, saveSchedule } from "@/app/services/client_side/schedules";
+import useAuth from "@/app/hooks/useAuth";
 import Textarea from "../elements/Textarea";
-import AsyncSelectCmp from "../elements/AsyncSelectCmp";
-import { getAvailabilityList } from "../schedules/actions";
 
-export default function ManageScheduleModal({
-	schedule,
-	onClose,
-	onSubmit,
-}: { schedule?: Schedule; onClose: (callback?: () => void) => void; onSubmit: (data: Schedule) => void }) {
-	const defaultValues = useMemo(
-		() => ({
-			id: schedule?.id,
-			name: schedule?.name || "",
-			description: schedule?.description || "",
-			duration: schedule?.duration || 0,
-			availability_id: schedule?.availability_id || null,
-			availability: schedule?.availability,
-			availability_metadata:
-				schedule?.availability_metadata ||
-				DAYS_OF_WEEK.map((day, index) => ({
-					day: index + 1,
-					starts_at: [5, 6].includes(index) ? null : "09:00:00",
-					ends_at: [5, 6].includes(index) ? null : "17:00:00",
-				})),
-		}),
-		[schedule],
-	);
+export default function ManageScheduleModal({ onClose }: { onClose: (callback?: () => void) => void }) {
+	const user = useAuth();
+	const modal = useModal();
+	const { showSnackBar } = useSnackBar();
+	const [schedule, setSchedule] = useState<Schedule>();
+	const timezones = Intl.supportedValuesOf("timeZone");
 
-	const { handleSubmit, control, watch } = useForm({
+	const clientTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+	const defaultValues = {
+		id: schedule?.id,
+		user_id: schedule?.user_id,
+		timezone: schedule?.timezone || clientTimeZone || "",
+		description: schedule?.description || "",
+		duration: schedule?.duration || 0,
+		availabilities:
+			schedule?.availabilities ||
+			DAYS_OF_WEEK.map((day, index) => ({
+				day: index + 1,
+				starts_at: [5, 6].includes(index) ? null : "09:00:00",
+				ends_at: [5, 6].includes(index) ? null : "17:00:00",
+			})),
+	};
+
+	const { handleSubmit, control, reset } = useForm({
 		defaultValues: defaultValues,
 	});
 
-	const formData = watch();
+	useEffect(() => {
+		const getSchedule = async () => {
+			const schedule = await getAccountSchedule(user.id);
 
-	const handleRemoveRule = (
-		field: ControllerRenderProps<typeof defaultValues, "availability_metadata">,
-		index: number,
-	) => {
+			reset({
+				id: schedule?.id,
+				user_id: schedule?.user_id,
+				timezone: schedule?.timezone || clientTimeZone || "",
+				description: schedule?.description || "",
+				duration: schedule?.duration || 0,
+				availabilities: schedule?.availabilities,
+			});
+
+			setSchedule(schedule);
+		};
+
+		getSchedule();
+	}, [reset]);
+
+	const handleRemoveRule = (field: ControllerRenderProps<typeof defaultValues, "availabilities">, index: number) => {
 		field.onChange(field.value.map((rule, i) => (i === index ? { ...rule, starts_at: null, ends_at: null } : rule)));
 	};
 
 	const handleAddRule = (
-		field: ControllerRenderProps<typeof defaultValues, "availability_metadata">,
+		field: ControllerRenderProps<typeof defaultValues, "availabilities">,
 		index: number,
-		rule: AvailabilityRule,
+		rule: Availability,
 	) => {
 		field.onChange(field.value.map((r, i) => (i === index ? rule : r)));
 	};
 
+	const handleSaveSchedule = (data: Schedule) => {
+		modal.open({
+			type: "confirm",
+			title: "Save Schedule",
+			message: "Are you sure you want to save this schedule?",
+			onConfirm: async ({ toggleProcessing }) => {
+				try {
+					const response = await saveSchedule({
+						method: data?.id ? "PUT" : "POST",
+						id: data?.id,
+						body: data,
+					});
+
+					modal.closeAll();
+				} catch (error) {
+					const err = error as ErrorModel;
+
+					showSnackBar({
+						message: err.msg,
+						success: false,
+					});
+				}
+			},
+		});
+	};
+
 	return (
-		<form onSubmit={handleSubmit(onSubmit)} className="h-full">
-			<div className="flex-1 overflow-y-auto h-full px-3 w-full sm:max-w-[400px]">
-				<div className="flex flex-row items-center text-neutral-900">
-					<Image src={ArrowLeft} alt="Arrow left" className="cursor-pointer" onClick={() => onClose()} />
-					<p className="text-2xl font-semibold ml-2">{schedule ? "Update" : "Create"} Schedule</p>
-				</div>
-				<div className="space-y-5 mt-5 h-full text-neutral-900">
+		<form onSubmit={handleSubmit(handleSaveSchedule)} className="">
+			<div className="flex-1 py-1 w-full sm:max-w-[500px]">
+				<div className="space-y-5 mt-5 max-h-[50%] min-h-[50%]  text-neutral-900">
 					<p>
 						Easily set and organize availability schedules by creating detailed time slots, ensuring users can
 						seamlessly book meetings.
 					</p>
 					<div className="flex flex-col space-y-3">
-						<div className="flex flex-col space-y-1">
-							<span className="font-semibold">Name</span>
-							<Controller
-								name="name"
-								control={control}
-								render={({ field }) => (
-									<Input type="text" placeholder="Name" value={field.value} onChange={field.onChange} />
-								)}
-							/>
-						</div>
 						<div className="flex flex-col space-y-1">
 							<span className="font-semibold">Description</span>
 							<Controller
@@ -93,11 +117,30 @@ export default function ManageScheduleModal({
 								control={control}
 								render={({ field }) => (
 									<Textarea
+										className="resize-none !h-auto"
 										onChange={field.onChange}
 										value={field.value}
+										rows={5}
 										placeholder="Description"
-										rows={8}
-										className="!mb-0 !h-auto resize-none"
+									/>
+								)}
+							/>
+						</div>
+						<div className="flex flex-col space-y-1">
+							<span className="font-semibold">Timezone</span>
+							<Controller
+								name="timezone"
+								control={control}
+								render={({ field }) => (
+									<SelectCmp
+										defaultValue={{ label: field.value, value: field.value }}
+										value={{
+											label: field.value,
+											value: field.value,
+										}}
+										placeholder="Select timezone"
+										options={timezones?.map((timezone) => ({ label: timezone, value: timezone }))}
+										onChange={field.onChange}
 									/>
 								)}
 							/>
@@ -112,48 +155,11 @@ export default function ManageScheduleModal({
 								)}
 							/>
 						</div>
-
-						<div className="flex flex-col space-y-1">
-							<span className="font-semibold">Availability</span>
-							<Controller
-								name="availability_id"
-								control={control}
-								render={({ field }) => (
-									<AsyncSelectCmp
-										defaultValue={{
-											label: defaultValues.availability?.name ?? "Select Availability",
-											value: field.value,
-										}}
-										value={{
-											label: defaultValues.availability?.name ?? "Select Availability",
-											value: field.value,
-										}}
-										defaultOptions
-										placeholder="Select Availability"
-										loadOptions={async (e: string) => {
-											const result = await getAvailabilityList({
-												name: e,
-											});
-
-											return result?.data.map((d) => ({ label: d.name, value: d.id! })) ?? [];
-										}}
-										isClearable
-										onChange={(e) => {
-											console.log(e);
-											field.onChange(e);
-										}}
-									/>
-								)}
-							/>
-						</div>
-					</div>
-
-					{formData.availability_id && (
 						<div className="flex flex-col space-y-3">
 							<span className="font-semibold">Time Slots</span>
 							<div className="flex flex-col gap-y-3">
 								<Controller
-									name="availability_metadata"
+									name="availabilities"
 									control={control}
 									render={({ field }) => {
 										return (
@@ -164,7 +170,7 @@ export default function ManageScheduleModal({
 													);
 
 													return (
-														<div key={index} className="flex flex-row items-center gap-4">
+														<div key={JSON.stringify(dayAvailability)} className="flex flex-row items-center gap-4">
 															<div
 																className={clsx(
 																	"w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium text-white",
@@ -199,7 +205,7 @@ export default function ManageScheduleModal({
 																			<div className="flex flex-row flex-wrap sm:flex-nowrap gap-y-3">
 																				<InputCalendar
 																					value={timeToDate(`${dayAvailability.starts_at ?? ""}`)}
-																					className="w-full sm:w-[120px] mr-2"
+																					className="w-full sm:w-[170px] mr-2"
 																					onChange={(e) => {
 																						field.onChange(
 																							field.value.map((val, i) =>
@@ -216,7 +222,7 @@ export default function ManageScheduleModal({
 
 																				<InputCalendar
 																					value={timeToDate(`${dayAvailability.ends_at ?? ""}`)}
-																					className="w-full sm:w-[120px]"
+																					className="w-full sm:w-[170px]"
 																					onChange={(e) => {
 																						field.onChange(
 																							field.value.map((val, i) =>
@@ -251,10 +257,10 @@ export default function ManageScheduleModal({
 								/>
 							</div>
 						</div>
-					)}
+					</div>
 
-					<div className="flex flex-col-reverse sm:flex-row gap-y-3">
-						<Button label="Cancel" secondary className="ml-auto mr-3 w-full sm:w-auto" onClick={() => onClose()} />
+					<div className="flex flex-row w-full justify-center items-center gap-y-3">
+						<Button label="Cancel" secondary className="mr-3 w-full sm:w-auto" onClick={() => onClose()} />
 						<Button label="Save" className="w-full sm:w-auto" type="submit" />
 					</div>
 				</div>
