@@ -1,18 +1,10 @@
-import {
-	Calendar,
-	type CalendarProps,
-	Components,
-	dateFnsLocalizer,
-	type EventProps,
-	type ToolbarProps,
-} from "react-big-calendar";
+import { Calendar, type CalendarProps, type Components, dateFnsLocalizer, type ToolbarProps } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import { enUS } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "./style.css";
 import Button from "../Button";
 import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon, EyeIcon, ListIcon, RotateCcwIcon } from "lucide-react";
-import ResponsiveActionMenu from "../ResponsiveActionMenu";
 import { useState } from "react";
 
 const locales = {

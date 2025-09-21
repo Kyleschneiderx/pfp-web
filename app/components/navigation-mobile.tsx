@@ -55,16 +55,6 @@ export default function NavigationMobile() {
 			title: "Telehealth",
 			url: "/telehealth",
 			icon: <TelehealthIcon activeUrl="/telehealth" />,
-			subItems: [
-				{
-					title: "Schedules",
-					url: "/telehealth/schedules",
-				},
-				{
-					title: "Meetings",
-					url: "/telehealth/meetings",
-				},
-			],
 		},
 		{
 			title: "Support Chat",

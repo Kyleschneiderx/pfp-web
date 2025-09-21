@@ -21,11 +21,13 @@ import {
 import { useState } from "react";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useWindowSizeCheck } from "@/app/hooks/useWindowSizeCheck";
+import clsx from "clsx";
 
 type Actions = {
 	label: string;
 	onClick: () => void;
 	icon?: React.ReactNode;
+	className?: string;
 };
 
 type Align = "end" | "center" | "start" | undefined;
@@ -125,7 +127,7 @@ const ResponsiveActionMenu = ({
 											key={`action-${action.label}`}
 											type="button"
 											onClick={action.onClick}
-											className="block w-full text-left px-6 py-2 hover:text-neutral-900/70"
+											className={clsx("block w-full text-left px-6 py-2 hover:text-neutral-900/70", action?.className)}
 										>
 											<span className="flex flex-row items-center gap-x-2">
 												{action.icon}
@@ -171,7 +173,7 @@ const ResponsiveActionMenu = ({
 						)}
 						{customActions?.map((action) => {
 							return (
-								<DropdownMenuItem key={`action-${action.label}`} onClick={action.onClick}>
+								<DropdownMenuItem key={`action-${action.label}`} onClick={action.onClick} className={action?.className}>
 									<div className="flex flex-row items-center gap-x-2">
 										{action.icon}
 										{action.label}

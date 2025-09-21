@@ -1,14 +1,17 @@
 "use client";
 
-import { EllipsisIcon, LogOut, Menu, TabletSmartphoneIcon } from "lucide-react";
+import { CalendarDaysIcon, EllipsisIcon, LogOut, Menu, TabletSmartphoneIcon } from "lucide-react";
 import Image from "next/image";
 import { useToggle } from "../store/store";
-import { DropdownMenu } from "radix-ui";
 import { useLogout } from "../hooks/useLogout";
 import { useModal } from "../contexts/ModalContext";
 import SendPushNotificationModal from "./modals/send-push-notification";
 import useAuth from "../hooks/useAuth";
 import { usePathname } from "next/navigation";
+import type { Schedule } from "../models/schedules";
+import ManageScheduleModal from "./modals/manage-schedule-modal";
+import { useSnackBar } from "../contexts/SnackBarContext";
+import ResponsiveActionMenu from "./elements/ResponsiveActionMenu";
 
 export default function Header() {
 	const logout = useLogout();
@@ -17,6 +20,7 @@ export default function Header() {
 	const userEmail = user.email;
 	const modal = useModal();
 	const pathname = usePathname();
+	const { showSnackBar } = useSnackBar();
 
 	const pathnameSet = pathname.split("/");
 	pathnameSet.shift();
@@ -24,6 +28,16 @@ export default function Header() {
 	!pathname.includes("dashboard") && pathnameSet.unshift("Dashboard");
 
 	const { isOpen, setIsOpen } = useToggle();
+
+	const handleOpenSchedule = (schedule?: Schedule) => {
+		modal.open({
+			type: "default",
+			title: "Manage Schedule",
+			allowClose: true,
+			className: "max-h-[75%] overflow-auto w-[90%] sm:w-[500px] max-w-[500px]",
+			component: ({ close }) => <ManageScheduleModal onClose={close} />,
+		});
+	};
 
 	return (
 		<header className="py-3 px-4 border-b border-neutral-300 flex items-center">
@@ -51,8 +65,9 @@ export default function Header() {
 					<span className="block text-sm text-neutral-700  overflow-hidden text-ellipsis">{userEmail}</span>
 				</div>
 				<div>
-					<DropdownMenu.Root>
-						<DropdownMenu.Trigger asChild className="cursor-pointer">
+					<ResponsiveActionMenu
+						title="Menu"
+						icon={
 							<Image
 								src="/images/avatar.png"
 								alt="Logo"
@@ -61,33 +76,32 @@ export default function Header() {
 								quality={100}
 								className="rounded-full sm:mr-3 h-[55px] w-[55px]"
 							/>
-						</DropdownMenu.Trigger>
-						<DropdownMenu.Content
-							align="end"
-							className="w-[170px] drop-shadow-center text-sm p-1 bg-white rounded-md z-20 text-neutral-900"
-						>
-							<DropdownMenu.Item
-								onClick={() => {
+						}
+						customActions={[
+							{
+								label: "Push Notification",
+								icon: <TabletSmartphoneIcon className="mr-2" size={16} />,
+								onClick: () => {
 									modal.open({
 										title: "Send Push Notification",
 										type: "default",
 										component: <SendPushNotificationModal />,
 									});
-								}}
-								className="cursor-pointer p-2 bg-white flex items-center justify-start outline-none hover:bg-primary-100"
-							>
-								<TabletSmartphoneIcon className="mr-2" size={16} />
-								<span>Push Notification</span>
-							</DropdownMenu.Item>
-							<DropdownMenu.Item
-								onClick={logout}
-								className="cursor-pointer p-2 bg-white flex items-center justify-start text-red-400 outline-none hover:bg-primary-100"
-							>
-								<LogOut className="mr-2" size={16} />
-								<span>Logout</span>
-							</DropdownMenu.Item>
-						</DropdownMenu.Content>
-					</DropdownMenu.Root>
+								},
+							},
+							{
+								label: "Schedule",
+								icon: <CalendarDaysIcon className="mr-2" size={16} />,
+								onClick: handleOpenSchedule,
+							},
+							{
+								label: "Logout",
+								icon: <LogOut className="mr-2" size={16} />,
+								onClick: logout,
+								className: "!text-red-400",
+							},
+						]}
+					/>
 				</div>
 			</div>
 		</header>
