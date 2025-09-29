@@ -15,6 +15,7 @@ interface VideoCallInterfaceProps {
 	roomId: string;
 	className?: string;
 	stream: MediaStream | null;
+	remoteStream?: MediaStream | null;
 }
 
 export default function MediaArea({
@@ -25,6 +26,7 @@ export default function MediaArea({
 	roomId,
 	className,
 	stream,
+	remoteStream,
 }: VideoCallInterfaceProps) {
 	const localVideoRef = useRef<HTMLVideoElement>(null);
 	const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -36,10 +38,18 @@ export default function MediaArea({
 		localVideoRef.current.srcObject = stream;
 	}, [stream]);
 
+	useEffect(() => {
+		if (!remoteVideoRef.current) return;
+
+		if (!remoteStream) return;
+
+		remoteVideoRef.current.srcObject = remoteStream;
+	}, [remoteStream]);
+
 	return (
 		<div className={clsx("flex flex-col flex-1 px-4 space-y-4 text-neutral-700", className)}>
 			<div className="h-full">
-				<Card className="relative overflow-hidden !bg-neutral-900 !p-0 h-full">
+				<Card className="relative overflow-hidden !bg-neutral-900 !p-0 h-full max-h-[600px]">
 					<video
 						ref={remoteVideoRef}
 						autoPlay
@@ -56,16 +66,16 @@ export default function MediaArea({
 						className="!rounded-full !p-2 absolute top-3 right-3 cursor-pointer z-20 text-xs"
 					/>
 
-					{/* {!isCallActive && ( */}
-					<div className="absolute inset-0 flex items-center justify-center bg-muted">
-						<div className="text-center">
-							<div className="h-16 w-16 rounded-full bg-neutral-300/20 flex items-center justify-center mx-auto mb-3">
-								<UserIcon className="h-8 w-8 text-neutral-100" />
+					{!remoteStream && (
+						<div className="absolute inset-0 flex items-center justify-center bg-muted">
+							<div className="text-center">
+								<div className="h-16 w-16 rounded-full bg-neutral-300/20 flex items-center justify-center mx-auto mb-3">
+									<UserIcon className="h-8 w-8 text-neutral-100" />
+								</div>
+								<p className="text-sm text-neutral-100">Waiting for patient...</p>
 							</div>
-							<p className="text-sm text-neutral-100">Waiting for patient...</p>
 						</div>
-					</div>
-					{/* )} */}
+					)}
 
 					<Card className="!absolute bottom-0 overflow-hidden !bg-neutral-200 !p-0 !w-44 !h-44 m-3">
 						{/* {connectionStatus !== "connected" && (
