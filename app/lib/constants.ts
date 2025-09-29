@@ -37,3 +37,10 @@ export const PAGE_ITEMS = 15;
 export const DEFAULT_LIST = { data: [], page: 1, page_items: PAGE_ITEMS, max_page: 2 };
 
 export const DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+
+export const STATUSES = {
+	UPCOMING: 6,
+	INCOMPLETE: 7,
+	COMPLETE: 8,
+	CANCELLED: 9,
+};

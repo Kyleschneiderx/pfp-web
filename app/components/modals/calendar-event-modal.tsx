@@ -13,19 +13,20 @@ import { format, set } from "date-fns";
 import { timeToDate } from "@/app/lib/utils";
 import { useMemo } from "react";
 import clsx from "clsx";
-import type { Meeting } from "@/app/models/meetings";
+import type { Meeting } from "@/app/models/meeting_model";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function CalendarEventModal({
 	meeting,
 	onClose,
-	onSubmit,
-}: { meeting?: Meeting; onClose: (callback?: () => void) => void; onSubmit: (data: Availability) => void }) {
+}: { meeting?: Meeting; onClose: (callback?: () => void) => void }) {
+	const router = useRouter();
 	return (
 		<div className="flex-1 overflow-y-auto p-6 w-full h-full sm:max-w-[360px]">
 			<div className="flex flex-row items-center text-neutral-900">
 				<Image src={ArrowLeft} alt="Arrow left" className="cursor-pointer flex-shrink-0" onClick={() => onClose()} />
-				<p className="text-2xl font-semibold ml-2">{meeting?.user?.user_profile.name}</p>
+				<p className="text-2xl font-semibold ml-2">{meeting?.user_profile?.name}</p>
 			</div>
 			<div className="space-y-3 mt-12 text-neutral-900">
 				<div className="flex flex-row space-x-5">
@@ -44,8 +45,8 @@ export default function CalendarEventModal({
 				<div className="flex flex-col space-y-3 mt-12">
 					<div className="flex flex-row items-center space-x-5">
 						<UserIcon className="w-5 h-5 flex-shrink-0" />
-						<Link href={`/patients/${meeting?.user?.id}/edit`} className="hover:text-neutral-700" target="_blank">
-							{meeting?.user?.email}
+						<Link href={`/patients/${meeting?.user_id}/edit`} className="hover:text-neutral-700" target="_blank">
+							{meeting?.user_profile?.name}
 						</Link>
 					</div>
 					<div className="flex flex-row items-center space-x-5 break-all">
@@ -61,7 +62,7 @@ export default function CalendarEventModal({
 							https://app.pelvicfloorpro.com/meetings/123-456-789/room
 						</Link>
 					</div> */}
-					<Button label="Visit" className="w-full !mt-10" />
+					<Button label="Visit" onClick={() => router.push(`/telehealth/${meeting?.slug}`)} className="w-full !mt-10" />
 				</div>
 
 				{/* <div className="flex flex-col-reverse sm:flex-row gap-y-3">
