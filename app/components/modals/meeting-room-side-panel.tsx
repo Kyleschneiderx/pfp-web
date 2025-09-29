@@ -6,16 +6,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../elements/Tabs";
 import Textarea from "../elements/Textarea";
 import Image from "next/image";
 import ArrowLeft from "@/public/svg/arrow-left.svg";
-import type { MeetingSoapNotes, Meeting, MeetingForm } from "@/app/models/meeting_model";
+import type {
+	MeetingSoapNotes,
+	Meeting,
+	MeetingForm,
+	DraftMeetingForm,
+	CompleteMeetingForm,
+} from "@/app/models/meeting_model";
 import { Controller, useForm } from "react-hook-form";
 import { useModal } from "@/app/contexts/ModalContext";
-import { updateMeeting } from "@/app/services/client_side/meetings";
+import { draftMeeting, completeMeeting } from "@/app/services/client_side/meetings";
 import type { ErrorModel } from "@/app/models/error_model";
 import { revalidatePage } from "@/app/lib/revalidate";
+import { STATUSES } from "@/app/lib/constants";
 
 export default function MeetingRoomSidePanel({ onClose, meeting }: { onClose?: () => void; meeting: Meeting }) {
 	const modal = useModal();
-	const form = useForm<MeetingForm>({
+	const form = useForm<DraftMeetingForm | CompleteMeetingForm>({
 		defaultValues: modal.getData() ?? {
 			id: meeting?.id,
 			status_id: meeting?.status_id,
@@ -28,7 +35,7 @@ export default function MeetingRoomSidePanel({ onClose, meeting }: { onClose?: (
 		},
 	});
 
-	const onSubmit = (data: MeetingForm) => {
+	const onSubmit = (data: DraftMeetingForm | CompleteMeetingForm) => {
 		modal.setData(data);
 
 		modal.open({
@@ -37,10 +44,12 @@ export default function MeetingRoomSidePanel({ onClose, meeting }: { onClose?: (
 			message: "Are you sure you want to process this meeting notes?",
 			onConfirm: async () => {
 				try {
-					const response = await updateMeeting({
-						id: meeting?.id,
+					const payload = {
+						id: meeting.id!,
 						body: data,
-					});
+					};
+					const response =
+						data.status_id === STATUSES.INCOMPLETE ? await draftMeeting(payload) : await completeMeeting(payload);
 
 					revalidatePage("/telehealth");
 
