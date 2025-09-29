@@ -23,7 +23,7 @@ export type DefaultSearchQuery = {
 	page?: string;
 	page_items?: string;
 	next_page_id?: string;
-	sort?: string[] | string;
+	sort?: string;
 };
 
 export type ValueOf<T> = T[keyof T];
