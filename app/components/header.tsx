@@ -44,8 +44,8 @@ export default function Header() {
 			<div className="flex flex-row flex-1 items-center">
 				<Menu className="mr-2 md:hidden w-6 h-6" onClick={() => setIsOpen(!isOpen)} />
 				<div className="flex-col hidden md:flex ml-2 ">
-					<span className="capitalize font-medium text-xl ">{page}</span>
-					<span className="capitalize text-neutral-500 text-sm hidden md:block ">{pathnameSet.join(" / ")}</span>
+					{/* <span className="capitalize font-medium text-xl ">{page}</span> */}
+					{/* <span className="capitalize text-neutral-500 text-sm hidden md:block ">{pathnameSet.join(" / ")}</span> */}
 				</div>
 				<Image
 					src="/images/logo.jpg"

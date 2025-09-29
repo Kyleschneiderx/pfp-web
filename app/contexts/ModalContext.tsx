@@ -13,7 +13,7 @@ interface ComponentProps {
 
 interface BaseModalOption {
 	allowClose?: boolean;
-	onClose?: () => void;
+	onClose?: () => any;
 	overlay?: boolean;
 	className?: string;
 }
@@ -53,6 +53,8 @@ interface ModalProvider {
 	open: (options: ModalOptions) => void;
 	close: (open?: boolean) => void;
 	closeAll: () => void;
+	setData: (data: any) => void;
+	getData: () => any;
 }
 
 const ModalContext = createContext<ModalProvider | null>(null);
@@ -254,6 +256,7 @@ const ModalProvider = ({ children }: { children: ReactNode }) => {
 	const [stack, setStack] = useState<ModalOptions[]>([]);
 	const stackRef = useRef<ModalOptions[]>([]);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
+	const dataRef = useRef<any>(null);
 
 	const setupOpen = (options: ModalOptions) => {
 		setStack((prev) => [...prev, options]);
@@ -291,6 +294,7 @@ const ModalProvider = ({ children }: { children: ReactNode }) => {
 				return;
 			}
 
+			dataRef.current = null;
 			setStack([]);
 			setIsOpen(open ?? false);
 
@@ -298,7 +302,16 @@ const ModalProvider = ({ children }: { children: ReactNode }) => {
 		}
 	};
 
+	const setData = (data: any) => {
+		dataRef.current = data;
+	};
+
+	const getData = () => {
+		return dataRef.current;
+	};
+
 	const closeAll = () => {
+		dataRef.current = null;
 		setStack([]);
 		setIsOpen(false);
 	};
@@ -312,6 +325,8 @@ const ModalProvider = ({ children }: { children: ReactNode }) => {
 		open,
 		close,
 		closeAll,
+		setData,
+		getData,
 	};
 
 	return (
