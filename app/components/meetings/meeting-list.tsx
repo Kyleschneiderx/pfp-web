@@ -38,7 +38,7 @@ import ResponsiveActionMenu from "../elements/ResponsiveActionMenu";
 import { usePathname, useRouter } from "next/navigation";
 import MeetingRoomSidePanel from "../modals/meeting-room-side-panel";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
-import { updateMeeting } from "@/app/services/client_side/meetings";
+import { cancelMeeting } from "@/app/services/client_side/meetings";
 import { revalidatePage } from "@/app/lib/revalidate";
 
 const FilterList = dynamic(() => import("../elements/FilterList"), {
@@ -145,12 +145,7 @@ export default function MeetingList({
 			message: "Are you sure you want to cancel this upcoming meeting?",
 			onConfirm: async () => {
 				try {
-					const respone = await updateMeeting({
-						id: meeting.id,
-						body: {
-							status_id: STATUSES.CANCELLED,
-						},
-					});
+					const respone = await cancelMeeting(meeting.id!);
 
 					modal.closeAll();
 
@@ -280,12 +275,16 @@ export default function MeetingList({
 															/>
 														</div>
 													</div>
-													<div className="flex flex-col mt-3 space-y-1 text-sm">
+													<div className="flex flex-col mt-3 space-y-2 text-sm">
+														<div className="flex flex-row items-center space-x-3">
+															<CalendarIcon className="w-5 h-5 flex-shrink-0" />
+															<div className="flex flex-row items-center space-x-1">
+																<p>{format(new Date(meeting?.starts_at ?? ""), "EEEE, MMMM d")}</p>
+															</div>
+														</div>
 														<div className="flex flex-row items-center space-x-3">
 															<ClockIcon className="w-5 h-5 flex-shrink-0" />
 															<div className="flex flex-row items-center space-x-1">
-																<p>{format(new Date(meeting?.starts_at ?? ""), "EEEE, MMMM d")}</p>
-																<p>{"•"}</p>
 																<p>{format(new Date(meeting?.starts_at ?? ""), "hh:mm aa")}</p>
 																<p>{"-"}</p>
 																<p>{format(new Date(meeting?.ends_at ?? ""), "hh:mm aa")}</p>

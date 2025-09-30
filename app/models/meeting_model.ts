@@ -5,7 +5,7 @@ import type { Status } from "./status_model";
 export interface MeetingSoapNotes {
 	subjective?: string;
 	objective?: string;
-	assestment?: string;
+	assessment?: string;
 	progress?: string;
 }
 
@@ -27,6 +27,12 @@ export interface Meeting {
 
 export interface MeetingForm {
 	id?: number;
-	status_id?: number;
 	soap_notes?: MeetingSoapNotes;
+}
+export interface DraftMeetingForm extends MeetingForm {
+	status_id: 7;
+}
+
+export interface CompleteMeetingForm extends MeetingForm {
+	status_id: 8;
 }
