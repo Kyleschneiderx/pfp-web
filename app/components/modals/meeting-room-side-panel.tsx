@@ -29,7 +29,7 @@ export default function MeetingRoomSidePanel({ onClose, meeting }: { onClose?: (
 			soap_notes: {
 				subjective: meeting?.soap_notes?.subjective || "",
 				objective: meeting?.soap_notes?.objective || "",
-				assestment: meeting?.soap_notes?.assestment || "",
+				assessment: meeting?.soap_notes?.assessment || "",
 				progress: meeting?.soap_notes?.progress || "",
 			},
 		},
@@ -126,7 +126,7 @@ export default function MeetingRoomSidePanel({ onClose, meeting }: { onClose?: (
 							<div className="flex flex-col space-y-1">
 								<span className="font-semibold text-sm">Assessment</span>
 								<Controller
-									name="soap_notes.assestment"
+									name="soap_notes.assessment"
 									control={form.control}
 									render={({ field }) => (
 										<Textarea
