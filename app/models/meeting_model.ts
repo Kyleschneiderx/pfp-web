@@ -5,7 +5,7 @@ import type { Status } from "./status_model";
 export interface MeetingSoapNotes {
 	subjective?: string;
 	objective?: string;
-	assestment?: string;
+	assessment?: string;
 	progress?: string;
 }
 
