@@ -12,6 +12,7 @@ import Card from "../elements/Card";
 import clsx from "clsx";
 import type { Meeting } from "@/app/models/meeting_model";
 import socketClient from "@/app/services/socket-client";
+import useAudioStream from "@/app/hooks/useAudioStream";
 
 export default function MeetingRoom({ meeting }: { meeting: Meeting }) {
 	const [isVideoOn, setIsVideoOn] = useState(true);
@@ -34,6 +35,16 @@ export default function MeetingRoom({ meeting }: { meeting: Meeting }) {
 	const modal = useModal();
 
 	const meetingSocket = useMemo(() => socketClient({ namespace: "meeting" }), []);
+
+	useAudioStream({
+		start: isCallActive,
+		emit: (data: ArrayBuffer) => {
+			console.log("Emitting audio data to socket:", data.byteLength, "bytes");
+			meetingSocket.emit("audio", data);
+		},
+		localStream: localStream,
+		remoteStream: remoteStream,
+	});
 
 	const cleanupStream = () => {
 		if (localStream) {
