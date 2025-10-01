@@ -89,7 +89,7 @@ export default function MediaArea({
 							ref={localVideoRef}
 							autoPlay
 							playsInline
-							muted
+							muted={false}
 							className="w-full h-full object-cover scale-150 origin-center"
 						/>
 						{!isVideoOn && (
