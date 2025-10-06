@@ -15,12 +15,15 @@ import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import { getAccountSchedule, saveSchedule } from "@/app/services/client_side/schedules";
 import useAuth from "@/app/hooks/useAuth";
 import Textarea from "../elements/Textarea";
+import type { VisitPrice } from "@/app/models/payments";
+import { getVisitPrices } from "@/app/services/client_side/payments";
 
 export default function ManageScheduleModal({ onClose }: { onClose: (callback?: () => void) => void }) {
 	const user = useAuth();
 	const modal = useModal();
 	const { showSnackBar } = useSnackBar();
 	const [schedule, setSchedule] = useState<Schedule>();
+	const [visitPrices, setVisitPrices] = useState<VisitPrice[]>();
 	const timezones = Intl.supportedValuesOf("timeZone");
 
 	const clientTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -60,7 +63,16 @@ export default function ManageScheduleModal({ onClose }: { onClose: (callback?: 
 			setSchedule(schedule);
 		};
 
+		const getPrices = async () => {
+			const prices = await getVisitPrices();
+
+			console.log(prices);
+
+			setVisitPrices(prices);
+		};
+
 		getSchedule();
+		getPrices();
 	}, [reset]);
 
 	const handleRemoveRule = (field: ControllerRenderProps<typeof defaultValues, "availabilities">, index: number) => {
@@ -145,6 +157,28 @@ export default function ManageScheduleModal({ onClose }: { onClose: (callback?: 
 								)}
 							/>
 						</div>
+						{/* <div className="flex flex-col space-y-1">
+							<span className="font-semibold">Duration</span>
+							<Controller
+								name="duration"
+								control={control}
+								render={({ field }) => (
+									<SelectCmp
+										defaultValue={{ label: field.value, value: field.value }}
+										value={{
+											label: field.value,
+											value: field.value,
+										}}
+										placeholder="Select timezone"
+										options={visitPrices?.map((price) => ({
+											label: `${price.name} ($${price.price})`,
+											value: price.id,
+										}))}
+										onChange={field.onChange}
+									/>
+								)}
+							/>
+						</div>
 						<div className="flex flex-col space-y-1">
 							<span className="font-semibold">Duration (minutes)</span>
 							<Controller
@@ -154,7 +188,7 @@ export default function ManageScheduleModal({ onClose }: { onClose: (callback?: 
 									<Input type="number" min={1} placeholder="Duration" value={field.value} onChange={field.onChange} />
 								)}
 							/>
-						</div>
+						</div> */}
 						<div className="flex flex-col space-y-3">
 							<span className="font-semibold">Time Slots</span>
 							<div className="flex flex-col gap-y-3">

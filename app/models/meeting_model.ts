@@ -9,6 +9,21 @@ export interface MeetingSoapNotes {
 	progress?: string;
 }
 
+export interface TranscriptionSegment {
+	speaker: "provider" | "patient";
+	start: number;
+	end: number;
+	text: string;
+}
+
+export interface MeetingTranscription {
+	total_duration: number;
+	provider_segments: TranscriptionSegment[];
+	patient_segments: TranscriptionSegment[];
+	provider_duration: number;
+	patient_duration: number;
+}
+
 export interface Meeting {
 	id?: number;
 	user_id: number;
@@ -22,6 +37,7 @@ export interface Meeting {
 	ends_at: string;
 	status_id: number;
 	soap_notes: MeetingSoapNotes;
+	transcription?: MeetingTranscription;
 	status: Status;
 }
 

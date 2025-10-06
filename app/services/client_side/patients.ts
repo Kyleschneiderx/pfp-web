@@ -72,3 +72,12 @@ export const savePersonalizedPfPlan = async ({
 		body: body,
 	});
 };
+
+export const getPersonalizedPfPlan = async (id: string): Promise<PfPlanModel> => {
+	const url = `/users/${id}/pf-plan`;
+	const data = await apiClient({
+		url: url,
+		method: "GET",
+	});
+	return data as PfPlanModel;
+};
