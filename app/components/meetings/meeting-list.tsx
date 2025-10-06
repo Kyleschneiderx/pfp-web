@@ -245,13 +245,17 @@ export default function MeetingList({
 																			handleViewPatient(meeting);
 																		},
 																	},
-																	{
-																		label: "Enter Visit",
-																		icon: <StethoscopeIcon className="mr-2 h-4 w-4" />,
-																		onClick: () => {
-																			handleEnterVisit(meeting);
-																		},
-																	},
+																	...(meeting.status_id === STATUSES.UPCOMING
+																		? [
+																				{
+																					label: "Enter Visit",
+																					icon: <StethoscopeIcon className="mr-2 h-4 w-4" />,
+																					onClick: () => {
+																						handleEnterVisit(meeting);
+																					},
+																				},
+																			]
+																		: []),
 																	{
 																		label: "Start Note",
 																		icon: <NotepadTextIcon className="mr-2 h-4 w-4" />,
