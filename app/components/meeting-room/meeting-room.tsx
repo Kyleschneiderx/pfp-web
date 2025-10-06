@@ -17,6 +17,7 @@ import useAudioStream from "@/app/hooks/useAudioStream";
 export default function MeetingRoom({ meeting }: { meeting: Meeting }) {
 	const [isVideoOn, setIsVideoOn] = useState(true);
 	const [isAudioOn, setIsAudioOn] = useState(true);
+	const [isRecording, setIsRecording] = useState(false);
 	const [isCallActive, setIsCallActive] = useState(false);
 	const [isMeetingEnd, setIsMeetingEnd] = useState(false);
 	const [isScreenSharing, setIsScreenSharing] = useState(false);
@@ -37,11 +38,20 @@ export default function MeetingRoom({ meeting }: { meeting: Meeting }) {
 	const meetingSocket = useMemo(() => socketClient({ namespace: "meeting" }), []);
 
 	useAudioStream({
-		start: isCallActive,
-		emit: (data: ArrayBuffer) => {
+		start: isRecording,
+		// emit: (data: ArrayBuffer) => {
+		// 	console.log("Emitting audio data to socket:", data.byteLength, "bytes");
+		// 	meetingSocket.emit("audio", { roomId: meeting.id, audio: data });
+		// },
+		emitLocal: (data: ArrayBuffer) => {
 			console.log("Emitting audio data to socket:", data.byteLength, "bytes");
-			meetingSocket.emit("audio", data);
+			meetingSocket.emit("audio", { roomId: meeting.id, audio: data, speaker: "provider" });
 		},
+		emitRemote: (data: ArrayBuffer) => {
+			console.log("Emitting audio data to socket:", data.byteLength, "bytes");
+			meetingSocket.emit("audio", { roomId: meeting.id, audio: data, speaker: "patient" });
+		},
+		emitInterval: 30 * 1000,
 		localStream: localStream,
 		remoteStream: remoteStream,
 	});
@@ -256,6 +266,7 @@ export default function MeetingRoom({ meeting }: { meeting: Meeting }) {
 			<div className="grid grid-cols-7 h-full">
 				<div className="flex-1 flex flex-col col-span-5 h-full">
 					<MediaArea
+						meeting={meeting}
 						isVideoOn={isVideoOn}
 						isAudioOn={isAudioOn}
 						isCallActive={isCallActive}
@@ -281,9 +292,11 @@ export default function MeetingRoom({ meeting }: { meeting: Meeting }) {
 							<MediaControls
 								isVideoOn={isVideoOn}
 								isAudioOn={isAudioOn}
+								isRecording={isRecording}
 								onEndCall={handleEndCall}
 								onToggleVideo={() => setIsVideoOn((prev) => !prev)}
 								onToggleAudio={() => setIsAudioOn((prev) => !prev)}
+								onToggleRecording={() => setIsRecording((prev) => !prev)}
 							/>
 						</div>
 					</div>

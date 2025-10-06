@@ -2,6 +2,8 @@
 
 import {
 	ArrowLeftIcon,
+	DiscIcon,
+	DotIcon,
 	MenuIcon,
 	MicIcon,
 	MicOffIcon,
@@ -17,17 +19,21 @@ import clsx from "clsx";
 interface MediaControlsProps {
 	isVideoOn: boolean;
 	isAudioOn: boolean;
+	isRecording: boolean;
 	onEndCall: () => void;
 	onToggleVideo: () => void;
 	onToggleAudio: () => void;
+	onToggleRecording: () => void;
 	className?: string;
 }
 
 export default function MediaControls({
 	isVideoOn,
 	isAudioOn,
+	isRecording,
 	onToggleVideo,
 	onToggleAudio,
+	onToggleRecording,
 	onEndCall,
 	className,
 }: MediaControlsProps) {
@@ -46,6 +52,10 @@ export default function MediaControls({
 
 				<Button onClick={onToggleAudio} className="!rounded-full h-12 w-12 !p-0  hover:text-primary-600">
 					{isAudioOn ? <MicIcon className="h-6 w-6" /> : <MicOffIcon className="h-6 w-6" />}
+				</Button>
+
+				<Button onClick={onToggleRecording} className="!rounded-full h-12 w-12 !p-0  hover:text-primary-600">
+					{isRecording ? <DotIcon className="h-24 w-24 text-error-500" /> : <DotIcon className="h-24 w-24 " />}
 				</Button>
 
 				{/* <Button
