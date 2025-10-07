@@ -24,6 +24,7 @@ export default function MeetingRoomSidePanel({ onClose, meeting }: { onClose?: (
 	const modal = useModal();
 	const { showSnackBar } = useSnackBar();
 	const [transcription, setTranscription] = useState<Meeting["transcription"]>();
+	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const form = useForm<DraftMeetingForm | CompleteMeetingForm>({
 		defaultValues: modal.getData() ?? {
 			id: meeting?.id,
@@ -112,27 +113,43 @@ export default function MeetingRoomSidePanel({ onClose, meeting }: { onClose?: (
 								<div className="flex flex-row items-center">
 									<span className="font-semibold text-sm">Subjective</span>
 									<Button
-										className="!py-1 !px-2 ml-auto !rounded-full bg-primary-500 hover:bg-primary-600 text-white overflow-hidden !justify-end group w-8 transition-all duration-300 ease-in-out hover:w-48"
-										title="Generate SOAP Notes"
-										onClick={async () => {
-											try {
-												const soapNotes = await generateSoapNotes(meeting.id!);
+										className="relative !py-1 !px-2 ml-auto !rounded-full bg-primary-500 hover:bg-primary-600 text-white overflow-hidden !justify-end group w-8 transition-all duration-300 ease-in-out hover:w-48"
+										disabled={isLoading}
+										onClick={
+											isLoading
+												? undefined
+												: async () => {
+														try {
+															setIsLoading(true);
+															const soapNotes = await generateSoapNotes(meeting.id!);
 
-												form.reset({
-													...form.getValues(),
-													soap_notes: soapNotes,
-												});
-											} catch (e) {
-												const error = e as ErrorModel;
-												showSnackBar({
-													message: error.msg,
-													success: false,
-												});
-											}
-										}}
+															form.reset({
+																...form.getValues(),
+																soap_notes: soapNotes,
+															});
+														} catch (e) {
+															const error = e as ErrorModel;
+															showSnackBar({
+																message: error.msg,
+																success: false,
+															});
+														} finally {
+															setIsLoading(false);
+														}
+													}
+										}
 									>
+										{isLoading && (
+											<span
+												className="absolute inset-0 overflow-hidden
+                          before:content-[''] before:absolute before:inset-0
+                          before:bg-gradient-to-r before:from-transparent before:via-white/30 before:to-transparent
+                          before:translate-x-[-100%] before:animate-[shimmer_2s_linear_infinite]"
+											/>
+										)}
+
 										<span className="text-sm mr-1 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 -translate-x-2 transition-all duration-300">
-											Generate SOAP Notes
+											{isLoading ? "Generating" : "Generate"} SOAP Notes
 										</span>
 										<SparklesIcon className="w-4 h-4 shrink-0 transition-transform duration-300 group-hover:translate-x-0" />
 									</Button>
@@ -230,17 +247,29 @@ export default function MeetingRoomSidePanel({ onClose, meeting }: { onClose?: (
 										<p className="font-semibold">No Transcription Found</p>
 									</div>
 									<Button
-										onClick={async () => {
-											try {
-												await transcribeMeeting(meeting.id!);
-											} catch (e) {
-												const error = e as ErrorModel;
-												showSnackBar({
-													message: error.msg,
-													success: false,
-												});
-											}
-										}}
+										isProcessing={isLoading}
+										onClick={
+											isLoading
+												? undefined
+												: async () => {
+														try {
+															setIsLoading(true);
+															const response = await transcribeMeeting(meeting.id!);
+															showSnackBar({
+																message: response.msg,
+																success: true,
+															});
+														} catch (e) {
+															const error = e as ErrorModel;
+															showSnackBar({
+																message: error.msg,
+																success: false,
+															});
+														} finally {
+															setIsLoading(false);
+														}
+													}
+										}
 										label="Generate Transcription"
 										className="w-full mt-auto"
 									/>

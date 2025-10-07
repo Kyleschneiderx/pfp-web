@@ -11,7 +11,7 @@ export default async function Page({ params }: { params: { id: string } }) {
 		notFound();
 	}
 
-	if (meeting.status_id !== STATUSES.UPCOMING) {
+	if (meeting.status_id === STATUSES.COMPLETE) {
 		notFound();
 	}
 

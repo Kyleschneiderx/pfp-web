@@ -245,7 +245,7 @@ export default function MeetingList({
 																			handleViewPatient(meeting);
 																		},
 																	},
-																	...(meeting.status_id === STATUSES.UPCOMING
+																	...(meeting.status_id !== STATUSES.COMPLETE
 																		? [
 																				{
 																					label: "Enter Visit",
