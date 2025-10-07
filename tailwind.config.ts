@@ -43,6 +43,7 @@ const config: Config = {
 				"slide-out": "slide-out 0.2s ease-in-out forwards",
 				"slide-up": "slide-up 0.2s ease-in-out forwards",
 				"slide-down": "slide-down 0.2s ease-in-out forwards",
+				shimmer: "shimmer 2s linear infinite",
 			},
 			colors: {
 				neutral: {
