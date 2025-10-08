@@ -1,7 +1,7 @@
 "use client";
 
 import { type RefObject, useEffect, useRef, useState } from "react";
-import { MicOffIcon, User, UserIcon, Wifi, WifiIcon, WifiOff, WifiOffIcon } from "lucide-react";
+import { DotIcon, MicIcon, MicOffIcon, User, UserIcon, Wifi, WifiIcon, WifiOff, WifiOffIcon } from "lucide-react";
 import Badge from "../elements/Badge";
 import Card from "../elements/Card";
 import clsx from "clsx";
@@ -16,6 +16,7 @@ interface VideoCallInterfaceProps {
 	meeting: Meeting;
 	isVideoOn: boolean;
 	isAudioOn: boolean;
+	isRecording: boolean;
 	isCallActive: boolean;
 	isScreenSharing: boolean;
 	roomId: string;
@@ -28,6 +29,7 @@ export default function MediaArea({
 	meeting,
 	isVideoOn,
 	isAudioOn,
+	isRecording,
 	isCallActive,
 	isScreenSharing,
 	roomId,
@@ -93,6 +95,17 @@ export default function MediaArea({
 		<div className={clsx("flex flex-col flex-1 px-4 space-y-4 text-neutral-700", className)}>
 			<div className="h-full">
 				<Card className="relative overflow-hidden !bg-neutral-900 !p-0 h-full max-h-[600px]">
+					{isRecording && (
+						<div className="flex absolute top-1 left-1">
+							<div className="flex items-center">
+								<span className="text-error-500 text-2xl -mt-[3px] mr-1">•</span>
+
+								<span className="text-neutral-200 text-xs font-medium">Recording</span>
+								<MicIcon className="w-3 h-3 text-neutral-200" />
+							</div>
+						</div>
+					)}
+
 					<video
 						ref={remoteVideoRef}
 						autoPlay
