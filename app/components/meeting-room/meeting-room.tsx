@@ -44,11 +44,11 @@ export default function MeetingRoom({ meeting }: { meeting: Meeting }) {
 		// 	meetingSocket.emit("audio", { roomId: meeting.id, audio: data });
 		// },
 		emitLocal: (data: ArrayBuffer) => {
-			console.log("Emitting audio data to socket:", data.byteLength, "bytes");
+			console.log("Emitting provider audio data to socket");
 			meetingSocket.emit("audio", { roomId: meeting.id, audio: data, speaker: "provider" });
 		},
 		emitRemote: (data: ArrayBuffer) => {
-			console.log("Emitting audio data to socket:", data.byteLength, "bytes");
+			console.log("Emitting patient audio data to socket");
 			meetingSocket.emit("audio", { roomId: meeting.id, audio: data, speaker: "patient" });
 		},
 		emitInterval: 30 * 1000,
@@ -142,7 +142,6 @@ export default function MeetingRoom({ meeting }: { meeting: Meeting }) {
 		meetingSocket.connect();
 
 		meetingSocket.on("ice_servers", (data) => {
-			console.log("ice servers", data);
 			iceServersRef.current = data;
 		});
 
@@ -267,6 +266,7 @@ export default function MeetingRoom({ meeting }: { meeting: Meeting }) {
 				<div className="flex-1 flex flex-col col-span-5 h-full">
 					<MediaArea
 						meeting={meeting}
+						isRecording={isRecording}
 						isVideoOn={isVideoOn}
 						isAudioOn={isAudioOn}
 						isCallActive={isCallActive}
