@@ -3,8 +3,9 @@ import clsx from "clsx";
 import Select from "react-select";
 import type { Props as ReactSelectProps, OnChangeValue } from "react-select";
 
-interface Props<IsMulti extends boolean> extends Omit<ReactSelectProps<OptionsModel>, "onChange"> {
+interface Props<IsMulti extends boolean = false> extends Omit<ReactSelectProps<OptionsModel>, "onChange"> {
 	className?: string;
+	isMulti?: IsMulti;
 	wrapperClassName?: string;
 	invalid?: boolean;
 	onChange: (e: OnChangeValue<OptionsModel, IsMulti>) => void; // Custom handler for SingleValue
@@ -21,7 +22,6 @@ export default function SelectCmp<IsMulti extends boolean = false>({
 		<div className={clsx("relative z-20", wrapperClassName)}>
 			<Select<OptionsModel, IsMulti>
 				{...rest}
-				isMulti={!!rest.isMulti as IsMulti}
 				classNamePrefix="react-select"
 				className={clsx(
 					"w-full rounded-md border p-[3px] focus:outline-none bg-white",
