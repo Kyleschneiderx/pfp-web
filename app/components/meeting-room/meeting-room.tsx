@@ -262,8 +262,8 @@ export default function MeetingRoom({ meeting }: { meeting: Meeting }) {
 		/>
 	) : (
 		<div className="flex-1 flex flex-col h-full">
-			<div className="grid grid-cols-7 h-full">
-				<div className="flex-1 flex flex-col col-span-5 h-full">
+			<div className="grid grid-cols-9 h-full">
+				<div className="flex-1 flex flex-col col-span-6 h-full">
 					<MediaArea
 						meeting={meeting}
 						isRecording={isRecording}
@@ -301,7 +301,7 @@ export default function MeetingRoom({ meeting }: { meeting: Meeting }) {
 						</div>
 					</div>
 				</div>
-				<Card className="col-span-2 overflow-y-auto !p-0">
+				<Card className="col-span-3 overflow-y-auto !p-0">
 					<MeetingRoomSidePanel meeting={meeting} />
 				</Card>
 			</div>

@@ -66,13 +66,10 @@ export default function ManageScheduleModal({ onClose }: { onClose: (callback?: 
 		const getPrices = async () => {
 			const prices = await getVisitPrices();
 
-			console.log(prices);
-
 			setVisitPrices(prices);
 		};
 
 		getSchedule();
-		getPrices();
 	}, [reset]);
 
 	const handleRemoveRule = (field: ControllerRenderProps<typeof defaultValues, "availabilities">, index: number) => {

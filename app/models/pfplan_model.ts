@@ -15,6 +15,7 @@ export interface PfPlanModel {
 	status: Status;
 	pf_plan_dailies: PfPlanDailies[];
 	categories: PfPlanCategoryModel[];
+	is_archived: boolean;
 }
 
 export interface PfPlanCategoryModel {

@@ -6,11 +6,7 @@ import Badge from "../elements/Badge";
 import Card from "../elements/Card";
 import clsx from "clsx";
 import Button from "../elements/Button";
-import { useModal } from "@/app/contexts/ModalContext";
-import CustomizePfPlanListModal from "../modals/customize-pf-plan-list-modal";
 import type { Meeting } from "@/app/models/meeting_model";
-import type { PfPlanModel } from "@/app/models/pfplan_model";
-import { getPersonalizedPfPlan } from "@/app/services/client_side/patients";
 
 interface VideoCallInterfaceProps {
 	meeting: Meeting;
@@ -37,10 +33,8 @@ export default function MediaArea({
 	stream,
 	remoteStream,
 }: VideoCallInterfaceProps) {
-	const modal = useModal();
 	const localVideoRef = useRef<HTMLVideoElement>(null);
 	const remoteVideoRef = useRef<HTMLVideoElement>(null);
-	const [userPfPlan, setUserPfPlan] = useState<PfPlanModel>();
 
 	useEffect(() => {
 		if (!localVideoRef.current) return;
@@ -55,41 +49,6 @@ export default function MediaArea({
 
 		remoteVideoRef.current.srcObject = remoteStream;
 	}, [remoteStream]);
-
-	useEffect(() => {
-		const fetchUserPfPlan = async () => {
-			try {
-				const pfPlan = await getPersonalizedPfPlan(String(meeting.user_id));
-
-				setUserPfPlan(pfPlan);
-			} catch (error) {
-				console.error(error);
-			}
-		};
-
-		fetchUserPfPlan();
-	}, []);
-
-	const handleUserPfPlan = () => {
-		if (userPfPlan) {
-			window.open(`/patients/${meeting.user_id}/pf-plan/${userPfPlan.id}`, "_blank");
-			return;
-		}
-
-		modal.open({
-			type: "default",
-			component: () => (
-				<CustomizePfPlanListModal
-					onSkip={() => {
-						window.open(`/patients/${meeting.user_id}/pf-plan`, "_blank");
-					}}
-					onSelect={(pfPlan) => {
-						window.open(`/patients/${meeting.user_id}/pf-plan/${pfPlan.id}`, "_blank");
-					}}
-				/>
-			),
-		});
-	};
 
 	return (
 		<div className={clsx("flex flex-col flex-1 px-4 space-y-4 text-neutral-700", className)}>
@@ -112,12 +71,6 @@ export default function MediaArea({
 						playsInline
 						muted={false}
 						className="w-full h-full object-cover scale-125 origin-center"
-					/>
-
-					<Button
-						onClick={handleUserPfPlan}
-						label="PF Plan"
-						className="!rounded-full !p-2 absolute top-3 right-3 cursor-pointer z-20 text-xs"
 					/>
 
 					{!remoteStream && (

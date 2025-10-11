@@ -125,7 +125,7 @@ export default function MeetingList({
 		modal.open({
 			type: "panel",
 			overlay: false,
-			className: "!p-0",
+			className: "!p-0 !max-w-[500px]",
 			component: ({ close }) => <MeetingRoomSidePanel meeting={meeting} onClose={close} />,
 		});
 	};
@@ -227,57 +227,57 @@ export default function MeetingList({
 												// onClick={() => handleSelectEvent(meeting)}
 												onKeyDown={undefined}
 											>
-												<div className="flex flex-col mr-auto mb-1 text-neutral-900">
+												<div className="flex flex-1 flex-col mr-auto mb-1 text-neutral-900">
 													<div className="flex flex-row items-center w-full space-x-3">
-														<p className="text-lg font-semibold flex-grow">{meeting?.user_profile?.name}</p>
-														<div className="flex flex-row items-center">
+														<div className="flex flex-row items-center space-x-3 flex-grow">
+															<p className="text-lg font-semibold">{meeting?.user_profile?.name}</p>
 															<Badge
 																label={meeting.status.value}
-																className="text-white !bg-primary-500 !py-1 capitalize"
-															/>
-															<ResponsiveActionMenu
-																title={meeting?.user_profile?.name}
-																customActions={[
-																	{
-																		label: "View Patient",
-																		icon: <UserIcon className="mr-2 h-4 w-4" />,
-																		onClick: () => {
-																			handleViewPatient(meeting);
-																		},
-																	},
-																	...(meeting.status_id !== STATUSES.COMPLETE
-																		? [
-																				{
-																					label: "Enter Visit",
-																					icon: <StethoscopeIcon className="mr-2 h-4 w-4" />,
-																					onClick: () => {
-																						handleEnterVisit(meeting);
-																					},
-																				},
-																			]
-																		: []),
-																	{
-																		label: "Start Note",
-																		icon: <NotepadTextIcon className="mr-2 h-4 w-4" />,
-																		onClick: () => {
-																			handleStartNote(meeting);
-																		},
-																	},
-																	...(meeting.status_id === STATUSES.UPCOMING
-																		? [
-																				{
-																					label: "Cancel",
-																					className: "!text-error-400",
-																					icon: <BookXIcon className="mr-2 h-4 w-4" />,
-																					onClick: () => {
-																						handleCancelMeeting(meeting);
-																					},
-																				},
-																			]
-																		: []),
-																]}
+																className="text-white !bg-primary-500 !py-1 capitalize mr-auto"
 															/>
 														</div>
+														<ResponsiveActionMenu
+															title={meeting?.user_profile?.name}
+															customActions={[
+																{
+																	label: "View Patient",
+																	icon: <UserIcon className="mr-2 h-4 w-4" />,
+																	onClick: () => {
+																		handleViewPatient(meeting);
+																	},
+																},
+																...(meeting.status_id !== STATUSES.COMPLETE
+																	? [
+																			{
+																				label: "Enter Visit",
+																				icon: <StethoscopeIcon className="mr-2 h-4 w-4" />,
+																				onClick: () => {
+																					handleEnterVisit(meeting);
+																				},
+																			},
+																		]
+																	: []),
+																{
+																	label: "Start Note",
+																	icon: <NotepadTextIcon className="mr-2 h-4 w-4" />,
+																	onClick: () => {
+																		handleStartNote(meeting);
+																	},
+																},
+																...(meeting.status_id === STATUSES.UPCOMING
+																	? [
+																			{
+																				label: "Cancel",
+																				className: "!text-error-400",
+																				icon: <BookXIcon className="mr-2 h-4 w-4" />,
+																				onClick: () => {
+																					handleCancelMeeting(meeting);
+																				},
+																			},
+																		]
+																	: []),
+															]}
+														/>
 													</div>
 													<div className="flex flex-col mt-3 space-y-2 text-sm">
 														<div className="flex flex-row items-center space-x-3">
@@ -296,7 +296,21 @@ export default function MeetingList({
 														</div>
 														<div className="flex flex-row space-x-3 items-center">
 															<TextQuoteIcon className="w-5 h-5 flex-shrink-0 self-start" />
-															<p className="text-sm ">{meeting.schedule?.description}</p>
+															<p>{meeting.schedule?.description}</p>
+														</div>
+														<div className="flex flex-row space-x-3 items-center">
+															<StethoscopeIcon className="w-5 h-5 flex-shrink-0 self-start" />
+															<div className="flex items-center flex-wrap space-y-1  space-x-1">
+																{meeting.soap_notes?.icd_codes ? (
+																	meeting.soap_notes?.icd_codes?.map((code, index) => (
+																		<Badge key={`${code.code}-${index}`} className="!mr-0">
+																			{code.code} - {code.name}
+																		</Badge>
+																	))
+																) : (
+																	<p>N/A</p>
+																)}
+															</div>
 														</div>
 													</div>
 												</div>
