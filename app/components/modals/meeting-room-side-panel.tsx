@@ -183,10 +183,10 @@ export default function MeetingRoomSidePanel({ onClose, meeting }: { onClose?: (
 			}
 
 			setUserPfPlansMetadata((prev) => metadata);
-
-			setIsLoading(false);
 		} catch (error) {
 			console.error(error);
+		} finally {
+			setIsLoading(false);
 		}
 	};
 
@@ -637,25 +637,27 @@ export default function MeetingRoomSidePanel({ onClose, meeting }: { onClose?: (
 							</div>
 						)}
 
-						<div className="flex flex-col space-y-1">
-							<span className="font-semibold text-sm">Previous Personalized PF Plans</span>
-							{userPfPlans?.map((pfPlan) => (
-								<Link key={pfPlan.id} href={`/patients/${meeting.user_id}/pf-plan/${pfPlan.id}`} target="_blank">
-									<div className="flex space-x-4 mb-3">
-										<div>
-											<p>{pfPlan.name}</p>
-											<p className="text-sm text-neutral-600">{pfPlan.description}</p>
+						{userPfPlans && (
+							<div className="flex flex-col space-y-1">
+								<span className="font-semibold text-sm">Previous Personalized PF Plans</span>
+								{userPfPlans?.map((pfPlan) => (
+									<Link key={pfPlan.id} href={`/patients/${meeting.user_id}/pf-plan/${pfPlan.id}`} target="_blank">
+										<div className="flex space-x-4 mb-3">
+											<div>
+												<p>{pfPlan.name}</p>
+												<p className="text-sm text-neutral-600">{pfPlan.description}</p>
+											</div>
 										</div>
+									</Link>
+								))}
+								{userPfPlansMetadata?.page !== userPfPlansMetadata?.max_page && (
+									<div ref={ref} className="flex w-full items-center justify-center py-5">
+										<Loader />
+										<span>Loading...</span>
 									</div>
-								</Link>
-							))}
-							{userPfPlansMetadata?.page !== userPfPlansMetadata?.max_page && (
-								<div ref={ref} className="flex w-full items-center justify-center py-5">
-									<Loader />
-									<span>Loading...</span>
-								</div>
-							)}
-						</div>
+								)}
+							</div>
+						)}
 					</div>
 				</TabsContent>
 			</Tabs>
