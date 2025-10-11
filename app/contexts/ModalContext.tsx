@@ -72,6 +72,7 @@ const createModal = (options: ModalOptions, states: CreateModalStates) => {
 		case "default":
 			return (
 				<Dialog.Content
+					onInteractOutside={(e) => e.preventDefault()}
 					className={clsx(
 						"top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] fixed  mx-auto bg-white p-6 rounded-2xl shadow-lg z-50 focus:outline-none",
 						options?.className,
@@ -87,7 +88,9 @@ const createModal = (options: ModalOptions, states: CreateModalStates) => {
 								onClick={(e) => {
 									e.preventDefault();
 
-									if (states.close) states.close();
+									if (states.close) {
+										states.close(options?.onClose);
+									}
 								}}
 								asChild
 							>
@@ -150,6 +153,7 @@ const createModal = (options: ModalOptions, states: CreateModalStates) => {
 		case "alert":
 			return (
 				<Dialog.Content
+					onInteractOutside={(e) => e.preventDefault()}
 					className={clsx(
 						"top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] fixed  mx-auto bg-white p-6 rounded-2xl shadow-lg z-50 focus:outline-none",
 						options?.className,
@@ -179,6 +183,7 @@ const createModal = (options: ModalOptions, states: CreateModalStates) => {
 		case "confirm":
 			return (
 				<Dialog.Content
+					onInteractOutside={(e) => e.preventDefault()}
 					className={clsx(
 						"top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] fixed  mx-auto bg-white p-6 rounded-2xl shadow-lg z-50 focus:outline-none",
 						options?.className,
@@ -346,13 +351,14 @@ const ModalProvider = ({ children }: { children: ReactNode }) => {
 							onToggleProcessing: (state?: boolean) =>
 								state !== undefined ? setIsLoading(state) : setIsLoading((prev) => !prev),
 							close: (callback) => {
+								console.log("12312312312312312312313");
 								if (callback) {
 									const result: any = callback();
 
 									if (result instanceof Promise) {
-										result.then(() => setIsOpen(false));
+										result.then(() => setIsOpen(!!stackRef.current.length));
 									} else {
-										setIsOpen(false);
+										setIsOpen(!!stackRef.current.length);
 									}
 								}
 

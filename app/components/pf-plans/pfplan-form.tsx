@@ -243,11 +243,7 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 						userId: patient.id,
 					});
 					await revalidatePage(`/patients/${patient.id}/edit`);
-					if (!personalizedPfPlanId) {
-						action === "Create"
-							? router.replace(`pf-plan/${personalizedPfPlan.id.toString()}`)
-							: router.replace(personalizedPfPlan.id.toString());
-					}
+					router.replace(`${personalizedPfPlan.id.toString()}`);
 				} else {
 					await savePfPlan({ method, id, body });
 					await revalidatePage("/pf-plans");
@@ -338,8 +334,12 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 				<div className="hidden sm:flex ml-auto space-x-3">
 					{patient ? (
 						<>
-							<Button label="Cancel" onClick={() => router.back()} secondary />
-							<Button label="Save" onClick={onPublish} />
+							{!pfPlan?.is_archived && (
+								<>
+									<Button label="Cancel" onClick={() => router.back()} secondary />
+									<Button label="Save" onClick={onPublish} />
+								</>
+							)}
 						</>
 					) : (
 						<>
@@ -412,7 +412,9 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 				<Card className="sm:w-[693px] min-h-[200px] sm:min-h-[300px] px-3 sm:px-5 sm:mr-5 mb-5 sm:mb-0">
 					<div className="flex justify-between">
 						<h1 className="text-2xl font-semibold">PF Plan</h1>
-						{days.length > 0 && <Button label="Add Day" outlined onClick={togglePanel} className="!py-2 !px-4" />}
+						{days.length > 0 && !pfPlan?.is_archived && (
+							<Button label="Add Day" outlined onClick={togglePanel} className="!py-2 !px-4" />
+						)}
 					</div>
 					<DragDropContext onDragEnd={onDragEnd}>
 						<Droppable droppableId="ExerciseList">
@@ -453,8 +455,12 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 					</DragDropContext>
 					{days.length === 0 && (
 						<div className="flex flex-col justify-center items-center text-center h-full sm:mt-0">
-							<p className="text-neutral-400 mb-3">Add day from the Add Day Panel to begin creating your PF Plan</p>
-							<Button label="Add Day" outlined onClick={togglePanel} />
+							<p className="text-neutral-400 mb-3">
+								{pfPlan?.is_archived
+									? "No PF Plan Daily Content"
+									: "Add day from the Add Day Panel to begin creating your PF Plan"}
+							</p>
+							{!pfPlan?.is_archived && <Button label="Add Day" outlined onClick={togglePanel} />}
 						</div>
 					)}
 				</Card>
@@ -469,7 +475,7 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 							isEdit={action === "Edit"}
 						/>
 					</Card>
-					{action === "Edit" && (
+					{action === "Edit" && !pfPlan?.is_archived && (
 						<Button
 							label="Delete"
 							outlined

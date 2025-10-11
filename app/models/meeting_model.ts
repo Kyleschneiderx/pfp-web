@@ -2,11 +2,24 @@ import type { PatientModel } from "./patient_model";
 import type { Schedule } from "./schedules";
 import type { Status } from "./status_model";
 
+export interface MeetingSoapNotesIcdCodes {
+	code: string;
+	name: string;
+}
+
+export interface MeetingSoapNotesCptCodes {
+	code: string;
+	name: string;
+	duration: number;
+}
+
 export interface MeetingSoapNotes {
 	subjective?: string;
 	objective?: string;
 	assessment?: string;
 	progress?: string;
+	icd_codes?: MeetingSoapNotesIcdCodes[];
+	cpt_codes?: MeetingSoapNotesCptCodes[];
 }
 
 export interface TranscriptionSegment {

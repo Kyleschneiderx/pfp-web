@@ -1,20 +1,27 @@
 import type { OptionsModel } from "@/app/models/common_model";
 import clsx from "clsx";
 import Select from "react-select";
-import type { MultiValue, Props as ReactSelectProps, SingleValue } from "react-select";
+import type { Props as ReactSelectProps, OnChangeValue } from "react-select";
 
-interface Props extends Omit<ReactSelectProps<OptionsModel>, "onChange"> {
+interface Props<IsMulti extends boolean> extends Omit<ReactSelectProps<OptionsModel>, "onChange"> {
 	className?: string;
 	wrapperClassName?: string;
 	invalid?: boolean;
-	onChange: (e: SingleValue<OptionsModel> | MultiValue<OptionsModel>) => void; // Custom handler for SingleValue
+	onChange: (e: OnChangeValue<OptionsModel, IsMulti>) => void; // Custom handler for SingleValue
 }
 
-export default function SelectCmp({ className, wrapperClassName, invalid, onChange, ...rest }: Props) {
+export default function SelectCmp<IsMulti extends boolean = false>({
+	className,
+	wrapperClassName,
+	invalid,
+	onChange,
+	...rest
+}: Props<IsMulti>) {
 	return (
 		<div className={clsx("relative z-20", wrapperClassName)}>
-			<Select
+			<Select<OptionsModel, IsMulti>
 				{...rest}
+				isMulti={!!rest.isMulti as IsMulti}
 				classNamePrefix="react-select"
 				className={clsx(
 					"w-full rounded-md border p-[3px] focus:outline-none bg-white",
@@ -28,8 +35,17 @@ export default function SelectCmp({ className, wrapperClassName, invalid, onChan
 						boxShadow: "none",
 						padding: "0",
 					}),
+					menuPortal: (base) => ({
+						...base,
+						zIndex: 999,
+					}),
 				}}
 				onChange={(newValue, actionMeta) => {
+					if (newValue === null) {
+						onChange(null as any);
+						return;
+					}
+
 					onChange(newValue);
 				}}
 			/>
