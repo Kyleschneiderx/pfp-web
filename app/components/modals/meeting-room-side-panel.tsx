@@ -616,8 +616,12 @@ export default function MeetingRoomSidePanel({ onClose, meeting }: { onClose?: (
 												className="w-[80px] h-[56px] mt-1"
 											/>
 											<div>
-												<p>{userPfPlan.name}</p>
-												<p className="text-sm text-neutral-600">{userPfPlan.description}</p>
+												<p className="line-clamp-1" title={userPfPlan.name}>
+													{userPfPlan.name}
+												</p>
+												<p className="text-sm text-neutral-600 line-clamp-2" title={userPfPlan.description}>
+													{userPfPlan.description}
+												</p>
 											</div>
 										</div>
 									</Link>
@@ -643,8 +647,12 @@ export default function MeetingRoomSidePanel({ onClose, meeting }: { onClose?: (
 									<Link key={pfPlan.id} href={`/patients/${meeting.user_id}/pf-plan/${pfPlan.id}`} target="_blank">
 										<div className="flex space-x-4 mb-3">
 											<div>
-												<p>{pfPlan.name}</p>
-												<p className="text-sm text-neutral-600">{pfPlan.description}</p>
+												<p className="line-clamp-2" title={pfPlan.name}>
+													{pfPlan.name}
+												</p>
+												<p className="text-sm text-neutral-600 line-clamp-3" title={pfPlan.description}>
+													{pfPlan.description}
+												</p>
 											</div>
 										</div>
 									</Link>
