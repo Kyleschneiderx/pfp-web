@@ -623,7 +623,6 @@ export default function MeetingRoomSidePanel({ onClose, meeting }: { onClose?: (
 									</Link>
 								) : (
 									<Button
-										isProcessing={isLoading}
 										className="!w-64 self-center !mt-5"
 										onClick={handleUserPfPlan}
 										label="Assign Personalized PF Plan"
