@@ -632,7 +632,7 @@ export default function MeetingRoomSidePanel({ onClose, meeting }: { onClose?: (
 						) : (
 							<div className="flex flex-col h-full w-full justify-center items-center space-y-3">
 								<p className="font-semibold">No PF Plan Found</p>
-								<Button isProcessing={isLoading} onClick={handleUserPfPlan} label="Assign Personalized PF Plan" />
+								<Button onClick={handleUserPfPlan} label="Assign Personalized PF Plan" />
 							</div>
 						)}
 
