@@ -174,7 +174,7 @@ export default function MeetingRoomSidePanel({ onClose, meeting }: { onClose?: (
 
 			const [currentPlan, ...oldPlans] = data;
 
-			if (!userPfPlansMetadata) {
+			if (!userPfPlansMetadata || metadata.page === 1) {
 				setUserPfPlan(currentPlan?.is_archived ? undefined : currentPlan);
 
 				setUserPfPlans([...(currentPlan?.is_archived ? [currentPlan] : []), ...oldPlans]);
