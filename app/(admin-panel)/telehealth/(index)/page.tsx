@@ -1,9 +1,13 @@
 import { getMeetingList } from "@/app/components/meetings/actions";
-import MeetingList from "@/app/components/meetings/meeting-list";
 import { DEFAULT_LIST, PAGE_ITEMS } from "@/app/lib/constants";
 import type { List } from "@/app/models/global_model";
 import type { Meeting } from "@/app/models/meeting_model";
 import type { MeetingsSearchQuery } from "@/app/services/server_side/meetings";
+import dynamic from "next/dynamic";
+
+const MeetingList = dynamic(() => import("@/app/components/meetings/meeting-list"), {
+	ssr: false,
+});
 
 export default async function Page({
 	searchParams,
