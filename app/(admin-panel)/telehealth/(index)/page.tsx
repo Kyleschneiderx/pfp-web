@@ -9,10 +9,6 @@ const MeetingList = dynamic(() => import("@/app/components/meetings/meeting-list
 	ssr: false,
 });
 
-const MeetingList = dynamic(() => import("@/app/components/meetings/meeting-list"), {
-	ssr: false,
-});
-
 export default async function Page({
 	searchParams,
 }: {
