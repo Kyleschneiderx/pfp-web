@@ -351,7 +351,6 @@ const ModalProvider = ({ children }: { children: ReactNode }) => {
 							onToggleProcessing: (state?: boolean) =>
 								state !== undefined ? setIsLoading(state) : setIsLoading((prev) => !prev),
 							close: (callback) => {
-								console.log("12312312312312312312313");
 								if (callback) {
 									const result: any = callback();
 
