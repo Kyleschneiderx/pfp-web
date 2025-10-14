@@ -33,6 +33,7 @@ export default function MeetingRoom({ meeting }: { meeting: Meeting }) {
 	});
 	const streamDevicesRef = useRef<MediaDeviceInfo[]>([]);
 	const peerConnectionRef = useRef<RTCPeerConnection>();
+	const iceCandidateQueueRef = useRef<RTCLocalIceCandidateInit[]>([]);
 	const modal = useModal();
 
 	const meetingSocket = useMemo(() => socketClient({ namespace: "meeting" }), []);
@@ -132,6 +133,9 @@ export default function MeetingRoom({ meeting }: { meeting: Meeting }) {
 		// Optional: connection state updates
 		peerConnectionRef.current.addEventListener("connectionstatechange", () => {
 			console.log("peer connection change", peerConnectionRef.current?.connectionState);
+			if (peerConnectionRef.current?.connectionState === "disconnected") {
+				setRemoteStream(undefined);
+			}
 		});
 	};
 
@@ -156,10 +160,20 @@ export default function MeetingRoom({ meeting }: { meeting: Meeting }) {
 		meetingSocket.on("answer", async ({ from, sdp }) => {
 			if (!peerConnectionRef.current) return;
 			await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(sdp));
+			if (iceCandidateQueueRef.current.length) {
+				for (const candidate of iceCandidateQueueRef.current) {
+					await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+				}
+				iceCandidateQueueRef.current = [];
+			}
 		});
 
 		meetingSocket.on("candidate", async ({ candidate }) => {
 			if (!peerConnectionRef.current) return;
+			if (!peerConnectionRef.current.remoteDescription) {
+				iceCandidateQueueRef.current.push(candidate);
+				return;
+			}
 			if (!candidate) return;
 			await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
 		});

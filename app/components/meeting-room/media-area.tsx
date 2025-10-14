@@ -39,15 +39,13 @@ export default function MediaArea({
 	useEffect(() => {
 		if (!localVideoRef.current) return;
 
-		localVideoRef.current.srcObject = stream;
+		localVideoRef.current.srcObject = stream ?? null;
 	}, [stream]);
 
 	useEffect(() => {
 		if (!remoteVideoRef.current) return;
 
-		if (!remoteStream) return;
-
-		remoteVideoRef.current.srcObject = remoteStream;
+		remoteVideoRef.current.srcObject = remoteStream ?? null;
 	}, [remoteStream]);
 
 	return (
@@ -70,7 +68,7 @@ export default function MediaArea({
 						autoPlay
 						playsInline
 						muted={false}
-						className="w-full h-full object-cover scale-125 origin-center"
+						className="w-full h-full object-cover scale-105 origin-center"
 					/>
 
 					{!remoteStream && (
