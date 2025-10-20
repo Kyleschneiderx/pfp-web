@@ -10,9 +10,10 @@ interface Prop {
 	className?: string;
 	onChange?: (text: string) => void;
 	value?: string;
+	param?: string;
 }
 
-export default function SearchCmp({ placeholder, className, onChange, value }: Prop) {
+export default function SearchCmp({ placeholder, className, onChange, value, param = "name" }: Prop) {
 	const searchParams = useSearchParams();
 	const pathname = usePathname();
 	const { replace } = useRouter();
@@ -23,9 +24,9 @@ export default function SearchCmp({ placeholder, className, onChange, value }: P
 		} else {
 			const params = new URLSearchParams(searchParams);
 			if (term) {
-				params.set("name", term);
+				params.set(param, term);
 			} else {
-				params.delete("name");
+				params.delete(param);
 			}
 			replace(`${pathname}?${params.toString()}`);
 		}
@@ -40,7 +41,7 @@ export default function SearchCmp({ placeholder, className, onChange, value }: P
 				placeholder={placeholder}
 				icon="Search"
 				onChange={(e) => handleSearch(e.target.value)}
-				defaultValue={value ?? searchParams.get("name")?.toString()}
+				defaultValue={value ?? searchParams.get(param)?.toString()}
 			/>
 		</div>
 	);
