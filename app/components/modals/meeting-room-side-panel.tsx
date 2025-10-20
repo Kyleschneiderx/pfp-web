@@ -486,6 +486,7 @@ export default function MeetingRoomSidePanel({ onClose, meeting }: { onClose?: (
 																						label: `${code.code} - ${code.name}`,
 																						value: code.code,
 																						name: code.name,
+																						is_timed: code.is_timed,
 																					}))}
 																				onChange={(e) => {
 																					if (!e) return;
@@ -503,8 +504,11 @@ export default function MeetingRoomSidePanel({ onClose, meeting }: { onClose?: (
 																				type="number"
 																				className="!p-2"
 																				min={0}
+																				disabled={
+																					!selections?.cpt_codes?.find((code) => code.code === value.code)?.is_timed
+																				}
 																				value={value.duration}
-																				placeholder="Duration"
+																				placeholder="Minutes"
 																				onChange={(e) => {
 																					handleChangeCpt(field, index, {
 																						code: value.code,
