@@ -5,37 +5,36 @@ import { PatientModel } from "@/app/models/patient_model";
 import { getPatients, getPfPlanProgress } from "@/app/services/server_side/patients";
 
 export async function fetchPatients({
-  page = 1,
-  name,
-  sort,
-  status_id,
+	page = 1,
+	search,
+	sort,
+	status_id,
 }: {
-  page?: number;
-  name: string;
-  sort: string;
-  status_id: string;
-}): Promise<{patientList: PatientModel[]; max_page: number}> {
+	page?: number;
+	search: string;
+	sort: string;
+	status_id: string;
+}): Promise<{ patientList: PatientModel[]; max_page: number }> {
+	let response;
+	const params = `&search=${search}${
+		!["0", ""].includes(status_id ?? "") ? `&status_id[]=${status_id}` : ""
+	}&sort[]=${sort}&page=${page}&page_items=15`;
 
-  let response;
-  const params = `&name=${name}${
-    !["0", ""].includes(status_id ?? "") ? `&status_id[]=${status_id}` : ""
-  }&sort[]=${sort}&page=${page}&page_items=15`;
-
-  try {
-    response = await getPatients(params);
-    console.log(response.data.length);
-    return {patientList: response.data, max_page: response.max_page };
-  } catch (error) {
-    const apiError = error as ErrorModel;
-    const errorMessage = apiError.msg || "Failed to fetch patients";
-    throw new Error(errorMessage);
-  }
+	try {
+		response = await getPatients(params);
+		console.log(response.data.length);
+		return { patientList: response.data, max_page: response.max_page };
+	} catch (error) {
+		const apiError = error as ErrorModel;
+		const errorMessage = apiError.msg || "Failed to fetch patients";
+		throw new Error(errorMessage);
+	}
 }
 
 export async function fetchPfPlanProgress(id: string) {
-  try {
-    return await getPfPlanProgress(id);
-  } catch (error) {
-    return null;
-  }
+	try {
+		return await getPfPlanProgress(id);
+	} catch (error) {
+		return null;
+	}
 }
