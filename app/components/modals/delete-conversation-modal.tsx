@@ -20,7 +20,7 @@ export default function DeleteConversationModal() {
 	const getPatients = async () => {
 		const { patientList, max_page } = await fetchPatients({
 			page: page,
-			name: "",
+			search: "",
 			sort: "name:ASC",
 			status_id: "",
 		});
