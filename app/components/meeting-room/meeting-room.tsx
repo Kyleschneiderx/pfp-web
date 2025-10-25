@@ -40,10 +40,6 @@ export default function MeetingRoom({ meeting }: { meeting: Meeting }) {
 
 	useAudioStream({
 		start: isRecording,
-		// emit: (data: ArrayBuffer) => {
-		// 	console.log("Emitting audio data to socket:", data.byteLength, "bytes");
-		// 	meetingSocket.emit("audio", { roomId: meeting.id, audio: data });
-		// },
 		emitLocal: (data: ArrayBuffer) => {
 			console.log("Emitting provider audio data to socket");
 			meetingSocket.emit("audio", { roomId: meeting.id, audio: data, speaker: "provider" });
