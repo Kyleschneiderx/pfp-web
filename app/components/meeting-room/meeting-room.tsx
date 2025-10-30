@@ -116,20 +116,23 @@ export default function MeetingRoom({ meeting }: { meeting: Meeting }) {
 		peerConnectionRef.current.addEventListener("track", (ev) => {
 			// Most browsers provide ev.streams[0]
 			setRemoteStream((prev) => {
-				let remoteStream = ev?.streams?.[0];
-				if (!remoteStream) {
+				let remote = ev?.streams?.[0];
+				if (!remote) {
 					const remoteMediaStream = new MediaStream();
 					remoteMediaStream.addTrack(ev.track);
-					remoteStream = remoteMediaStream;
+					remote = remoteMediaStream;
 				}
-				return remoteStream;
+				return remote;
 			});
 		});
 
 		// Optional: connection state updates
 		peerConnectionRef.current.addEventListener("connectionstatechange", () => {
 			console.log("peer connection change", peerConnectionRef.current?.connectionState);
-			if (peerConnectionRef.current?.connectionState === "disconnected") {
+			if (
+				peerConnectionRef.current?.connectionState === "failed" ||
+				peerConnectionRef.current?.connectionState === "closed"
+			) {
 				setRemoteStream(undefined);
 			}
 		});
@@ -166,6 +169,7 @@ export default function MeetingRoom({ meeting }: { meeting: Meeting }) {
 
 		meetingSocket.on("candidate", async ({ candidate }) => {
 			if (!peerConnectionRef.current) return;
+
 			if (!peerConnectionRef.current.remoteDescription) {
 				iceCandidateQueueRef.current.push(candidate);
 				return;

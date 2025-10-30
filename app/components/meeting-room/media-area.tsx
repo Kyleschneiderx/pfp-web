@@ -53,7 +53,7 @@ export default function MediaArea({
 			<div className="h-full">
 				<Card className="relative overflow-hidden !bg-neutral-900 !p-0 h-full max-h-[600px]">
 					{isRecording && (
-						<div className="flex absolute top-1 left-1">
+						<div className="flex absolute top-1 left-1 z-[99]">
 							<div className="flex items-center">
 								<span className="text-error-500 text-2xl -mt-[3px] mr-1">•</span>
 
