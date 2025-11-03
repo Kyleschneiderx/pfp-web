@@ -1,12 +1,13 @@
 [
-  {
-    "relation": ["delegate_permission/common.handle_all_urls"],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "com.lakecitypt.pelvic_floor_pro",
-      "sha256_cert_fingerprints": [
-        "48:49:43:3D:94:70:6E:61:07:94:A7:F1:8C:14:D8:A5:6D:89:B2:40:3E:53:3C:48:04:6F:17:D2:3D:09:AE:A2"
-      ]
-    }
-  }
+	{
+		"relation": ["delegate_permission/common.handle_all_urls"],
+		"target": {
+			"namespace": "android_app",
+			"package_name": "com.lakecitypt.pelvic_floor_pro",
+			"sha256_cert_fingerprints": [
+				"03:A9:3B:E3:71:08:A6:F8:A1:02:32:3F:E8:32:A7:68:C5:69:85:4D:EA:D5:6A:C7:DD:FB:61:23:B6:AA:2F:42",
+				"48:49:43:3D:94:70:6E:61:07:94:A7:F1:8C:14:D8:A5:6D:89:B2:40:3E:53:3C:48:04:6F:17:D2:3D:09:AE:A2"
+			]
+		}
+	}
 ]
