@@ -17,7 +17,7 @@ import { IconKey, IconUser } from "@tabler/icons-react";
 
 export default function Header() {
 	const logout = useLogout();
-	const { user } = useAuth();
+	const { user, hasPermission } = useAuth();
 	const router = useRouter();
 	const userName = user?.user_profile.name;
 	const userEmail = user?.email;
@@ -100,17 +100,21 @@ export default function Header() {
 								icon: <IconKey className="mr-2" size={16} />,
 								onClick: () => handleChangePassword(),
 							},
-							{
-								label: "Push Notification",
-								icon: <TabletSmartphoneIcon className="mr-2" size={16} />,
-								onClick: () => {
-									modal.open({
-										title: "Send Push Notification",
-										type: "default",
-										component: <SendPushNotificationModal />,
-									});
-								},
-							},
+							...(hasPermission([])
+								? [
+										{
+											label: "Push Notification",
+											icon: <TabletSmartphoneIcon className="mr-2" size={16} />,
+											onClick: () => {
+												modal.open({
+													title: "Send Push Notification",
+													type: "default",
+													component: <SendPushNotificationModal />,
+												});
+											},
+										},
+									]
+								: []),
 							{
 								label: "Schedule",
 								icon: <CalendarDaysIcon className="mr-2" size={16} />,
