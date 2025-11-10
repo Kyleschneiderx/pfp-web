@@ -3,9 +3,11 @@ import { DEFAULT_LIST, PAGE_ITEMS } from "@/app/lib/constants";
 import type { List } from "@/app/models/global_model";
 import type { Meeting } from "@/app/models/meeting_model";
 import type { MeetingsSearchQuery } from "@/app/services/server_side/meetings";
-import dynamic from "next/dynamic";
+import { default as dynamicN } from "next/dynamic";
 
-const MeetingList = dynamic(() => import("@/app/components/meetings/meeting-list"), {
+export const dynamic = "force-dynamic";
+
+const MeetingList = dynamicN(() => import("@/app/components/meetings/meeting-list"), {
 	ssr: false,
 });
 

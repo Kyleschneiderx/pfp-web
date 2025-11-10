@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Button from "@/app/components/elements/Button";
 import FilterList from "@/app/components/elements/FilterList";
 import IconAddButton from "@/app/components/elements/mobile/IconAddButton";
@@ -7,7 +9,6 @@ import { PAGE_ITEMS } from "@/app/lib/constants";
 import type { List } from "@/app/models/global_model";
 import type { Practice } from "@/app/models/practice";
 import type { PracticessSearchQuery } from "@/app/services/server_side/practices";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 
 export default async function Page({
@@ -29,10 +30,8 @@ export default async function Page({
 			sort: "id:DESC",
 		});
 	} catch (error) {
-		errorMessage = (error as Error).message;
+		console.error(error);
 	}
-
-	console.log(practices?.data);
 
 	return (
 		<>
