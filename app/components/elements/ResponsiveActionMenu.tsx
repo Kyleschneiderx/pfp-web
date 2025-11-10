@@ -48,6 +48,7 @@ type ActionMenuProps = {
 	deleteIcon?: React.ReactNode;
 	showEditIcon?: boolean;
 	showDeleteIcon?: boolean;
+	className?: string;
 };
 
 const ResponsiveActionMenu = ({
@@ -64,6 +65,7 @@ const ResponsiveActionMenu = ({
 	deleteIcon = <Trash2Icon className="h-4 w-4" />,
 	showEditIcon = true,
 	showDeleteIcon = true,
+	className,
 }: ActionMenuProps) => {
 	const [isOpen, setIsOpen] = useState<boolean>(false);
 	const { isMobile } = useWindowSizeCheck();
@@ -79,7 +81,7 @@ const ResponsiveActionMenu = ({
 	};
 
 	return isMobile ? (
-		<div>
+		<div className={className}>
 			<Dialog open={isOpen} onOpenChange={onOpenChange}>
 				<DialogTrigger onClick={() => setIsOpen((prev) => !prev)} asChild data-aria-hidden="true">
 					{icon ?? <EllipsisVerticalIcon size={21} className="text-neutral-900 cursor-pointer" />}
@@ -156,7 +158,7 @@ const ResponsiveActionMenu = ({
 			</Dialog>
 		</div>
 	) : (
-		<div>
+		<div className={className}>
 			<DropdownMenu open={isOpen} onOpenChange={onOpenChange}>
 				<DropdownMenuTrigger onClick={() => setIsOpen((prev) => !prev)} asChild data-aria-hidden="true">
 					{icon ?? <EllipsisVerticalIcon size={21} className="text-neutral-900 cursor-pointer" />}

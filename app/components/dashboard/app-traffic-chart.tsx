@@ -128,65 +128,63 @@ export default function AppTrafficChart() {
 	}, [selectedOption1, selectedYear, startOfWeek, selectedMonth]);
 
 	return (
-		<div className="w-full mb-5">
-			<Card className="h-full">
-				<span className="text-xl font-bold">App Page Traffics</span>
-				{/* <div className="flex flex-col items-center justify-center"> */}
-				<div className="flex flex-wrap flex-col sm:flex-row">
-					{/* <div className="flex flex-col mr-5">
+		<Card className="h-full">
+			<span className="text-xl font-bold">App Page Traffics</span>
+			{/* <div className="flex flex-col items-center justify-center"> */}
+			<div className="flex flex-wrap flex-col sm:flex-row">
+				{/* <div className="flex flex-col mr-5">
 							<span className="text-xl font-bold">App Traffic</span>
 							<span className="text-md text-neutral-600">User journey through key app sections</span>
 						</div> */}
-					<div className="flex flex-col">
-						<span className="text-[28px] font-bold">{userVisitStats?.total ?? 0}</span>
-						<span className=" text-neutral-600">Total Devices</span>
-					</div>
-					<div className="ml-0 sm:ml-auto">
-						<div className="sm:flex ml-0 sm:space-x-3 sm:ml-auto w-full sm:w-auto mt-5 sm:mt-0">
-							<SelectCmp
-								options={options1}
-								value={selectedOption1}
-								onChange={(e) => handleSelect1Change(e as OptionsModel)}
-								className="p-0 mb-2"
-								wrapperClassName="z-[999]"
-							/>
-						</div>
-					</div>
+				<div className="flex flex-col">
+					<span className="text-[28px] font-bold">{userVisitStats?.total ?? 0}</span>
+					<span className=" text-neutral-600">Total Devices</span>
 				</div>
-				{/* </div> */}
-				{selectedOption1?.value === "monthly" && (
-					<div className="flex flex-row justify-center items-center space-x-2 mt-3">
+				<div className="ml-0 sm:ml-auto">
+					<div className="sm:flex ml-0 sm:space-x-3 sm:ml-auto w-full sm:w-auto mt-5 sm:mt-0">
 						<SelectCmp
-							options={monthOptions}
-							value={selectedMonth}
-							onChange={(e) => handleMonthChange(e as OptionsModel)}
-							placeholder="Select"
-							className="p-0"
-							wrapperClassName="!w-full"
-						/>
-						<SelectCmp
-							options={yearOptions}
-							value={selectedYear}
-							onChange={(e) => handleYearChange(e as OptionsModel)}
-							placeholder="Select"
-							className="p-0"
-							wrapperClassName="!w-full"
+							options={options1}
+							value={selectedOption1}
+							onChange={(e) => handleSelect1Change(e as OptionsModel)}
+							className="p-0 mb-2"
+							wrapperClassName="z-[999]"
 						/>
 					</div>
-				)}
-				{selectedOption1?.value === "weekly" && (
-					<div className="flex items-center justify-center font-medium text-sm space-x-2 mt-3">
-						<ChevronLeft className="cursor-pointer" onClick={goToPreviousWeek} />
-						<span>
-							{formatDate1(startOfWeek)} - {formatDate1(endOfWeek)}
-						</span>
-						<ChevronRight className="cursor-pointer" onClick={goToNextWeek} />
-					</div>
-				)}
-				<div className="relative m-auto mt-6">
-					<Bar data={chartData} options={chartOptions} />
 				</div>
-			</Card>
-		</div>
+			</div>
+			{/* </div> */}
+			{selectedOption1?.value === "monthly" && (
+				<div className="flex flex-row justify-center items-center space-x-2 mt-3">
+					<SelectCmp
+						options={monthOptions}
+						value={selectedMonth}
+						onChange={(e) => handleMonthChange(e as OptionsModel)}
+						placeholder="Select"
+						className="p-0"
+						wrapperClassName="!w-full"
+					/>
+					<SelectCmp
+						options={yearOptions}
+						value={selectedYear}
+						onChange={(e) => handleYearChange(e as OptionsModel)}
+						placeholder="Select"
+						className="p-0"
+						wrapperClassName="!w-full"
+					/>
+				</div>
+			)}
+			{selectedOption1?.value === "weekly" && (
+				<div className="flex items-center justify-center font-medium text-sm space-x-2 mt-3">
+					<ChevronLeft className="cursor-pointer" onClick={goToPreviousWeek} />
+					<span>
+						{formatDate1(startOfWeek)} - {formatDate1(endOfWeek)}
+					</span>
+					<ChevronRight className="cursor-pointer" onClick={goToNextWeek} />
+				</div>
+			)}
+			<div className="relative m-auto mt-6">
+				<Bar data={chartData} options={chartOptions} />
+			</div>
+		</Card>
 	);
 }

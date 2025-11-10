@@ -1,6 +1,7 @@
+import { IconEye, IconEyeClosed } from "@tabler/icons-react";
 import clsx from "clsx";
 import { Search } from "lucide-react";
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 
 interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
 	icon?: React.ReactNode;
@@ -12,6 +13,7 @@ interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
 
 const Input = forwardRef<HTMLInputElement, Props>(
 	({ icon, children, className, containerClassName, invalid = false, onChange, ...rest }, ref) => {
+		const [toggleShowPassword, setToggleShowPassword] = useState(false);
 		return (
 			<div className={clsx("relative", containerClassName)}>
 				<input
@@ -26,9 +28,24 @@ const Input = forwardRef<HTMLInputElement, Props>(
 						className,
 					)}
 					onChange={onChange}
+					type={icon === "Password" ? (toggleShowPassword ? "text" : "password") : (rest.type ?? "text")}
 				/>
 				{icon === "Search" ? (
 					<Search className="absolute ml-3 right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-neutral-600" />
+				) : icon === "Password" ? (
+					!toggleShowPassword ? (
+						<IconEyeClosed
+							width={20}
+							className="absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer"
+							onClick={() => setToggleShowPassword((prev) => !prev)}
+						/>
+					) : (
+						<IconEye
+							width={20}
+							className="absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer"
+							onClick={() => setToggleShowPassword((prev) => !prev)}
+						/>
+					)
 				) : (
 					icon
 				)}

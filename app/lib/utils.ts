@@ -210,3 +210,31 @@ export const timeToDate = (time: string, formatString = "yyyy-MM-dd HH:mm:ss") =
 
 	return format(set(new Date(), { hours, minutes, seconds }), formatString);
 };
+
+export const hasFieldError = (
+	fieldName: string,
+	errors?:
+		| ({ path?: string; msg: string } & Record<string, any>[])
+		| ({ path?: string; msg: string } & Record<string, any>),
+) => {
+	if (!Array.isArray(errors)) {
+		return errors?.path === fieldName;
+	}
+
+	return errors?.some((error) => error.path === fieldName);
+};
+
+export const toFormData = (data: Record<string, any>) => {
+	const formData = new FormData();
+	for (const [key, value] of Object.entries(data)) {
+		if (!value) continue;
+
+		if (Array.isArray(value)) {
+			formData.append(key, JSON.stringify(value));
+		} else {
+			formData.append(key, value);
+		}
+	}
+
+	return formData;
+};

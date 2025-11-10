@@ -47,23 +47,21 @@ export default function UserDoughnutChart({ premiumUsers, freeUsers, total }: Pr
 	};
 
 	return (
-		<div className="w-full h-auto">
-			<Card className="">
-				<span className="text-xl font-bold">Daily Sign-ups</span>
-				<div className="relative m-auto mt-6">
-					<Doughnut data={chartData} options={chartOptions} />
-					<div className="absolute inset-0 flex flex-col items-center justify-center mt-3 pointer-events-none z-10">
-						<p className="text-[30px] font-bold">{formatNumber(total)}</p>
-						<p className="text-sm">Daily Sign-ups</p>
-					</div>
+		<Card className="">
+			<span className="text-xl font-bold">Daily Sign-ups</span>
+			<div className="relative m-auto mt-6">
+				<Doughnut data={chartData} options={chartOptions} />
+				<div className="absolute inset-0 flex flex-col items-center justify-center mt-3 pointer-events-none z-10">
+					<p className="text-[30px] font-bold">{formatNumber(total)}</p>
+					<p className="text-sm">Daily Sign-ups</p>
 				</div>
-				<div className="flex items-center justify-center text-sm mt-8 mx-auto space-x-3">
-					<div className="w-3 h-3 rounded-full bg-[#9F9FED]"></div>
-					<p>Premium</p>
-					<div className="w-3 h-3 rounded-full bg-[#F2DFD7]"></div>
-					<p>Free</p>
-				</div>
-			</Card>
-		</div>
+			</div>
+			<div className="flex items-center justify-center text-sm mt-8 mx-auto space-x-3">
+				<div className="w-3 h-3 rounded-full bg-[#9F9FED]"></div>
+				<p>Premium</p>
+				<div className="w-3 h-3 rounded-full bg-[#F2DFD7]"></div>
+				<p>Free</p>
+			</div>
+		</Card>
 	);
 }

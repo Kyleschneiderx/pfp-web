@@ -35,7 +35,7 @@ export default function PfPlanAction({ pfplan }: Props) {
 			try {
 				setIsProcessing(true);
 				await deletePfPlan(pfplan.id);
-				await revalidatePage("/pf-plans");
+				await revalidatePage("/contents/pf-plans");
 				setIsProcessing(false);
 				showSnackBar({
 					message: "Pf Plan successfully deleted.",
@@ -59,7 +59,7 @@ export default function PfPlanAction({ pfplan }: Props) {
 			try {
 				setIsProcessing(true);
 				await duplicatePfPlan(pfplan.id);
-				await revalidatePage("/pf-plans");
+				await revalidatePage("/contents/pf-plans");
 				setIsProcessing(false);
 				showSnackBar({
 					message: "Pf Plan successfully duplicated.",
@@ -85,7 +85,7 @@ export default function PfPlanAction({ pfplan }: Props) {
 				const body = new FormData();
 				body.append("name", newName);
 				await savePfPlan({ method: "PUT", id: pfplan.id, body });
-				await revalidatePage("/pf-plans");
+				await revalidatePage("/contents/pf-plans");
 				setIsProcessing(false);
 				showSnackBar({
 					message: "Pf Plan successfully renamed.",

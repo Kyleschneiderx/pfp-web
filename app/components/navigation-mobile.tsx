@@ -6,73 +6,11 @@ import { LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useToggle } from "../store/store";
-import DashboardIcon from "./icons/dashboard_icon";
-import EducationIcon from "./icons/education_icon";
-import ExerciseIcon from "./icons/exercise_icon";
-import PatientIcon from "./icons/patient_icon";
-import PFPlanIcon from "./icons/pfplan_icon";
-import WorkoutIcon from "./icons/workout_icon";
-import ChatIcon from "./icons/chat_icon";
-import SettingsIcon from "./icons/settings";
-import TelehealthIcon from "./icons/telehealth_icon";
+import { NAVIGATIONS } from "./constant";
 
 export default function NavigationMobile() {
 	const logout = useLogout();
 	const pathname = usePathname();
-
-	const navItems = [
-		{
-			title: "Dashboard",
-			url: "/dashboard",
-			icon: <DashboardIcon activeUrl="/dashboard" />,
-		},
-		{
-			title: "Patients",
-			url: "/patients",
-			icon: <PatientIcon activeUrl="/patients" />,
-		},
-		{
-			title: "Exercises",
-			url: "/exercises",
-			icon: <ExerciseIcon activeUrl="/exercises" />,
-		},
-		{
-			title: "Workouts",
-			url: "/workouts",
-			icon: <WorkoutIcon activeUrl="/workouts" />,
-		},
-		{
-			title: "PF Plans",
-			url: "/pf-plans",
-			icon: <PFPlanIcon activeUrl="/pf-plans" />,
-		},
-		{
-			title: "Education",
-			url: "/education",
-			icon: <EducationIcon activeUrl="/education" />,
-		},
-		{
-			title: "Telehealth",
-			url: "/telehealth",
-			icon: <TelehealthIcon activeUrl="/telehealth" />,
-		},
-		{
-			title: "Support Chat",
-			url: "/support-chat",
-			icon: <ChatIcon activeUrl="/support-chat" />,
-		},
-		{
-			title: "Settings",
-			url: "/settings",
-			icon: <SettingsIcon activeUrl="/settings" />,
-			subItems: [
-				{
-					title: "AI Coach",
-					url: "/settings/ai-coach",
-				},
-			],
-		},
-	];
 
 	const { isOpen, setIsOpen } = useToggle();
 
@@ -86,7 +24,7 @@ export default function NavigationMobile() {
 			>
 				<aside className="w-[250px] shadow-xl flex flex-col bg-white py-8 h-full z-50 overflow-y-auto">
 					<nav className="flex-grow">
-						{navItems.map((item, index) => {
+						{NAVIGATIONS.map((item, index) => {
 							return (
 								<div key={index}>
 									{item?.subItems?.length ? (

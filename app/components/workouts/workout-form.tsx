@@ -6,6 +6,7 @@ import {
 	CONFIRM_DELETE_DESCRIPTION,
 	CONFIRM_SAVE_DESCRIPTION,
 	CREATE_WORKOUT_DESCRIPTION,
+	PERMISSIONS,
 	UPDATE_DESCRIPTION,
 } from "@/app/lib/constants";
 import { revalidatePage } from "@/app/lib/revalidate";
@@ -21,7 +22,7 @@ import { CircleX } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Card from "../elements/Card";
 import Input from "../elements/Input";
@@ -31,6 +32,8 @@ import UploadCmp from "../elements/UploadCmp";
 import MoveTaskIcon from "../icons/move_task_icon";
 import PencilIcon from "../icons/pencil_icon";
 import { validateForm } from "./validation";
+import useAuth from "@/app/hooks/useAuth";
+import { FormSkeletons } from "../elements/FormSkeletons";
 
 const SelectCmp = dynamic(() => import("@/app/components/elements/SelectCmp"), {
 	ssr: false,
@@ -46,6 +49,7 @@ interface Props {
 export default function WorkoutForm({ action = "Create", workout }: Props) {
 	const { showSnackBar } = useSnackBar();
 	const router = useRouter();
+	const { hasPermission, isLoaded } = useAuth();
 
 	const [name, setName] = useState<string>("");
 	const [type, setType] = useState<SelectOptionsModel | null>(null);
@@ -206,7 +210,7 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
 				}
 
 				await saveWorkout({ method, id, body });
-				await revalidatePage("/workouts");
+				await revalidatePage("/contents/workouts");
 				setIsProcessing(false);
 				showSnackBar({
 					message: `Workout successfully ${action === "Create" ? "created" : "updated"}.`,
@@ -231,14 +235,14 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
 			try {
 				setIsProcessing(true);
 				await deleteWorkout(workout!.id);
-				await revalidatePage("/workouts");
+				await revalidatePage("/contents/workouts");
 				setIsProcessing(false);
 				showSnackBar({
 					message: `Workout successfully deleted.`,
 					success: true,
 				});
 				setModalOpen(false);
-				router.push("/workouts");
+				router.push("/contents/workouts");
 			} catch (error) {
 				const apiError = error as ErrorModel;
 
@@ -261,6 +265,12 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
 
 	const exerciseInputClass = "";
 
+	if (!isLoaded) return <FormSkeletons />;
+
+	if (isLoaded && workout && !hasPermission(PERMISSIONS.WORKOUT_EDIT)) return notFound();
+
+	if (isLoaded && !workout && !hasPermission(PERMISSIONS.WORKOUT_CREATE)) return notFound();
+
 	return (
 		<>
 			<div className="flex items-center mb-4 sm:mb-7">
@@ -271,7 +281,7 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
 					</p>
 				</div>
 				<div className="hidden sm:flex ml-auto space-x-3">
-					<Link href="/workouts">
+					<Link href="/contents/workouts">
 						<Button label="Cancel" secondary />
 					</Link>
 					<Button label="Save as Draft" outlined onClick={onDraft} />
@@ -499,7 +509,7 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
 					)}
 				</div>
 				<div className="sm:hidden order-last flex flex-col w-full mt-6 space-y-3">
-					<Link href="/workouts">
+					<Link href="/contents/workouts">
 						<Button label="Cancel" secondary className="w-full" />
 					</Link>
 					<Button label="Save as Draft" outlined onClick={onDraft} />

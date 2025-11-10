@@ -1,3 +1,5 @@
+import type { AccountPermission } from "./accounts";
+
 export type LoginModel = {
 	user: {
 		id: number;
@@ -11,6 +13,7 @@ export type LoginModel = {
 		updated_at: string;
 		user_profile: UserProfile;
 	};
+	permissions: AccountPermission[];
 	token: {
 		access: string;
 		firestore: string;

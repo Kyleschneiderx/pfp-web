@@ -51,7 +51,7 @@ export const getConversationMessages = async (
 };
 
 export const createGroupConversation = async (name: string) => {
-	const user = useAuth();
+	const { user } = useAuth();
 
 	const timestamp = Date.now();
 
@@ -63,7 +63,7 @@ export const createGroupConversation = async (name: string) => {
 			collection: "rooms",
 			parentCollection: null,
 			name: name,
-			participants: [String(user.id)],
+			participants: [String(user?.id)],
 			isGroup: true,
 			createdAt: timestamp,
 			updatedAt: timestamp,
@@ -105,7 +105,7 @@ export const deleteConversation = async (conversationId: string) => {
 };
 
 export const postConversationMessage = async (message: string, conversationId: string) => {
-	const user = useAuth();
+	const { user } = useAuth();
 
 	try {
 		const conversation = await firestore.lib.getDocs(
@@ -124,9 +124,9 @@ export const postConversationMessage = async (message: string, conversationId: s
 				{
 					collection: "messages",
 					parentCollection: "rooms",
-					senderId: String(user.id),
-					name: user.user_profile.name,
-					avatar: user.user_profile.photo,
+					senderId: String(user?.id),
+					name: user?.user_profile.name,
+					avatar: user?.user_profile.photo,
 					message: message,
 					createdAt: timestamp,
 					updatedAt: timestamp,
@@ -135,13 +135,13 @@ export const postConversationMessage = async (message: string, conversationId: s
 			),
 			firestore.lib.updateDoc(firestore.lib.doc(firestore.db, "rooms", conversationId), {
 				lastMessage: {
-					senderId: String(user.id),
-					name: user.user_profile.name,
-					avatar: user.user_profile.photo,
+					senderId: String(user?.id),
+					name: user?.user_profile.name,
+					avatar: user?.user_profile.photo,
 					message: message,
 				},
-				...(!conversationData.participants.includes(String(user.id)) &&
-					conversationData.isGroup && { participants: firestore.lib.arrayUnion(String(user.id)) }),
+				...(!conversationData.participants.includes(String(user?.id)) &&
+					conversationData.isGroup && { participants: firestore.lib.arrayUnion(String(user?.id)) }),
 				updatedAt: timestamp,
 			}),
 		]);

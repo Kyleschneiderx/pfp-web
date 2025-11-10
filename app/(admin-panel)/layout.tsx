@@ -2,12 +2,24 @@
 
 import Navigation from "@/app/components/navigation";
 import dynamic from "next/dynamic";
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import NavigationMobile from "../components/navigation-mobile";
+import useAuth from "../hooks/useAuth";
 
 const Header = dynamic(() => import("@/app/components/header"), { ssr: false });
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+	const { sync } = useAuth();
+	const didSynced = useRef(false);
+
+	useEffect(() => {
+		if (didSynced.current) return;
+
+		didSynced.current = true;
+
+		sync();
+	}, [sync]);
+
 	return (
 		<div className="flex h-screen overflow-hidden">
 			<div className="hidden md:block">
