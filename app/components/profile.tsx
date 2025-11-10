@@ -43,12 +43,12 @@ export default function ProfileForm({ account }: { account?: Account }) {
 
 	useEffect(() => {
 		if (user) {
-			console.log(user);
 			form.reset({
 				id: user.id,
 				name: user.user_profile.name || "",
 				description: user.user_profile.description || "",
 				npi: user.user_profile.npi || "",
+				role_id: user?.roles?.[0],
 				license: user.user_profile.license ?? [],
 				password: undefined,
 				email: user.email || "",
