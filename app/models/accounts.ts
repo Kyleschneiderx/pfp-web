@@ -50,6 +50,7 @@ export type AdminFormSchema = {
 	description: string;
 	password: string;
 	photo?: File;
+	role_id: number;
 };
 
 export type ProviderFormSchema = {
@@ -61,4 +62,5 @@ export type ProviderFormSchema = {
 	npi: string;
 	license: License[];
 	photo?: File;
+	role_id: number;
 };
