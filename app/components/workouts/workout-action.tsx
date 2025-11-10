@@ -12,96 +12,96 @@ import ConfirmModal from "../elements/ConfirmModal";
 import ModalRename from "../elements/ModalRename";
 
 interface Props {
-  workout: WorkoutModel;
+	workout: WorkoutModel;
 }
 
 export default function WorkoutAction({ workout }: Props) {
-  const { showSnackBar } = useSnackBar();
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalRenameOpen, setModalRenameOpen] = useState(false);
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+	const { showSnackBar } = useSnackBar();
+	const [modalOpen, setModalOpen] = useState(false);
+	const [modalRenameOpen, setModalRenameOpen] = useState(false);
+	const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
-  const handleCloseModal = () => {
-    if (!isProcessing) {
-      setModalOpen(false);
-      setModalRenameOpen(false);
-    }
-  };
+	const handleCloseModal = () => {
+		if (!isProcessing) {
+			setModalOpen(false);
+			setModalRenameOpen(false);
+		}
+	};
 
-  const handleConfirm = async () => {
-    if (!isProcessing) {
-      try {
-        setIsProcessing(true);
-        await deleteWorkout(workout.id);
-        await revalidatePage("/workouts");
-        setIsProcessing(false);
-        showSnackBar({
-          message: `Workout successfully deleted.`,
-          success: true,
-        });
-        setModalOpen(false);
-      } catch (error) {
-        const apiError = error as ErrorModel;
+	const handleConfirm = async () => {
+		if (!isProcessing) {
+			try {
+				setIsProcessing(true);
+				await deleteWorkout(workout.id);
+				await revalidatePage("/contents/workouts");
+				setIsProcessing(false);
+				showSnackBar({
+					message: `Workout successfully deleted.`,
+					success: true,
+				});
+				setModalOpen(false);
+			} catch (error) {
+				const apiError = error as ErrorModel;
 
-        if (apiError && apiError.msg) {
-          showSnackBar({ message: apiError.msg, success: false });
-        }
-        setIsProcessing(false);
-        setModalOpen(false);
-      }
-    }
-  };
+				if (apiError && apiError.msg) {
+					showSnackBar({ message: apiError.msg, success: false });
+				}
+				setIsProcessing(false);
+				setModalOpen(false);
+			}
+		}
+	};
 
-  const handleRenameConfirm = async (newName: string) => {
-    if (!isProcessing) {
-      try {
-        setIsProcessing(true);
-        const body = new FormData();
-        body.append("name", newName);
-        await saveWorkout({ method: "PUT", id: workout.id, body });
-        await revalidatePage("/workouts");
-        setIsProcessing(false);
-        showSnackBar({
-          message: `Workout successfully renamed.`,
-          success: true,
-        });
-        setModalRenameOpen(false);
-      } catch (error) {
-        const apiError = error as ErrorModel;
+	const handleRenameConfirm = async (newName: string) => {
+		if (!isProcessing) {
+			try {
+				setIsProcessing(true);
+				const body = new FormData();
+				body.append("name", newName);
+				await saveWorkout({ method: "PUT", id: workout.id, body });
+				await revalidatePage("/contents/workouts");
+				setIsProcessing(false);
+				showSnackBar({
+					message: `Workout successfully renamed.`,
+					success: true,
+				});
+				setModalRenameOpen(false);
+			} catch (error) {
+				const apiError = error as ErrorModel;
 
-        if (apiError && apiError.msg) {
-          showSnackBar({ message: apiError.msg, success: false });
-        }
-        setIsProcessing(false);
-        setModalRenameOpen(false);
-      }
-    }
-  };
+				if (apiError && apiError.msg) {
+					showSnackBar({ message: apiError.msg, success: false });
+				}
+				setIsProcessing(false);
+				setModalRenameOpen(false);
+			}
+		}
+	};
 
-  return (
-    <div className="ml-auto">
-      <ActionMenu
-        editUrl={`workouts/${workout.id}/edit`}
-        onRenameClick={() => setModalRenameOpen(true)}
-        onDeleteClick={() => setModalOpen(true)}
-      />
-      <ModalRename
-        isOpen={modalRenameOpen}
-        onClose={handleCloseModal}
-        name={workout.name}
-        onSaveClick={handleRenameConfirm}
-        isProcessing={isProcessing}
-        label="Workout"
-      />
-      <ConfirmModal
-        title="Are you sure you want to delete this workout?"
-        subTitle={CONFIRM_DELETE_DESCRIPTION}
-        isOpen={modalOpen}
-        confirmBtnLabel="Delete"
-        isProcessing={isProcessing}
-        onConfirm={handleConfirm}
-        onClose={handleCloseModal}
-      />
-    </div>
-  );
+	return (
+		<div className="ml-auto">
+			<ActionMenu
+				editUrl={`workouts/${workout.id}/edit`}
+				onRenameClick={() => setModalRenameOpen(true)}
+				onDeleteClick={() => setModalOpen(true)}
+			/>
+			<ModalRename
+				isOpen={modalRenameOpen}
+				onClose={handleCloseModal}
+				name={workout.name}
+				onSaveClick={handleRenameConfirm}
+				isProcessing={isProcessing}
+				label="Workout"
+			/>
+			<ConfirmModal
+				title="Are you sure you want to delete this workout?"
+				subTitle={CONFIRM_DELETE_DESCRIPTION}
+				isOpen={modalOpen}
+				confirmBtnLabel="Delete"
+				isProcessing={isProcessing}
+				onConfirm={handleConfirm}
+				onClose={handleCloseModal}
+			/>
+		</div>
+	);
 }

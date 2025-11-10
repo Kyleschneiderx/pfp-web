@@ -6,6 +6,7 @@ import {
 	CONFIRM_DELETE_DESCRIPTION,
 	CONFIRM_SAVE_DESCRIPTION,
 	CREATE_EDUCATION_DESCRIPTION,
+	PERMISSIONS,
 	UPDATE_DESCRIPTION,
 } from "@/app/lib/constants";
 import { revalidatePage } from "@/app/lib/revalidate";
@@ -17,7 +18,7 @@ import type { ValidationErrorModel } from "@/app/models/validation_error_model";
 import { deleteEducation, saveEducation } from "@/app/services/client_side/educations";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Card from "../elements/Card";
 import Input from "../elements/Input";
@@ -28,6 +29,8 @@ import TipTapEditor from "../elements/TipTapEditor";
 import SelectCmp from "../elements/SelectCmp";
 import { getSurveyGroups } from "@/app/services/client_side/surveys";
 import ContentCategory from "../content-category";
+import useAuth from "@/app/hooks/useAuth";
+import { FormSkeletons } from "../elements/FormSkeletons";
 
 const MobilePreview = dynamic(() => import("./MobilePreview"), { ssr: false });
 const SmMobilePreview = dynamic(() => import("./SmMobilePreview"), {
@@ -46,6 +49,7 @@ interface Props {
 export default function EducationForm({ action = "Create", education }: Props) {
 	const { showSnackBar } = useSnackBar();
 	const router = useRouter();
+	const { hasPermission, isLoaded } = useAuth();
 
 	const [title, setTitle] = useState<string>("");
 	const [category, setCategory] = useState<OptionsModel[] | null>(null);
@@ -174,7 +178,7 @@ export default function EducationForm({ action = "Create", education }: Props) {
 				}
 
 				await saveEducation({ method, id, body });
-				await revalidatePage("/education");
+				await revalidatePage("/contents/education");
 				setIsProcessing(false);
 				showSnackBar({
 					message: `Education successfully ${action === "Create" ? "created" : "updated"}.`,
@@ -200,14 +204,14 @@ export default function EducationForm({ action = "Create", education }: Props) {
 			try {
 				setIsProcessing(true);
 				await deleteEducation(education.id);
-				await revalidatePage("/education");
+				await revalidatePage("/contents/education");
 				setIsProcessing(false);
 				showSnackBar({
 					message: "Education successfully deleted.",
 					success: true,
 				});
 				setModalOpen(false);
-				router.push("/education");
+				router.push("/contents/education");
 			} catch (error) {
 				const apiError = error as ErrorModel;
 
@@ -257,6 +261,12 @@ export default function EducationForm({ action = "Create", education }: Props) {
 		setPfplanOptions(data);
 	};
 
+	if (!isLoaded) return <FormSkeletons />;
+
+	if (isLoaded && education && !hasPermission(PERMISSIONS.EDUCATION_EDIT)) return notFound();
+
+	if (isLoaded && !education && !hasPermission(PERMISSIONS.EDUCATION_CREATE)) return notFound();
+
 	return (
 		<>
 			<div className={isPreviewOpen ? "hidden" : ""}>
@@ -268,7 +278,7 @@ export default function EducationForm({ action = "Create", education }: Props) {
 						</p>
 					</div>
 					<div className="hidden sm:flex ml-auto space-x-3">
-						<Link href="/education">
+						<Link href="/contents/education">
 							<Button label="Cancel" secondary />
 						</Link>
 						<Button label="Save as Draft" outlined onClick={onDraft} />
@@ -359,7 +369,7 @@ export default function EducationForm({ action = "Create", education }: Props) {
 						</Card>
 						<div className="sm:hidden order-last flex flex-col w-full mt-6 space-y-3">
 							<div className="flex w-full space-x-3">
-								<Link href="/education" className="flex-1">
+								<Link href="/contents/education" className="flex-1">
 									<Button label="Cancel" secondary className="w-full" />
 								</Link>
 								<div className="flex-1">

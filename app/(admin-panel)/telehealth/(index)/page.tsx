@@ -15,11 +15,6 @@ export default async function Page({
 	searchParams?: MeetingsSearchQuery;
 }) {
 	let meetings: List<Meeting> | undefined = DEFAULT_LIST;
-	let errorMessage = "";
-
-	const displayNoRecord = (msg: string) => {
-		return <p className="text-center mx-auto mt-[300px]">{msg}</p>;
-	};
 
 	try {
 		meetings =
@@ -31,7 +26,7 @@ export default async function Page({
 				sort: "starts_at:ASC",
 			})) ?? DEFAULT_LIST;
 	} catch (error) {
-		errorMessage = (error as Error).message;
+		console.error(error);
 	}
 
 	return <MeetingList meetingList={meetings} searchParams={searchParams} />;

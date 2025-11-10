@@ -14,6 +14,7 @@ import {
 	CONFIRM_DELETE_DESCRIPTION,
 	CONFIRM_SAVE_DESCRIPTION,
 	CREATE_PATIENT_DESCRIPTION,
+	PERMISSIONS,
 	UPDATE_DESCRIPTION,
 } from "@/app/lib/constants";
 import { revalidatePage } from "@/app/lib/revalidate";
@@ -25,13 +26,15 @@ import { deletePatient, savePatient } from "@/app/services/client_side/patients"
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ProgressBar from "../elements/ProgressBar";
 import { validateForm } from "./validation";
 import { PfPlanListModal } from "./pf-plan-list.modal";
 import type { PfPlanModel } from "@/app/models/pfplan_model";
 import clsx from "clsx";
+import useAuth from "@/app/hooks/useAuth";
+import { FormSkeletons } from "../elements/FormSkeletons";
 
 const PatientSurveyModal = dynamic(() => import("@/app/components/patients/patient-survey-modal"), { ssr: false });
 
@@ -52,6 +55,8 @@ export default function PatientForm({
 }: Props) {
 	const { showSnackBar } = useSnackBar();
 	const router = useRouter();
+	const { hasPermission, isLoaded } = useAuth();
+
 	const { isMobile } = useWindowSizeCheck();
 
 	const [name, setName] = useState<string>("");
@@ -200,6 +205,12 @@ export default function PatientForm({
 		setDescription("");
 		setPhoto(null);
 	};
+
+	if (!isLoaded) return <FormSkeletons />;
+
+	if (isLoaded && patient && !hasPermission(PERMISSIONS.PATIENT_EDIT)) return notFound();
+
+	if (isLoaded && !patient && !hasPermission(PERMISSIONS.PATIENT_CREATE)) return notFound();
 
 	return (
 		<>

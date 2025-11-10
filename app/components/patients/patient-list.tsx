@@ -1,11 +1,11 @@
 "use client";
 
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
-import { CONFIRM_DELETE_DESCRIPTION, CONFIRM_INVITE_DESCRIPTION } from "@/app/lib/constants";
+import { CONFIRM_DELETE_DESCRIPTION, CONFIRM_INVITE_DESCRIPTION, PERMISSIONS } from "@/app/lib/constants";
 import { revalidatePage } from "@/app/lib/revalidate";
 import { formatDateToLocal, getLastLoginStatus } from "@/app/lib/utils";
-import { ErrorModel } from "@/app/models/error_model";
-import { PatientModel } from "@/app/models/patient_model";
+import type { ErrorModel } from "@/app/models/error_model";
+import type { PatientModel } from "@/app/models/patient_model";
 import { deletePatient, sendInvite } from "@/app/services/client_side/patients";
 import { useActionMenuStore } from "@/app/store/store";
 import clsx from "clsx";
@@ -19,6 +19,17 @@ import Loader from "../elements/Loader";
 import ActionMenuMobile from "../elements/mobile/ActionMenuMobile";
 import { fetchPatients } from "./actions";
 import PatientAction from "./patient-action";
+import ResponsiveActionMenu from "../elements/ResponsiveActionMenu";
+import { IconSend } from "@tabler/icons-react";
+import { useModal } from "@/app/contexts/ModalContext";
+import { useRouter } from "next/navigation";
+import useAuth from "@/app/hooks/useAuth";
+import SearchCmp from "../elements/SearchCmp";
+import PatientFilterSort from "./patient-filter-sort";
+import Link from "next/link";
+import Button from "../elements/Button";
+import IconAddButton from "../elements/mobile/IconAddButton";
+import DataList from "../data-list";
 
 export default function PatientList({
 	search,
@@ -33,24 +44,15 @@ export default function PatientList({
 	initialList: PatientModel[] | [];
 	maxPage: number;
 }) {
-	const { patient, setPatient, setEditUrl, setIsOpen } = useActionMenuStore();
+	const modal = useModal();
+	const router = useRouter();
+	const { hasPermission } = useAuth();
 
 	const [patients, setPatients] = useState(initialList);
 	const [page, setPage] = useState(1);
 	const [ref, inView] = useInView();
 
 	const { showSnackBar } = useSnackBar();
-	const [modalOpen, setModalOpen] = useState(false);
-	const [modalSendInviteOpen, setModalSendInviteOpen] = useState(false);
-	const [isProcessing, setIsProcessing] = useState<boolean>(false);
-
-	const handleOpenModal = () => setModalOpen(true);
-	const handleCloseModal = () => {
-		if (!isProcessing) {
-			setModalOpen(false);
-			setModalSendInviteOpen(false);
-		}
-	};
 
 	const loadMorePatients = async () => {
 		const next = page + 1;
@@ -77,65 +79,77 @@ export default function PatientList({
 		setPage(1);
 	}, [sort, search, status_id, initialList]);
 
-	const handleActionMenuClick = (patient: PatientModel) => {
-		setIsOpen(true);
-		setPatient(patient);
-		setEditUrl(`patients/${patient.id}/edit`);
+	const handleSendInvite = (patient: PatientModel) => {
+		modal.open({
+			type: "confirm",
+			title: "Send Invitation",
+			message: "Are you you want to send invitation to this patient?",
+			onConfirm: async () => {
+				try {
+					await sendInvite(patient!.id);
+
+					await revalidatePage("/patients");
+
+					showSnackBar({
+						message: "Invitation successfully sent.",
+						success: true,
+					});
+
+					modal.closeAll();
+				} catch (error) {
+					const apiError = error as ErrorModel;
+
+					if (apiError?.msg) {
+						showSnackBar({ message: apiError.msg, success: false });
+					}
+				}
+			},
+		});
 	};
 
-	const handleConfirm = async () => {
-		if (!isProcessing) {
-			try {
-				setIsProcessing(true);
-				await deletePatient(patient!.id);
-				await revalidatePage("/patients");
-				setIsProcessing(false);
-				showSnackBar({
-					message: `Patient successfully deleted.`,
-					success: true,
-				});
-				setModalOpen(false);
-				setIsOpen(false);
-			} catch (error) {
-				const apiError = error as ErrorModel;
+	const handleDeletePatient = (patient: PatientModel) => {
+		modal.open({
+			type: "confirm",
+			title: "Delete Patient",
+			message: "Are you you want to delete this patient?",
+			onConfirm: async () => {
+				try {
+					await deletePatient(patient.id);
+					await revalidatePage("/patients");
 
-				if (apiError && apiError.msg) {
-					showSnackBar({ message: apiError.msg, success: false });
+					showSnackBar({
+						message: "Patient successfully deleted.",
+						success: true,
+					});
+
+					modal.closeAll();
+				} catch (error) {
+					const apiError = error as ErrorModel;
+
+					if (apiError?.msg) {
+						showSnackBar({ message: apiError.msg, success: false });
+					}
 				}
-				setIsProcessing(false);
-				setModalOpen(false);
-				setIsOpen(false);
-			}
-		}
-	};
-
-	const handleSendInviteConfirm = async () => {
-		if (!isProcessing) {
-			try {
-				setIsProcessing(true);
-				await sendInvite(patient!.id);
-				await revalidatePage("/patients");
-				setIsProcessing(false);
-				showSnackBar({
-					message: `Invitation successfully sent.`,
-					success: true,
-				});
-				setModalSendInviteOpen(false);
-				setIsOpen(false);
-			} catch (error) {
-				const apiError = error as ErrorModel;
-
-				if (apiError && apiError.msg) {
-					showSnackBar({ message: apiError.msg, success: false });
-				}
-				setIsProcessing(false);
-				setModalSendInviteOpen(false);
-			}
-		}
+			},
+		});
 	};
 
 	return (
-		<>
+		<DataList
+			data={patients}
+			header={
+				<div className="flex items-center mb-8">
+					<SearchCmp placeholder="Search patients" className="mr-4 sm:mr-0" param="search" />
+					<PatientFilterSort />
+					{hasPermission(PERMISSIONS.PATIENT_CREATE) && (
+						<Link href="/patients/create" className="ml-auto">
+							<Button label="Add Patients" showIcon className="hidden sm:flex" />
+							<IconAddButton className="sm:hidden" />
+						</Link>
+					)}
+				</div>
+			}
+		>
 			<div className="flex flex-wrap">
 				{patients.map((patient) => (
 					<Card key={patient.id} className="p-4 pr-3 w-[351px] flex mx-auto sm:mx-0 sm:mr-7 mb-7 text-neutral-900">
@@ -171,7 +185,7 @@ export default function PatientList({
 								<p className="mr-2 text-neutral-800 w-[90px] font-medium">Other info</p>
 								<p
 									className={clsx("font-medium", {
-										"text-primary-500": patient.user_type.value == "Premium",
+										"text-primary-500": patient.user_type.value === "Premium",
 									})}
 								>
 									{patient.user_type.value} User
@@ -189,36 +203,31 @@ export default function PatientList({
 								</div>
 							</div>
 						</div>
-						{/* For desktop */}
-						<PatientAction patient={patient} />
-						{/* For mobile */}
-						<EllipsisVertical
-							size={26}
-							className="text-neutral-900 cursor-pointer sm:hidden"
-							onClick={() => handleActionMenuClick(patient)}
-						/>
+						{hasPermission([PERMISSIONS.PATIENT_EDIT, PERMISSIONS.PATIENT_DELETE, PERMISSIONS.PATIENT_INVITE]) && (
+							<ResponsiveActionMenu
+								title={patient.user_profile.name}
+								className="cursor-pointer"
+								onEdit={
+									hasPermission(PERMISSIONS.PATIENT_EDIT)
+										? () => router.push(`/patients/${patient.id}/edit`)
+										: undefined
+								}
+								onDelete={hasPermission(PERMISSIONS.PATIENT_DELETE) ? () => handleDeletePatient(patient) : undefined}
+								customActions={[
+									...(hasPermission(PERMISSIONS.PATIENT_INVITE) && patient.can_invite
+										? [
+												{
+													label: "Send Invite",
+													icon: <IconSend size={16} />,
+													onClick: () => handleSendInvite(patient),
+												},
+											]
+										: []),
+								]}
+							/>
+						)}
 					</Card>
 				))}
-				{/* For mobile */}
-				<ActionMenuMobile onDeleteClick={handleOpenModal} onSendInviteClick={() => setModalSendInviteOpen(true)} />
-				<ConfirmModal
-					title="Are you sure you want to delete this account?"
-					subTitle={CONFIRM_DELETE_DESCRIPTION}
-					isOpen={modalOpen}
-					confirmBtnLabel="Delete"
-					isProcessing={isProcessing}
-					onConfirm={handleConfirm}
-					onClose={handleCloseModal}
-				/>
-				<ConfirmModal
-					title="Are you sure you want to send this invitation?"
-					subTitle={CONFIRM_INVITE_DESCRIPTION}
-					isOpen={modalSendInviteOpen}
-					confirmBtnLabel="Send"
-					isProcessing={isProcessing}
-					onConfirm={handleSendInviteConfirm}
-					onClose={handleCloseModal}
-				/>
 			</div>
 			{page < maxPage && (
 				<div ref={ref} className="flex justify-center mt-5">
@@ -226,6 +235,6 @@ export default function PatientList({
 					<span>Loading...</span>
 				</div>
 			)}
-		</>
+		</DataList>
 	);
 }

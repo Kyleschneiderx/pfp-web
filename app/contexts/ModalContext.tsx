@@ -74,7 +74,7 @@ const createModal = (options: ModalOptions, states: CreateModalStates) => {
 				<Dialog.Content
 					onInteractOutside={(e) => e.preventDefault()}
 					className={clsx(
-						"top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] fixed  mx-auto bg-white p-6 rounded-2xl shadow-lg z-50 focus:outline-none",
+						"top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] fixed min-w-[500px]  mx-auto bg-white p-6 rounded-2xl shadow-lg z-50 focus:outline-none max-h-[90vh] overflow-y-auto",
 						options?.className,
 					)}
 				>

@@ -6,15 +6,21 @@ import AppTrafficChart from "@/app/components/dashboard/app-traffic-chart";
 import Card from "@/app/components/elements/Card";
 import { formatDate, getWeekRange } from "@/app/lib/utils";
 import { yearOptions } from "@/app/lib/years-options";
-import { OptionsModel } from "@/app/models/common_model";
-import { UserSummaryModel } from "@/app/models/user_summary_model";
+import type { OptionsModel } from "@/app/models/common_model";
+import type { UserSummaryModel } from "@/app/models/user_summary_model";
 import { getUserSummary } from "@/app/services/client_side/patients";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import UserCoachPromptChart from "@/app/components/dashboard/user-coach-prompt-chart";
+import { PERMISSIONS } from "@/app/lib/constants";
+import AccessLocked from "@/app/components/access-locked";
 
 const SelectCmp = dynamic(() => import("@/app/components/elements/SelectCmp"), {
+	ssr: false,
+});
+
+const AccessControl = dynamic(() => import("@/app/components/access-control"), {
 	ssr: false,
 });
 
@@ -95,63 +101,89 @@ export default function Page() {
 			<div className="flex flex-col w-full lg:w-2/3">
 				<div className="lg:mr-5 mr-0">
 					<div className="w-full mb-5">
-						<Card className=":mr-5">
-							<span className="text-xl font-bold">Users</span>
-							<div className="flex flex-col sm:flex-row items-start">
-								<div>
-									<p className="text-[28px] font-bold">{userSummary?.total_users ?? "0"}</p>
-									<p className="text-neutral-600">Total Users</p>
-								</div>
-								<div className="sm:flex ml-0 sm:space-x-3 sm:ml-auto w-full sm:w-auto mt-5 sm:mt-0">
-									<SelectCmp
-										options={options1}
-										value={selectedOption1}
-										onChange={(e) => handleSelect1Change(e as OptionsModel)}
-										className="p-0 mb-2"
-										wrapperClassName="z-[999]"
-									/>
-									{selectedOption1?.value === "monthly" && (
+						<AccessControl
+							required={[PERMISSIONS.STATS_USERS]}
+							fallback={<AccessLocked title="Users" className="h-96" />}
+						>
+							<Card className="mr-5">
+								<span className="text-xl font-bold">Users</span>
+								<div className="flex flex-col sm:flex-row items-start">
+									<div>
+										<p className="text-[28px] font-bold">{userSummary?.total_users ?? "0"}</p>
+										<p className="text-neutral-600">Total Users</p>
+									</div>
+									<div className="sm:flex ml-0 sm:space-x-3 sm:ml-auto w-full sm:w-auto mt-5 sm:mt-0">
 										<SelectCmp
-											options={yearOptions}
-											value={selectedYear}
-											onChange={(e) => handleYearChange(e as OptionsModel)}
-											placeholder="Select"
-											className="p-0"
-											wrapperClassName="w-[110px] ml-0 sm:ml-auto w-full sm:w-auto"
+											options={options1}
+											value={selectedOption1}
+											onChange={(e) => handleSelect1Change(e as OptionsModel)}
+											className="p-0 mb-2"
+											wrapperClassName="z-[999]"
 										/>
-									)}
+										{selectedOption1?.value === "monthly" && (
+											<SelectCmp
+												options={yearOptions}
+												value={selectedYear}
+												onChange={(e) => handleYearChange(e as OptionsModel)}
+												placeholder="Select"
+												className="p-0"
+												wrapperClassName="w-[110px] ml-0 sm:ml-auto w-full sm:w-auto"
+											/>
+										)}
+									</div>
 								</div>
-							</div>
-							{selectedOption1?.value === "weekly" && (
-								<div className="flex items-center justify-center font-medium text-sm space-x-2 mt-3">
-									<ChevronLeft className="cursor-pointer" onClick={goToPreviousWeek} />
-									<span>
-										{formatDate1(startOfWeek)} - {formatDate1(endOfWeek)}
-									</span>
-									<ChevronRight className="cursor-pointer" onClick={goToNextWeek} />
+								{selectedOption1?.value === "weekly" && (
+									<div className="flex items-center justify-center font-medium text-sm space-x-2 mt-3">
+										<ChevronLeft className="cursor-pointer" onClick={goToPreviousWeek} />
+										<span>
+											{formatDate1(startOfWeek)} - {formatDate1(endOfWeek)}
+										</span>
+										<ChevronRight className="cursor-pointer" onClick={goToNextWeek} />
+									</div>
+								)}
+								<div className="mt-6 mb-2">
+									<UserLineChart userSummary={userSummary} />
 								</div>
-							)}
-							<div className="mt-6 mb-2">
-								<UserLineChart userSummary={userSummary} />
-							</div>
-							<div className="flex items-center justify-center text-sm mt-3 space-x-3">
-								<div className="w-3 h-3 rounded-full bg-[#3758F9]"></div>
-								<p>Premium</p>
-								<div className="w-3 h-3 rounded-full bg-secondary-500"></div>
-								<p>Free</p>
-							</div>
-						</Card>
+								<div className="flex items-center justify-center text-sm mt-3 space-x-3">
+									<div className="w-3 h-3 rounded-full bg-[#3758F9]" />
+									<p>Premium</p>
+									<div className="w-3 h-3 rounded-full bg-secondary-500" />
+									<p>Free</p>
+								</div>
+							</Card>
+						</AccessControl>
 					</div>
-					<AppTrafficChart />
-					<UserCoachPromptChart />
+					<div className="w-full mb-5">
+						<AccessControl
+							required={[PERMISSIONS.STATS_APP_PAGES]}
+							fallback={<AccessLocked title="App Page Traffics" className="h-96" />}
+						>
+							<AppTrafficChart />
+						</AccessControl>
+					</div>
+					<div className="w-full mb-5">
+						<AccessControl
+							required={[PERMISSIONS.STATS_AI_PROMPTS]}
+							fallback={<AccessLocked title="Users AI Coach Prompts" className="h-96" />}
+						>
+							<UserCoachPromptChart />
+						</AccessControl>
+					</div>
 				</div>
 			</div>
 			<div className="flex flex-col w-full lg:w-1/3">
-				<UserDoughnutChart
-					premiumUsers={userSummary?.unique_signups.premium ?? 0}
-					freeUsers={userSummary?.unique_signups.free ?? 0}
-					total={userSummary?.unique_signups.total ?? 0}
-				/>
+				<div className="w-full h-auto">
+					<AccessControl
+						required={[PERMISSIONS.STATS_DAILY_SIGNUPS]}
+						fallback={<AccessLocked title="Daily Sign-ups" className="h-96" />}
+					>
+						<UserDoughnutChart
+							premiumUsers={userSummary?.unique_signups.premium ?? 0}
+							freeUsers={userSummary?.unique_signups.free ?? 0}
+							total={userSummary?.unique_signups.total ?? 0}
+						/>
+					</AccessControl>
+				</div>
 			</div>
 		</div>
 	);

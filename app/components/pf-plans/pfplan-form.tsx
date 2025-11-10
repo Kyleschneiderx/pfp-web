@@ -6,6 +6,7 @@ import {
 	CONFIRM_DELETE_DESCRIPTION,
 	CONFIRM_SAVE_DESCRIPTION,
 	CREATE_PFPLAN_DESCRIPTION,
+	PERMISSIONS,
 	UPDATE_DESCRIPTION,
 } from "@/app/lib/constants";
 import { revalidatePage } from "@/app/lib/revalidate";
@@ -19,7 +20,7 @@ import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import clsx from "clsx";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Card from "../elements/Card";
 import Input from "../elements/Input";
@@ -37,6 +38,8 @@ import type { OptionsModel } from "@/app/models/common_model";
 import ContentCategory from "../content-category";
 import type { PatientModel } from "@/app/models/patient_model";
 import { savePersonalizedPfPlan } from "@/app/services/client_side/patients";
+import useAuth from "@/app/hooks/useAuth";
+import { FormSkeletons } from "../elements/FormSkeletons";
 
 const ConfirmModal = dynamic(() => import("@/app/components/elements/ConfirmModal"), { ssr: false });
 
@@ -49,6 +52,8 @@ interface Props {
 export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props) {
 	const { showSnackBar } = useSnackBar();
 	const router = useRouter();
+	const { hasPermission, isLoaded } = useAuth();
+
 	const { days, removeDay, setDays, setSelectedDay } = usePfPlanDailiesStore();
 
 	const [name, setName] = useState<string>("");
@@ -106,7 +111,9 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 						}
 
 						const education = el.education;
-						education.pfPlanDayContentId = el.id;
+						if (education) {
+							education.pfPlanDayContentId = el.id;
+						}
 						return education;
 					}),
 				}),
@@ -194,7 +201,7 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 				const method = action === "Create" ? "POST" : "PUT";
 				const id = action === "Edit" ? pfPlan?.id : null;
 				const body = new FormData();
-
+				console.log(days);
 				const dailiesPayload = days.map((item) => ({
 					daily_id: item.id,
 					name: item.name,
@@ -234,6 +241,8 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 					body.append("dailies", JSON.stringify(dailiesPayload));
 				}
 
+				console.log(patient?.id, pfPlan?.user_id);
+
 				if (patient) {
 					const personalizedPfPlanId = pfPlan?.user_id === patient.id ? id : undefined;
 					const personalizedPfPlan = await savePersonalizedPfPlan({
@@ -246,7 +255,7 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 					router.replace(`${personalizedPfPlan.id.toString()}`);
 				} else {
 					await savePfPlan({ method, id, body });
-					await revalidatePage("/pf-plans");
+					await revalidatePage("/contents/pf-plans");
 				}
 
 				setIsProcessing(false);
@@ -273,7 +282,7 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 			try {
 				setIsProcessing(true);
 				await deletePfPlan(pfPlan.id);
-				if (!patient) await revalidatePage("/pf-plans");
+				if (!patient) await revalidatePage("/contents/pf-plans");
 				setIsProcessing(false);
 				showSnackBar({
 					message: "Pf Plan successfully deleted.",
@@ -284,7 +293,7 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 					await revalidatePage(`/patients/${patient.id}/edit`);
 					router.push(`/patients/${patient.id}/edit`);
 				} else {
-					router.push("/pf-plans");
+					router.push("/contents/pf-plans");
 				}
 			} catch (error) {
 				const apiError = error as ErrorModel;
@@ -322,6 +331,14 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 		setIsCustom(value.toLowerCase() === "custom");
 	};
 
+	if (!isLoaded) return <FormSkeletons />;
+
+	if (isLoaded && patient && !hasPermission(PERMISSIONS.PATIENT_ASSIGN_PFPLAN)) return notFound();
+
+	if (isLoaded && pfPlan && !hasPermission(PERMISSIONS.PFPLAN_EDIT)) return notFound();
+
+	if (isLoaded && !pfPlan && !hasPermission(PERMISSIONS.PFPLAN_CREATE)) return notFound();
+
 	return (
 		<>
 			<div className="flex items-center mb-4 sm:mb-7">
@@ -343,7 +360,7 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 						</>
 					) : (
 						<>
-							<Link href="/pf-plans">
+							<Link href="/contents/pf-plans">
 								<Button label="Cancel" secondary />
 							</Link>
 							<Button label="Save as Draft" outlined onClick={onDraft} />
@@ -503,7 +520,7 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 				</div>
 			</Card>
 			<div className="sm:hidden order-last flex flex-col w-full mt-6 space-y-3">
-				<Link href="/pf-plans">
+				<Link href="/contents/pf-plans">
 					<Button label="Cancel" secondary className="w-full" />
 				</Link>
 				<Button label="Save as Draft" outlined onClick={onDraft} />

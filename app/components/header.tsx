@@ -7,17 +7,20 @@ import { useLogout } from "../hooks/useLogout";
 import { useModal } from "../contexts/ModalContext";
 import SendPushNotificationModal from "./modals/send-push-notification";
 import useAuth from "../hooks/useAuth";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { Schedule } from "../models/schedules";
 import ManageScheduleModal from "./modals/manage-schedule-modal";
 import { useSnackBar } from "../contexts/SnackBarContext";
 import ResponsiveActionMenu from "./elements/ResponsiveActionMenu";
+import ChangePasswordModal from "./modals/change-password-modal";
+import { IconKey, IconUser } from "@tabler/icons-react";
 
 export default function Header() {
 	const logout = useLogout();
-	const user = useAuth();
-	const userName = user.user_profile.name;
-	const userEmail = user.email;
+	const { user } = useAuth();
+	const router = useRouter();
+	const userName = user?.user_profile.name;
+	const userEmail = user?.email;
 	const modal = useModal();
 	const pathname = usePathname();
 	const { showSnackBar } = useSnackBar();
@@ -36,6 +39,14 @@ export default function Header() {
 			allowClose: true,
 			className: "max-h-[75%] overflow-auto w-[90%] sm:w-[500px] max-w-[500px]",
 			component: ({ close }) => <ManageScheduleModal onClose={close} />,
+		});
+	};
+
+	const handleChangePassword = async () => {
+		modal.open({
+			type: "default",
+			title: "Change Password",
+			component: <ChangePasswordModal account={user!} validateOldPassword onClose={() => modal.closeAll()} />,
 		});
 	};
 
@@ -67,17 +78,28 @@ export default function Header() {
 				<div>
 					<ResponsiveActionMenu
 						title="Menu"
+						className="cursor-pointer"
 						icon={
 							<Image
-								src="/images/avatar.png"
+								src={`${user?.user_profile.photo || "/images/avatar.png"}`}
 								alt="Logo"
 								width={55}
 								height={55}
 								quality={100}
-								className="rounded-full sm:mr-3 h-[55px] w-[55px]"
+								className="rounded-full sm:mr-3 h-[55px] w-[55px] object-cover"
 							/>
 						}
 						customActions={[
+							{
+								label: "Profile",
+								icon: <IconUser className="mr-2" size={16} />,
+								onClick: () => router.push("/profile"),
+							},
+							{
+								label: "Change Password",
+								icon: <IconKey className="mr-2" size={16} />,
+								onClick: () => handleChangePassword(),
+							},
 							{
 								label: "Push Notification",
 								icon: <TabletSmartphoneIcon className="mr-2" size={16} />,

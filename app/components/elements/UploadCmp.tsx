@@ -18,6 +18,7 @@ interface Props {
 	previewImage?: boolean;
 	isEdit?: boolean;
 	fileDownload?: { id: number; filename?: string };
+	fileUrl?: string;
 }
 
 export default function UploadCmp({
@@ -29,6 +30,7 @@ export default function UploadCmp({
 	fileDownload,
 	previewImage = false,
 	isEdit = false,
+	fileUrl,
 }: Props) {
 	const [imagePreview, setImagePreview] = useState<string | null>(null);
 	const [fileName, setFileName] = useState<string | null>(null);
@@ -177,7 +179,7 @@ export default function UploadCmp({
 					/>
 				)}
 			</div>
-			{fileName && fileType && !previewImage && (
+			{fileName && fileType && (
 				<div className="flex items-center mb-4">
 					<div>
 						<FileImage size={20} className="text-neutral-300 mr-2" />
@@ -194,43 +196,50 @@ export default function UploadCmp({
 			<div
 				{...getRootProps()}
 				className={clsx(
-					"flex flex-row sm:flex-col items-center pt-2 pb-4 sm:py-8 sm:justify-center border-2 border-dashed rounded-md bg-neutral-100 cursor-pointer",
+					"flex flex-row sm:flex-col items-center pt-2 pb-4 sm:py-8 sm:justify-center rounded-md  cursor-pointer",
 					{
 						"border-primary-500": isDragActive,
 						"border-red-500": isDragReject,
 					},
+					fileUrl || imagePreview ? "" : "border-2 border-dashed bg-neutral-100",
 				)}
 			>
 				<input {...getInputProps()} />
-				<div className="sm:p-2 border rounded-full w-fit h-fit bg-white mx-4 mt-2 sm:mt-0">
-					<Upload className="text-primary-500 h-5 w-5 hidden sm:block" />
-					{imagePreview && previewImage ? (
-						<div className="relative p-2">
-							<img src={imagePreview} alt="Profile" className="sm:hidden h-[70px] w-[70px] rounded-full" />
-							<FilePenIcon fillColor="#736CED" className="absolute right-0 bottom-0" />
+				{fileUrl || imagePreview ? (
+					<img src={imagePreview ?? fileUrl} alt="Profile" className="object-cover" />
+				) : (
+					<>
+						<div className="sm:p-2 border rounded-full w-fit h-fit bg-white mx-4 mt-2 sm:mt-0">
+							<Upload className="text-primary-500 h-5 w-5 hidden sm:block" />
+							{imagePreview && previewImage ? (
+								<div className="relative p-2">
+									<img src={imagePreview} alt="Profile" className="sm:hidden h-[70px] w-[70px] rounded-full" />
+									<FilePenIcon fillColor="#736CED" className="absolute right-0 bottom-0" />
+								</div>
+							) : (
+								<Upload className="text-primary-500 h-7 w-7 sm:hidden m-5" />
+							)}
 						</div>
-					) : (
-						<Upload className="text-primary-500 h-7 w-7 sm:hidden m-5" />
-					)}
-				</div>
-				<div className="text-neutral-700 sm:text-center mt-2">
-					<p className="hidden sm:block">
-						<span className="text-primary-500">Click to upload</span> or drag and drop
-					</p>
-					<span className="text-primary-500 sm:hidden">
-						Tap to {imagePreview || isEdit ? "change" : "upload"}{" "}
-						{type === "image" ? "photo" : type === "video" ? "video" : ""}
-					</span>
-					<p className="mt-2">
-						{type === "image" ? "JPEG, JPG or PNG" : type === "video" ? "MP4 only" : "JPEG, JPG, PNG or MP4"}
-					</p>
-					<p className="text-sm">(Max file size: {limitText})</p>
-					{recommendedText && (
-						<p className="text-sm">
-							Recomended Dimentions: <br /> {recommendedText}
-						</p>
-					)}
-				</div>
+						<div className="text-neutral-700 sm:text-center mt-2">
+							<p className="hidden sm:block">
+								<span className="text-primary-500">Click to upload</span> or drag and drop
+							</p>
+							<span className="text-primary-500 sm:hidden">
+								Tap to {imagePreview || isEdit ? "change" : "upload"}{" "}
+								{type === "image" ? "photo" : type === "video" ? "video" : ""}
+							</span>
+							<p className="mt-2">
+								{type === "image" ? "JPEG, JPG or PNG" : type === "video" ? "MP4 only" : "JPEG, JPG, PNG or MP4"}
+							</p>
+							<p className="text-sm">(Max file size: {limitText})</p>
+							{recommendedText && (
+								<p className="text-sm">
+									Recomended Dimentions: <br /> {recommendedText}
+								</p>
+							)}
+						</div>
+					</>
+				)}
 			</div>
 		</div>
 	);

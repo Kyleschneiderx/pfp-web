@@ -22,8 +22,7 @@ import Button from "../elements/Button";
 import { useModal } from "@/app/contexts/ModalContext";
 import { Virtuoso } from "react-virtuoso";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useLogout } from "@/app/hooks/useLogout";
+import { notFound, useRouter } from "next/navigation";
 import socketClient from "@/app/services/socket-client";
 import {
 	deleteGroup,
@@ -35,16 +34,19 @@ import {
 	kickGroupParticipant,
 } from "@/app/services/client_side/chats";
 import ResponsiveActionMenu from "../elements/ResponsiveActionMenu";
+import { PERMISSIONS } from "@/app/lib/constants";
 
 export default function ChatForm() {
-	const user = useAuth();
-	const logout = useLogout();
+	const { user, hasPermission, isLoaded } = useAuth();
 	const modal = useModal();
 	const router = useRouter();
+
+	if (isLoaded && !hasPermission([PERMISSIONS.CHAT_PROVIDER, PERMISSIONS.CHAT_GROUP])) return notFound();
+
 	const { isMobile, isTablet } = useWindowSizeCheck();
 	const isSmallDevice = isMobile || isTablet;
 
-	const [isGroup, setIsGroup] = useState<boolean>(false);
+	const [isGroup, setIsGroup] = useState<boolean>(!hasPermission(PERMISSIONS.CHAT_PROVIDER));
 	const [showMessageContainer, setShowMessageContainer] = useState<boolean>(!isSmallDevice);
 
 	const [selectedConversation, setSelectedConversation] = useState<ConversationModel>();
@@ -173,7 +175,7 @@ export default function ChatForm() {
 		const { participants } = selectedConversation;
 
 		const otherParticipant = Object.entries(participants).find(
-			([participantId, _]) => participantId !== String(user.id),
+			([participantId, _]) => participantId !== String(user?.id),
 		);
 
 		return {
@@ -253,7 +255,7 @@ export default function ChatForm() {
 				...(prev ?? []),
 				{
 					message: message,
-					senderId: String(user.id),
+					senderId: String(user?.id),
 					createdAt: Date.now(),
 					updatedAt: Date.now(),
 					collection: null,
@@ -316,7 +318,7 @@ export default function ChatForm() {
 			groupChatSocket.emit("join", { roomId: conversation.id });
 
 			groupChatSocket.on("reply", (data) => {
-				if (String(data.senderId) === String(user.id)) return;
+				if (String(data.senderId) === String(user?.id)) return;
 
 				setMessages((prev) => [...(prev ?? []), data]);
 			});
@@ -324,7 +326,7 @@ export default function ChatForm() {
 			providerChatSocket.emit("join", { roomId: conversation.id });
 
 			providerChatSocket.on("reply", (data) => {
-				if (String(data.senderId) === String(user.id)) return;
+				if (String(data.senderId) === String(user?.id)) return;
 
 				setMessages((prev) => [...(prev ?? []), data]);
 			});
@@ -407,7 +409,7 @@ export default function ChatForm() {
 					<div className="p-4 border-b border-neutral-200">
 						<div className="flex items-center justify-between mb-4">
 							<h1 className="text-xl font-semibold text-neutral-900">Messages</h1>
-							{isGroup && (
+							{isGroup && hasPermission(PERMISSIONS.CHAT_GROUP) && (
 								<div
 									onClick={() => {
 										setIsCreationOpen(true);
@@ -428,121 +430,138 @@ export default function ChatForm() {
 						</div>
 					</div>
 
-					{/* Tabs */}
-					<Tabs.Root
-						defaultValue={!isGroup ? "personal" : "groups"}
-						onValueChange={handleTabChange}
-						className="flex flex-col h-full p-0 overflow-y-auto rounded-ee-xl rounded-es-xl"
-					>
-						<Tabs.List className="grid w-full grid-cols-2 p-3">
-							<Tabs.Trigger
-								value="personal"
-								className="data-[state=active]:bg-primary-500 data-[state=active]:text-white bg-neutral-100 text-neutral-800 p-2 rounded-ss-xl rounded-es-xl"
-							>
-								Personal
-							</Tabs.Trigger>
-							<Tabs.Trigger
-								value="groups"
-								className="data-[state=active]:bg-primary-500 data-[state=active]:text-white bg-neutral-100 text-neutral-800 p-2 rounded-se-xl rounded-ee-xl"
-							>
-								Groups
-							</Tabs.Trigger>
-						</Tabs.List>
-
-						<div className="flex-1 overflow-y-auto">
-							<Tabs.Content value="personal" className="mt-0 h-full">
-								{!providerConversations ? (
-									<ConversationListSkeleton count={5} />
-								) : (
-									<Virtuoso
-										data={providerConversations ?? []}
-										components={{
-											EmptyPlaceholder: () => (
-												<div className="flex h-full w-full p-5 mt-auto items-center text-neutral-300 justify-center">
-													<span>No conversations found</span>
-												</div>
-											),
-											Footer: providerConversationNextPageId.current
-												? () => (
-														<div className="flex w-full items-center justify-center py-5">
-															<Loader />
-															<span>Loading...</span>
-														</div>
-													)
-												: undefined,
-										}}
-										endReached={
-											providerConversationNextPageId.current
-												? () => {
-														getProviderConversationList(providerConversationNextPageId.current);
-													}
-												: undefined
-										}
-										itemContent={(index, conversation) => {
-											const conversationUser = Object.entries(conversation.participants)[0][1];
-											return (
-												<Conversation
-													key={index}
-													name={conversationUser?.name ?? ""}
-													avatar={conversationUser?.avatar ?? ""}
-													message={conversation?.lastMessage?.message}
-													timestamp={toRelativeTime(conversation.updatedAt)}
-													active={conversation.id === selectedConversation?.id}
-													onClick={() => handleSelectConversation(conversation)}
-												/>
-											);
-										}}
-									/>
+					{hasPermission([PERMISSIONS.CHAT_GROUP, PERMISSIONS.CHAT_PROVIDER]) && (
+						<Tabs.Root
+							defaultValue={hasPermission(PERMISSIONS.CHAT_PROVIDER) ? "personal" : "groups"}
+							onValueChange={handleTabChange}
+							className="flex flex-col h-full p-0 overflow-y-auto rounded-ee-xl rounded-es-xl"
+						>
+							<Tabs.List
+								className={clsx(
+									"grid w-full grid-cols-2 p-3",
+									(!hasPermission(PERMISSIONS.CHAT_GROUP) || !hasPermission(PERMISSIONS.CHAT_PROVIDER)) &&
+										"grid-cols-1",
 								)}
-							</Tabs.Content>
-
-							<Tabs.Content value="groups" className="mt-0 h-full">
-								{!groupConversations ? (
-									<ConversationListSkeleton count={5} />
-								) : (
-									<Virtuoso
-										data={groupConversations ?? []}
-										components={{
-											EmptyPlaceholder: () => (
-												<div className="flex h-full w-full p-5 mt-auto items-center text-neutral-300 justify-center">
-													<span>No conversations found</span>
-												</div>
-											),
-											Footer: groupConversationNextPageId.current
-												? () => (
-														<div className="flex w-full items-center justify-center py-5">
-															<Loader />
-															<span>Loading...</span>
-														</div>
-													)
-												: undefined,
-										}}
-										endReached={
-											groupConversationNextPageId.current
-												? () => {
-														getGroupConversationList(groupConversationNextPageId.current);
-													}
-												: undefined
-										}
-										itemContent={(index, conversation) => {
-											return (
-												<Conversation
-													key={index}
-													isGroup={true}
-													name={conversation.name}
-													message={conversation?.lastMessage?.message}
-													members={Object.keys(conversation.participants).length}
-													timestamp={toRelativeTime(conversation.updatedAt)}
-													active={conversation.id === selectedConversation?.id}
-													onClick={() => handleSelectConversation(conversation)}
-												/>
-											);
-										}}
-									/>
+							>
+								{hasPermission(PERMISSIONS.CHAT_PROVIDER) && (
+									<Tabs.Trigger
+										value="personal"
+										className={clsx(
+											"data-[state=active]:bg-primary-500 data-[state=active]:text-white bg-neutral-100 text-neutral-800 p-2 rounded-ss-xl rounded-es-xl",
+											!hasPermission(PERMISSIONS.CHAT_GROUP) && "rounded-se-xl rounded-ee-xl w-full",
+										)}
+									>
+										Personal
+									</Tabs.Trigger>
 								)}
-							</Tabs.Content>
-						</div>
-					</Tabs.Root>
+								{hasPermission(PERMISSIONS.CHAT_GROUP) && (
+									<Tabs.Trigger
+										value="groups"
+										className={clsx(
+											"data-[state=active]:bg-primary-500 data-[state=active]:text-white bg-neutral-100 text-neutral-800 p-2 rounded-se-xl rounded-ee-xl",
+											!hasPermission(PERMISSIONS.CHAT_PROVIDER) && "rounded-ss-xl rounded-es-xl",
+										)}
+									>
+										Groups
+									</Tabs.Trigger>
+								)}
+							</Tabs.List>
+
+							<div className="flex-1 overflow-y-auto">
+								<Tabs.Content value="personal" className="mt-0 h-full">
+									{!providerConversations ? (
+										<ConversationListSkeleton count={5} />
+									) : (
+										<Virtuoso
+											data={providerConversations ?? []}
+											components={{
+												EmptyPlaceholder: () => (
+													<div className="flex h-full w-full p-5 mt-auto items-center text-neutral-300 justify-center">
+														<span>No conversations found</span>
+													</div>
+												),
+												Footer: providerConversationNextPageId.current
+													? () => (
+															<div className="flex w-full items-center justify-center py-5">
+																<Loader />
+																<span>Loading...</span>
+															</div>
+														)
+													: undefined,
+											}}
+											endReached={
+												providerConversationNextPageId.current
+													? () => {
+															getProviderConversationList(providerConversationNextPageId.current);
+														}
+													: undefined
+											}
+											itemContent={(index, conversation) => {
+												const conversationUser = Object.entries(conversation.participants)[0][1];
+												return (
+													<Conversation
+														key={index}
+														name={conversationUser?.name ?? ""}
+														avatar={conversationUser?.avatar ?? ""}
+														message={conversation?.lastMessage?.message}
+														timestamp={toRelativeTime(conversation.updatedAt)}
+														active={conversation.id === selectedConversation?.id}
+														onClick={() => handleSelectConversation(conversation)}
+													/>
+												);
+											}}
+										/>
+									)}
+								</Tabs.Content>
+
+								<Tabs.Content value="groups" className="mt-0 h-full">
+									{!groupConversations ? (
+										<ConversationListSkeleton count={5} />
+									) : (
+										<Virtuoso
+											data={groupConversations ?? []}
+											components={{
+												EmptyPlaceholder: () => (
+													<div className="flex h-full w-full p-5 mt-auto items-center text-neutral-300 justify-center">
+														<span>No conversations found</span>
+													</div>
+												),
+												Footer: groupConversationNextPageId.current
+													? () => (
+															<div className="flex w-full items-center justify-center py-5">
+																<Loader />
+																<span>Loading...</span>
+															</div>
+														)
+													: undefined,
+											}}
+											endReached={
+												groupConversationNextPageId.current
+													? () => {
+															getGroupConversationList(groupConversationNextPageId.current);
+														}
+													: undefined
+											}
+											itemContent={(index, conversation) => {
+												return (
+													<Conversation
+														key={index}
+														isGroup={true}
+														name={conversation.name}
+														message={conversation?.lastMessage?.message}
+														members={Object.keys(conversation.participants).length}
+														timestamp={toRelativeTime(conversation.updatedAt)}
+														active={conversation.id === selectedConversation?.id}
+														onClick={() => handleSelectConversation(conversation)}
+													/>
+												);
+											}}
+										/>
+									)}
+								</Tabs.Content>
+							</div>
+						</Tabs.Root>
+					)}
 				</div>
 			</Card>
 			<Card
@@ -657,7 +676,7 @@ export default function ChatForm() {
 									return (
 										<Message
 											key={index}
-											isOwn={String(user.id) === message.senderId}
+											isOwn={String(user?.id) === message.senderId}
 											isSending={!!message.tempId}
 											isSystem={!message.senderId}
 											name={

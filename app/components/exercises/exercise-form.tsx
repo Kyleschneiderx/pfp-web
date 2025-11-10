@@ -10,6 +10,7 @@ import {
 	CONFIRM_DELETE_DESCRIPTION,
 	CONFIRM_SAVE_DESCRIPTION,
 	CREATE_EXERCISE_DESCRIPTION,
+	PERMISSIONS,
 	UPDATE_DESCRIPTION,
 } from "@/app/lib/constants";
 import { revalidatePage } from "@/app/lib/revalidate";
@@ -27,9 +28,11 @@ import {
 } from "@/app/services/client_side/exercises";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { validateForm } from "./validation";
+import useAuth from "@/app/hooks/useAuth";
+import { FormSkeletons } from "../elements/FormSkeletons";
 const SelectCmp = dynamic(() => import("@/app/components/elements/SelectCmp"), {
 	ssr: false,
 });
@@ -46,6 +49,7 @@ interface Props {
 export default function ExerciseForm({ action = "Create", exercise }: Props) {
 	const { showSnackBar } = useSnackBar();
 	const router = useRouter();
+	const { hasPermission, isLoaded } = useAuth();
 
 	const [name, setName] = useState<string>("");
 	const [category, setCategory] = useState<CategoryOptionsModel | null>(null);
@@ -156,7 +160,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
 				}
 
 				await saveExercise({ method, id, body });
-				await revalidatePage("/exercises");
+				await revalidatePage("/contents/exercises");
 				setIsProcessing(false);
 				showSnackBar({
 					message: `Exercise successfully ${action === "Create" ? "created" : "updated"}.`,
@@ -187,14 +191,14 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
 			try {
 				setIsProcessing(true);
 				await deleteExercise(exercise!.id);
-				await revalidatePage("/exercises");
+				await revalidatePage("/contents/exercises");
 				setIsProcessing(false);
 				showSnackBar({
 					message: `Exercise successfully deleted.`,
 					success: true,
 				});
 				setModalOpen(false);
-				router.push("/exercises");
+				router.push("/contens/exercises");
 			} catch (error) {
 				const apiError = error as ErrorModel;
 
@@ -333,6 +337,12 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
 		getCategories();
 	}, []);
 
+	if (!isLoaded) return <FormSkeletons />;
+
+	if (isLoaded && exercise && !hasPermission(PERMISSIONS.EXERCISE_EDIT)) return notFound();
+
+	if (isLoaded && !exercise && !hasPermission(PERMISSIONS.EXERCISE_CREATE)) return notFound();
+
 	return (
 		<>
 			<div className="flex items-center mb-5 sm:mb-7">
@@ -343,7 +353,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
 					</p>
 				</div>
 				<div className="hidden sm:flex ml-auto space-x-3">
-					<Link href="/exercises">
+					<Link href="/contents/exercises">
 						<Button label="Cancel" secondary />
 					</Link>
 					<Button label="Save" onClick={onSave} />
@@ -486,7 +496,7 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
 					)}
 				</div>
 				<div className="sm:hidden order-last flex flex-col w-full mt-6 space-y-3">
-					<Link href="/exercises">
+					<Link href="/contents/exercises">
 						<Button label="Cancel" secondary className="w-full" />
 					</Link>
 					<Button label="Save" onClick={onSave} />

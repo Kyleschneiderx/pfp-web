@@ -7,7 +7,7 @@ import { Controller, type ControllerRenderProps, useController, useForm } from "
 import InputCalendar from "../elements/InputCalendar";
 import { DAYS_OF_WEEK } from "@/app/lib/constants";
 import { timeToDate } from "@/app/lib/utils";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import clsx from "clsx";
 import type { Availability, Schedule } from "@/app/models/schedules";
 import type { ErrorModel } from "@/app/models/error_model";
@@ -15,15 +15,12 @@ import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import { getAccountSchedule, saveSchedule } from "@/app/services/client_side/schedules";
 import useAuth from "@/app/hooks/useAuth";
 import Textarea from "../elements/Textarea";
-import type { VisitPrice } from "@/app/models/payments";
-import { getVisitPrices } from "@/app/services/client_side/payments";
 
 export default function ManageScheduleModal({ onClose }: { onClose: (callback?: () => void) => void }) {
-	const user = useAuth();
+	const { user } = useAuth();
 	const modal = useModal();
 	const { showSnackBar } = useSnackBar();
 	const [schedule, setSchedule] = useState<Schedule>();
-	const [visitPrices, setVisitPrices] = useState<VisitPrice[]>();
 	const timezones = Intl.supportedValuesOf("timeZone");
 
 	const clientTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -49,6 +46,8 @@ export default function ManageScheduleModal({ onClose }: { onClose: (callback?: 
 
 	useEffect(() => {
 		const getSchedule = async () => {
+			if (!user) return;
+
 			const schedule = await getAccountSchedule(user.id);
 
 			reset({
@@ -61,12 +60,6 @@ export default function ManageScheduleModal({ onClose }: { onClose: (callback?: 
 			});
 
 			setSchedule(schedule);
-		};
-
-		const getPrices = async () => {
-			const prices = await getVisitPrices();
-
-			setVisitPrices(prices);
 		};
 
 		getSchedule();

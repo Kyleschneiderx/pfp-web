@@ -31,7 +31,7 @@ export default function Page() {
 		Cookies.set(name, value, {
 			expires: Math.ceil((expiresAt - Date.now() / 1000) / 3600) / 24,
 			sameSite: "Strict",
-			// secure: true, // enable this if the server is already https
+			secure: true, // enable this if the server is already https
 		});
 	};
 
@@ -59,7 +59,9 @@ export default function Page() {
 				setCookie("firestore_token", response.token.firestore, response.token.expires);
 				setCookie("user_name", response.user.user_profile.name, response.token.expires);
 				setCookie("user_email", response.user.email, response.token.expires);
-				setCookie("user", JSON.stringify(response.user), response.token.expires);
+				localStorage.setItem("user", JSON.stringify(response.user));
+				localStorage.setItem("permissions", JSON.stringify(response.permissions));
+				setCookie("token_expiration", `${response.token.expires}`, response.token.expires);
 
 				window.location.replace("/dashboard");
 				// router.push("/dashboard");

@@ -1,0 +1,61 @@
+import { fetchExercises } from "@/app/components/exercises/actions";
+import ExerciseList from "@/app/components/exercises/exercise-list";
+import type { ExerciseModel } from "@/app/models/exercise_model";
+
+export default async function Page({
+	searchParams,
+}: {
+	searchParams?: {
+		page: string;
+		name?: string;
+		sort?: string;
+		category_id?: string;
+		sets_from?: string;
+		sets_to?: string;
+		reps_from?: string;
+		reps_to?: string;
+	};
+}) {
+	const name = searchParams?.name || "";
+	const sort = searchParams?.sort || "name:ASC";
+	const category_id = searchParams?.category_id || "";
+	const sets_from = searchParams?.sets_from || "";
+	const sets_to = searchParams?.sets_to || "";
+	const reps_from = searchParams?.reps_from || "";
+	const reps_to = searchParams?.reps_to || "";
+
+	let exercises: ExerciseModel[] = [];
+	let maxPage = 0;
+
+	try {
+		const { exerciseList, max_page } = await fetchExercises({
+			name,
+			sort,
+			category_id,
+			sets_from,
+			sets_to,
+			reps_from,
+			reps_to,
+		});
+		exercises = exerciseList;
+		maxPage = max_page;
+	} catch (error) {
+		console.error(error);
+	}
+
+	return (
+		<>
+			<ExerciseList
+				initialList={exercises}
+				name={name}
+				sort={sort}
+				category_id={category_id}
+				sets_from={sets_from}
+				sets_to={sets_to}
+				reps_from={reps_from}
+				reps_to={reps_to}
+				maxPage={maxPage}
+			/>
+		</>
+	);
+}
