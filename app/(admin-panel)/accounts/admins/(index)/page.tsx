@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getAdminList } from "@/app/components/admins/actions";
 import AdminList from "@/app/components/admins/admin-list";
 import { PAGE_ITEMS, ROLES } from "@/app/lib/constants";
