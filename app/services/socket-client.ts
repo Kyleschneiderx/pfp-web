@@ -14,9 +14,11 @@ const socketClient = ({ namespace, ...rest }: { namespace: string } & SocketOpti
 		...rest,
 		extraHeaders: {
 			Authorization: `Bearer ${token}`,
+			route: "admin",
 		},
 		auth: {
 			token: `Bearer ${token}`,
+			route: "admin",
 		},
 	});
 
