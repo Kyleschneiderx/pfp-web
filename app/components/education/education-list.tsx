@@ -157,7 +157,7 @@ export default function EducationList({ name, sort, initialList, maxPage }: Prop
 										className="cursor-pointer ml-auto"
 										onEdit={
 											hasPermission(PERMISSIONS.EDUCATION_EDIT)
-												? () => router.push(`/contents/educations/${education.id}/edit`)
+												? () => router.push(`/contents/education/${education.id}/edit`)
 												: undefined
 										}
 										onDelete={hasPermission(PERMISSIONS.EDUCATION_DELETE) ? () => handleDelete(education) : undefined}
