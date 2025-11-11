@@ -68,7 +68,7 @@ export default function MediaArea({
 						autoPlay
 						playsInline
 						muted={false}
-						className="w-full h-full object-cover scale-105 origin-center"
+						className="w-full h-full object-contain scale-150 origin-center"
 					/>
 
 					{!remoteStream && (
