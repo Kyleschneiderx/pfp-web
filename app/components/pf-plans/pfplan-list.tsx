@@ -182,7 +182,7 @@ export default function PfPlanList({ name, sort, initialList, maxPage }: Props) 
 										className="cursor-pointer ml-auto"
 										onEdit={
 											hasPermission(PERMISSIONS.PFPLAN_EDIT)
-												? () => router.push(`/contents/workouts/${pfplan.id}/edit`)
+												? () => router.push(`/contents/pf-plans/${pfplan.id}/edit`)
 												: undefined
 										}
 										onDelete={hasPermission(PERMISSIONS.PFPLAN_DELETE) ? () => handleDelete(pfplan) : undefined}
