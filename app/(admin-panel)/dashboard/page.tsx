@@ -105,7 +105,7 @@ export default function Page() {
 							required={[PERMISSIONS.STATS_USERS]}
 							fallback={<AccessLocked title="Users" className="h-96" />}
 						>
-							<Card className="mr-5">
+							<Card className="">
 								<span className="text-xl font-bold">Users</span>
 								<div className="flex flex-col sm:flex-row items-start">
 									<div>
