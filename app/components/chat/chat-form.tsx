@@ -438,9 +438,10 @@ export default function ChatForm() {
 						>
 							<Tabs.List
 								className={clsx(
-									"grid w-full grid-cols-2 p-3",
-									(!hasPermission(PERMISSIONS.CHAT_GROUP) || !hasPermission(PERMISSIONS.CHAT_PROVIDER)) &&
-										"grid-cols-1",
+									"grid w-full  p-3",
+									!hasPermission(PERMISSIONS.CHAT_GROUP) || !hasPermission(PERMISSIONS.CHAT_PROVIDER)
+										? "grid-cols-1"
+										: "grid-cols-2",
 								)}
 							>
 								{hasPermission(PERMISSIONS.CHAT_PROVIDER) && (
