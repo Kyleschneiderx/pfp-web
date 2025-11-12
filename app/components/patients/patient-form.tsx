@@ -340,7 +340,9 @@ export default function PatientForm({
 											/>
 											<div>
 												<p>{personalizedPfPlan.name}</p>
-												<p className="text-sm text-neutral-600">{personalizedPfPlan.description}</p>
+												<p className="text-sm text-neutral-600 line-clamp-5" title={personalizedPfPlan.description}>
+													{personalizedPfPlan.description}
+												</p>
 											</div>
 										</div>
 									</Link>
@@ -365,7 +367,9 @@ export default function PatientForm({
 								/>
 								<div>
 									<p>{pfPlanProgress.name}</p>
-									<p className="text-sm text-neutral-600">{pfPlanProgress.description}</p>
+									<p className="text-sm text-neutral-600 line-clamp-5" title={pfPlanProgress.description}>
+										{pfPlanProgress.description}
+									</p>
 								</div>
 							</div>
 							<ProgressBar value={pfPlanProgress.user_pf_plan_progress_percentage} />
