@@ -456,6 +456,8 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
 						type="image"
 						recommendedText="405 x 225 pixels"
 						isEdit={action === "Edit"}
+						previewImage={true}
+						fileUrl={exercise?.photo}
 					/>
 				</div>
 				<div>
@@ -484,6 +486,8 @@ export default function ExerciseForm({ action = "Create", exercise }: Props) {
 									: undefined
 							}
 							isEdit={action === "Edit"}
+							previewImage={true}
+							fileUrl={exercise?.video ?? undefined}
 						/>
 					</div>
 					{action === "Edit" && (

@@ -239,6 +239,7 @@ export default function PatientForm({
 							type="image"
 							previewImage={isMobile}
 							isEdit={action === "Edit"}
+							fileUrl={patient?.user_profile.photo ?? undefined}
 						/>
 					</div>
 					{action === "Edit" && (

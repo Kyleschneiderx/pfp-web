@@ -497,6 +497,8 @@ export default function WorkoutForm({ action = "Create", workout }: Props) {
 							type="image"
 							recommendedText="405 x 225 pixels"
 							isEdit={action === "Edit"}
+							previewImage={true}
+							fileUrl={workout?.photo}
 						/>
 					</Card>
 					{action === "Edit" && (

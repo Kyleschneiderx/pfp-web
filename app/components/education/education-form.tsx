@@ -297,6 +297,8 @@ export default function EducationForm({ action = "Create", education }: Props) {
 								type="image"
 								recommendedText="405 x 225 pixels"
 								isEdit={action === "Edit"}
+								previewImage={true}
+								fileUrl={education?.photo}
 							/>
 						</Card>
 						<Card className="sm:w-[592px] sm:mr-5 space-y-3">
@@ -365,6 +367,8 @@ export default function EducationForm({ action = "Create", education }: Props) {
 								clearImagePreview={mediaUpload === null}
 								type="image/video"
 								isEdit={action === "Edit"}
+								previewImage={true}
+								fileUrl={education?.media_upload ?? undefined}
 							/>
 						</Card>
 						<div className="sm:hidden order-last flex flex-col w-full mt-6 space-y-3">
