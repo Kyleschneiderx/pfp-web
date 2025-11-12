@@ -153,14 +153,16 @@ export default function PatientList({
 			<div className="flex flex-wrap">
 				{patients.map((patient) => (
 					<Card key={patient.id} className="p-4 pr-3 w-[351px] flex mx-auto sm:mx-0 sm:mr-7 mb-7 text-neutral-900">
-						<Image
-							src={patient.user_profile.photo || "/images/avatar.png"}
-							width={50}
-							height={50}
-							alt="Profile pic"
-							quality={100}
-							className="self-start w-[50px] h-[50px]"
-						/>
+						<div className="w-16 h-16">
+							<Image
+								src={patient.user_profile.photo || "/images/avatar.png"}
+								width={50}
+								height={50}
+								alt="Profile pic"
+								quality={100}
+								className="self-start w-[50px] h-[50px] rounded-full object-cover"
+							/>
+						</div>
 						<div className="pl-4 pr-2 w-[300px]">
 							<p className="text-lg font-semibold mb-1">{patient.user_profile.name}</p>
 							<p

@@ -52,6 +52,19 @@ export default function UploadCmp({
 		// "video/x-matroska": [".mkv"],
 	};
 
+	const identifyFileTypeByExtension = (extension?: string | null) => {
+		if (!extension) return null;
+
+		const imageExtension = ["jpeg", "jpg", "webp"];
+		const videoExtension = ["mp4"];
+
+		if (imageExtension.includes(extension.toLowerCase())) return "image";
+
+		if (videoExtension.includes(extension.toLowerCase())) return "video";
+
+		return null;
+	};
+
 	const onDrop = useCallback(
 		(acceptedFiles: File[]) => {
 			if (acceptedFiles.length > 0) {
@@ -166,6 +179,8 @@ export default function UploadCmp({
 		setIsDownloading(false);
 	};
 
+	console.log(fileType);
+
 	return (
 		<div>
 			<div className="flex flex-row items-center mb-2">
@@ -206,7 +221,13 @@ export default function UploadCmp({
 			>
 				<input {...getInputProps()} />
 				{fileUrl || imagePreview ? (
-					<img src={imagePreview ?? fileUrl} alt="Profile" className="object-cover" />
+					type === "image" || identifyFileTypeByExtension(fileType) === "image" || fileUrl?.includes(".webp") ? (
+						<img src={imagePreview ?? fileUrl} alt="Profile" className="object-cover" />
+					) : type === "video" || identifyFileTypeByExtension(fileType) === "video" || fileUrl?.includes(".mp4") ? (
+						<video src={imagePreview ?? fileUrl} controls muted={false} className="object-cover" />
+					) : (
+						<img src={imagePreview ?? fileUrl} alt="Profile" className="object-cover" />
+					)
 				) : (
 					<>
 						<div className="sm:p-2 border rounded-full w-fit h-fit bg-white mx-4 mt-2 sm:mt-0">
