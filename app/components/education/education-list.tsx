@@ -176,7 +176,9 @@ export default function EducationList({ name, sort, initialList, maxPage }: Prop
 								)}
 							</div>
 							<p className="text-lg font-semibold leading-tight mt-[8px] mb-[6px]">{education.title}</p>
-							<p className="text-sm text-neutral-700 mt-1">{education.description}</p>
+							<p className="text-sm text-neutral-700 mt-1 line-clamp-5" title={education.description}>
+								{education.description}
+							</p>
 						</Card>
 					</div>
 				))}

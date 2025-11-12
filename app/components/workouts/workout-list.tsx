@@ -172,7 +172,9 @@ export default function WorkoutList({ name, sort, initialList, maxPage }: Props)
 								)}
 							</div>
 							<p className="text-lg font-semibold leading-tight mt-[8px] mb-[6px]">{workout.name}</p>
-							<p className="text-sm text-neutral-700 mt-1">{workout.description}</p>
+							<p className="text-sm text-neutral-700 mt-1 line-clamp-5" title={workout.description}>
+								{workout.description}
+							</p>
 						</Card>
 					</div>
 				))}
