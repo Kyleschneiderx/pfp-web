@@ -46,6 +46,7 @@ export interface Meeting {
 	schedule?: Schedule;
 	duration: number;
 	timezone: string;
+	has_patient_entered: boolean;
 	starts_at: string;
 	ends_at: string;
 	status_id: number;
