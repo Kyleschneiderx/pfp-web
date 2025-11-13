@@ -42,6 +42,7 @@ import { cancelMeeting } from "@/app/services/client_side/meetings";
 import { revalidatePage } from "@/app/lib/revalidate";
 import useAuth from "@/app/hooks/useAuth";
 import DataList from "../data-list";
+import { IconUserCheck } from "@tabler/icons-react";
 
 const FilterList = dynamic(() => import("../elements/FilterList"), {
 	ssr: false,
@@ -216,10 +217,17 @@ export default function MeetingList({
 												<div className="flex flex-row items-center w-full space-x-3">
 													<div className="flex flex-row items-center space-x-3 flex-grow">
 														<p className="text-lg font-semibold">{meeting?.user_profile?.name}</p>
-														<Badge
-															label={meeting.status.value}
-															className="text-white !bg-primary-500 !py-1 capitalize mr-auto"
-														/>
+														<div className="flex items-center space-x-1">
+															<Badge
+																label={meeting.status.value}
+																className="text-white !bg-primary-500 !py-1 capitalize mr-auto"
+															/>
+															{meeting.has_patient_entered && (
+																<Badge className="text-white !p-1 bg-white border border-primary-500 rounded-full capitalize mr-auto">
+																	<IconUserCheck size={14} stroke={2} className="text-primary-500" />
+																</Badge>
+															)}
+														</div>
 													</div>
 													<ResponsiveActionMenu
 														title={meeting?.user_profile?.name}
@@ -231,28 +239,6 @@ export default function MeetingList({
 																			icon: <UserIcon className="mr-2 h-4 w-4" />,
 																			onClick: () => {
 																				handleViewPatient(meeting);
-																			},
-																		},
-																	]
-																: []),
-															...(meeting.status_id !== STATUSES.COMPLETE
-																? [
-																		{
-																			label: "Enter Visit",
-																			icon: <StethoscopeIcon className="mr-2 h-4 w-4" />,
-																			onClick: () => {
-																				handleEnterVisit(meeting);
-																			},
-																		},
-																	]
-																: []),
-															...(hasPermission([PERMISSIONS.VISIT_NOTE_VIEW, PERMISSIONS.VISIT_TRANSCRIPTION_VIEW])
-																? [
-																		{
-																			label: "Start Note",
-																			icon: <NotepadTextIcon className="mr-2 h-4 w-4" />,
-																			onClick: () => {
-																				handleStartNote(meeting);
 																			},
 																		},
 																	]
@@ -302,6 +288,27 @@ export default function MeetingList({
 																))
 															) : (
 																<p>N/A</p>
+															)}
+														</div>
+													</div>
+													<div className="flex items-center w-full justify-end px-3">
+														<div className="flex items-cemter space-x-3">
+															{meeting.status_id !== STATUSES.COMPLETE && (
+																<Button
+																	label="Enter Visit"
+																	onClick={() => {
+																		handleEnterVisit(meeting);
+																	}}
+																/>
+															)}
+															{hasPermission([PERMISSIONS.VISIT_NOTE_VIEW, PERMISSIONS.VISIT_TRANSCRIPTION_VIEW]) && (
+																<Button
+																	label="Start Note"
+																	outlined
+																	onClick={() => {
+																		handleStartNote(meeting);
+																	}}
+																/>
 															)}
 														</div>
 													</div>
