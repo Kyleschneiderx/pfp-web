@@ -5,10 +5,12 @@ export default function InfoPopover({
 	side = "left",
 	align = "start",
 	content,
+	children,
 }: {
-	content: React.ReactNode;
+	content?: React.ReactNode;
 	side?: Popover.PopoverContentProps["side"];
 	align?: Popover.PopoverContentProps["align"];
+	children?: React.ReactNode;
 }) {
 	return (
 		<Popover.Root>
@@ -22,7 +24,7 @@ export default function InfoPopover({
 				side={side}
 				align={align}
 			>
-				{content}
+				{children ?? content}
 			</Popover.Content>
 		</Popover.Root>
 	);
