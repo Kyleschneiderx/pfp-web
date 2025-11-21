@@ -103,6 +103,11 @@ export const NAVIGATIONS = [
 				permissions: [],
 				url: "/settings/ai-coach",
 			},
+			{
+				title: "Promo Codes",
+				permissions: [],
+				url: "/settings/promo-codes",
+			},
 		],
 	},
 ];
