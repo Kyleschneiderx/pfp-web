@@ -129,7 +129,10 @@ export default function PromoCodeForm({ promoCode }: { promoCode?: PromoCode }) 
 							<InfoPopover side="right">
 								<div className="text-sm text-neutral-700 max-w-xs flex flex-col space-y-1">
 									<span className="font-semibold">Code</span>
-									<p className="text-xs">The unique code that customers will use to redeem the promo code.</p>
+									<p className="text-xs">
+										The unique code that customers will use to redeem the promo code. Code should be alphanumeric and
+										hypen only.
+									</p>
 									<span className="text-error-500 italic text-xs">
 										Note: System will automatically generate a code when left blank. e.g XXXX-XXXX-XXXX
 									</span>
