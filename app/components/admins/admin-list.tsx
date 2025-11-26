@@ -15,7 +15,7 @@ import type { ErrorModel } from "@/app/models/error_model";
 import { IconKey, IconLogin2, IconMail, IconSquarePlus, IconUserScan } from "@tabler/icons-react";
 import type { Account } from "@/app/models/accounts";
 import { formatDateToLocal } from "@/app/lib/utils";
-import { deleteAccount } from "@/app/services/client_side/accounts";
+import { deleteAccount, reset2FA } from "@/app/services/client_side/accounts";
 import ChangePasswordModal from "../modals/change-password-modal";
 import DataList from "../data-list";
 import FilterList from "../elements/FilterList";
@@ -23,7 +23,7 @@ import type { AccountsSearchQuery } from "@/app/services/server_side/accounts";
 import Link from "next/link";
 import Button from "../elements/Button";
 import IconAddButton from "../elements/mobile/IconAddButton";
-
+import Reset2FAModal from "../modals/reset-2fa-modal";
 export default function AdminList({
 	data,
 	search,
@@ -111,6 +111,28 @@ export default function AdminList({
 		});
 	};
 
+	const handleReset2FA = async (data: Account) => {
+		modal.open({
+			type: "confirm",
+			title: "Reset 2FA Authentication",
+			message: "Are you sure you want to reset the 2FA authentication for this admin?",
+			onConfirm: async () => {
+				try {
+					await reset2FA(data.id!);
+
+					await revalidatePage("/accounts/admins");
+
+					showSnackBar({ message: "2FA authentication reset successfully.", success: true });
+
+					modal.closeAll();
+				} catch (e) {
+					const error = e as ErrorModel;
+					console.log(error);
+					showSnackBar({ message: error.msg, success: false });
+				}
+			},
+		});
+	};
 	return (
 		<DataList
 			data={admins}
@@ -185,6 +207,11 @@ export default function AdminList({
 													label: "Change Password",
 													icon: <IconKey width={18} />,
 													onClick: () => handleChangePassword(admin),
+												},
+												{
+													label: "Reset 2FA Authentication",
+													icon: <IconUserScan width={18} />,
+													onClick: () => handleReset2FA(admin),
 												},
 											]}
 										/>

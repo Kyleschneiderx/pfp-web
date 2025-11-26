@@ -15,7 +15,7 @@ import type { ErrorModel } from "@/app/models/error_model";
 import { IconKey, IconLicense, IconLogin2, IconMail, IconSquarePlus, IconUserScan } from "@tabler/icons-react";
 import type { Account } from "@/app/models/accounts";
 import { formatDateToLocal } from "@/app/lib/utils";
-import { deleteAccount, getAccountPermissions } from "@/app/services/client_side/accounts";
+import { deleteAccount, getAccountPermissions, reset2FA } from "@/app/services/client_side/accounts";
 import ChangePasswordModal from "../modals/change-password-modal";
 import PermissionModal from "../modals/permission-modal";
 import type { AccountsSearchQuery } from "@/app/services/server_side/accounts";
@@ -111,6 +111,29 @@ export default function ProviderList({
 		});
 	};
 
+	const handleReset2FA = async (data: Account) => {
+		modal.open({
+			type: "confirm",
+			title: "Reset 2FA Authentication",
+			message: "Are you sure you want to reset the 2FA authentication for this admin?",
+			onConfirm: async () => {
+				try {
+					await reset2FA(data.id!);
+
+					await revalidatePage("/accounts/providers");
+
+					showSnackBar({ message: "2FA authentication reset successfully.", success: true });
+
+					modal.closeAll();
+				} catch (e) {
+					const error = e as ErrorModel;
+					console.log(error);
+					showSnackBar({ message: error.msg, success: false });
+				}
+			},
+		});
+	};
+
 	const handleEditPermission = async (account: Account) => {
 		try {
 			const accountPermissions = await getAccountPermissions(account.id);
@@ -200,6 +223,11 @@ export default function ProviderList({
 													label: "Change Password",
 													icon: <IconKey width={18} />,
 													onClick: () => handleChangePassword(account),
+												},
+												{
+													label: "Reset 2FA Authentication",
+													icon: <IconUserScan width={18} />,
+													onClick: () => handleReset2FA(account),
 												},
 												{
 													label: "Permission",

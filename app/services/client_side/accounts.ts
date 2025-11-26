@@ -33,6 +33,15 @@ export const changePassword = async ({
 	});
 };
 
+export const reset2FA = async (id: number | undefined): Promise<{ msg: string }> => {
+	const url = `/accounts/${id}/reset-2fa`;
+
+	return apiClient<{ msg: string }>({
+		url: url,
+		method: "DELETE",
+	});
+};
+
 export const getAccountPermissions = async (id: number, params?: Record<string, any>): Promise<AccountPermission[]> => {
 	const url = `/accounts/${id}/permissions`;
 	const response = apiClient<{ data: AccountPermission[] }>({ url: url, method: "GET", params });
