@@ -3,6 +3,8 @@
 import Button from "@/app/components/elements/Button";
 import Input from "@/app/components/elements/Input";
 import { validateForm } from "@/app/components/login/validation";
+import TwoFactorAuthenticationModal from "@/app/components/modals/two-factor-authentication-modal";
+import { useModal } from "@/app/contexts/ModalContext";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import { ErrorModel } from "@/app/models/error_model";
 import { LoginModel } from "@/app/models/login_model";
@@ -19,6 +21,7 @@ export default function Page() {
 	const [password, setPassword] = useState<string>("");
 	const [errors, setErrors] = useState<ValidationErrorModel[]>([]);
 	const [isProcessing, setIsProcessing] = useState<boolean>(false);
+	const modal = useModal();
 
 	const { showSnackBar } = useSnackBar();
 	const router = useRouter();
@@ -52,9 +55,44 @@ export default function Page() {
 		if (isValid() && !isProcessing) {
 			try {
 				setIsProcessing(true);
+				const response: LoginModel = await login(email, password);
+
+				modal.open({
+					type: "default",
+					component: (
+						<TwoFactorAuthenticationModal
+							onClose={() => modal.closeAll()}
+							secret={response.twofa_secret}
+							qrCode={response.qr_code ?? ""}
+							isSetup={!response.has_twofa}
+							onVerify={handleVerifyTwoFactor}
+						/>
+					),
+					title: "Two Factor Authentication",
+					allowClose: true,
+					className: "!max-h-[75%] overflow-auto !w-[90%] !sm:w-[150px] !max-w-[150px] !z-[30]",
+				});
+
+				setIsProcessing(false);
+			} catch (error) {
+				const apiError = error as ErrorModel;
+
+				if (apiError && apiError.msg) {
+					showSnackBar({ message: apiError.msg, success: false });
+				}
+				setIsProcessing(false);
+			}
+		}
+	};
+
+	const handleVerifyTwoFactor = async (code: string, secret?: string) => {
+		if (isValid() && !isProcessing) {
+			try {
+				setIsProcessing(true);
 				Cookies.remove("token");
 
-				const response: LoginModel = await login(email, password);
+				const response: LoginModel = await login(email, password, code, secret);
+
 				setCookie("token", response.token.access, response.token.expires);
 				setCookie("firestore_token", response.token.firestore, response.token.expires);
 				setCookie("user_name", response.user.user_profile.name, response.token.expires);

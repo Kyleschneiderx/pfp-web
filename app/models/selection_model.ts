@@ -16,6 +16,7 @@ export interface IcdCode {
 export interface Permission {
 	id?: number;
 	key: string;
+	group_name: string;
 	name: string;
 }
 

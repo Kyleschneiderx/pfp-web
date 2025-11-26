@@ -12,7 +12,7 @@ export default function PermissionModal({
 	account,
 	settings,
 }: { roleId?: number; account?: Account; settings?: RolePermission[] | AccountPermission[] }) {
-	const [selections, setSelections] = useState<Selection>();
+	const [permissions, setPermissions] = useState<{ [key: string]: Permission[] }>();
 	const [settingPermissions, setSettingPermissions] = useState<{ [key: number]: boolean }>({});
 
 	useEffect(() => {
@@ -30,7 +30,15 @@ export default function PermissionModal({
 					select: ["permissions"],
 				});
 
-				setSelections(response);
+				setPermissions(
+					response.permissions?.reduce(
+						(acc, permission) => {
+							acc[permission.group_name] = [...(acc[permission.group_name] || []), permission];
+							return acc;
+						},
+						{} as { [key: string]: Permission[] },
+					),
+				);
 			} catch (error) {
 				const apiError = error as ErrorModel;
 			}
@@ -51,17 +59,24 @@ export default function PermissionModal({
 		}
 	};
 
-	return selections?.permissions ? (
+	return permissions ? (
 		<div className="flex-1 py-1 ">
 			<div className="space-y-5 mt-5 text-neutral-900">
 				<div className="flex flex-col space-y-3 h-full overflow-y-auto ">
-					{selections?.permissions?.map((permission) => (
-						<div key={permission.id} className="flex items-center space-x-3 justify-between">
-							<span className="text-wrap">{permission.name}</span>
-							<Switch
-								onCheckedChange={async (checked) => await handlePermissionChange(permission, checked)}
-								checked={settingPermissions[permission.id!]}
-							/>
+					{Object.entries(permissions)?.map(([groupName, permission]) => (
+						<div key={groupName} className="space-y-1">
+							<span className="text-wrap font-bold text-base">{groupName}</span>
+							{permission.map((p) => {
+								return (
+									<div key={p.id} className="flex items-center space-x-3 justify-between">
+										<span className="text-wrap">{p.name}</span>
+										<Switch
+											onCheckedChange={async (checked) => await handlePermissionChange(p, checked)}
+											checked={settingPermissions[p.id!]}
+										/>
+									</div>
+								);
+							})}
 						</div>
 					))}
 				</div>
