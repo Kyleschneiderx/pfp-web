@@ -1,6 +1,9 @@
 import type { AccountPermission } from "./accounts";
 
 export type LoginModel = {
+	has_twofa?: boolean;
+	twofa_secret?: string;
+	qr_code?: string;
 	user: {
 		id: number;
 		email: string;

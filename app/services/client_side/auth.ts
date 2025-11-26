@@ -1,13 +1,12 @@
 import { LoginModel } from "@/app/models/login_model";
 import { apiClient } from "@/app/services/apiClient";
 
-export const login = async (email: string, password: string): Promise<LoginModel> => {
+export const login = async (email: string, password: string, code?: string, secret?: string): Promise<LoginModel> => {
 	const url = `/auths/login`;
-	console.log(123);
 	return apiClient<LoginModel>({
 		url: url,
 		method: "POST",
-		body: { email, password },
+		body: { email, password, twofa_code: code, twofa_secret: secret },
 	});
 };
 
