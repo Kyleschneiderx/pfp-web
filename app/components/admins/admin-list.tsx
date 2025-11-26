@@ -23,7 +23,6 @@ import type { AccountsSearchQuery } from "@/app/services/server_side/accounts";
 import Link from "next/link";
 import Button from "../elements/Button";
 import IconAddButton from "../elements/mobile/IconAddButton";
-import Reset2FAModal from "../modals/reset-2fa-modal";
 export default function AdminList({
 	data,
 	search,
