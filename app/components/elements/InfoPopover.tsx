@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { Info } from "lucide-react";
 import { Popover } from "radix-ui";
 
@@ -6,11 +7,13 @@ export default function InfoPopover({
 	align = "start",
 	content,
 	children,
+	className,
 }: {
 	content?: React.ReactNode;
 	side?: Popover.PopoverContentProps["side"];
 	align?: Popover.PopoverContentProps["align"];
 	children?: React.ReactNode;
+	className?: string;
 }) {
 	return (
 		<Popover.Root>
@@ -20,7 +23,7 @@ export default function InfoPopover({
 				</div>
 			</Popover.Trigger>
 			<Popover.Content
-				className="w-80 z-10 outline-none rounded-md drop-shadow-center bg-white p-5"
+				className={clsx("w-80 z-10 outline-none rounded-md drop-shadow-center bg-white p-5", className)}
 				side={side}
 				align={align}
 			>
