@@ -40,6 +40,8 @@ import type { PatientModel } from "@/app/models/patient_model";
 import { savePersonalizedPfPlan } from "@/app/services/client_side/patients";
 import useAuth from "@/app/hooks/useAuth";
 import { FormSkeletons } from "../elements/FormSkeletons";
+import SelectCmp from "../elements/SelectCmp";
+import InfoPopover from "../elements/InfoPopover";
 
 const ConfirmModal = dynamic(() => import("@/app/components/elements/ConfirmModal"), { ssr: false });
 
@@ -61,6 +63,7 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 	const [category, setCategory] = useState<CategoryOptionsModel[] | null>(null);
 	const [isCustom, setIsCustom] = useState<boolean>(false);
 	const [content, setContent] = useState("");
+	const [trimester, setTrimester] = useState<number | undefined>();
 	const [photo, setPhoto] = useState<File | null>(null);
 	const [statusId, setStatusId] = useState<"4" | "5">("4");
 
@@ -86,6 +89,7 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 						}))
 					: null,
 			);
+			setTrimester(pfPlan.trimester ?? undefined);
 			setIsCustom(pfPlan.is_custom ?? false);
 			const dailies = pfPlan.pf_plan_dailies.map(
 				(item: {
@@ -234,14 +238,13 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 				if (description) body.append("description", description);
 				body.append("category_id", JSON.stringify(category?.map((el: CategoryOptionsModel) => Number(el.value)) ?? []));
 				body.append("content", content);
+				if (trimester) body.append("trimester", trimester.toString());
 				body.append("status_id", statusId);
 				body.append("is_custom", patient ? "false" : isCustom.toString());
 				if (photo) body.append("photo", photo);
 				if (dailiesPayload.length) {
 					body.append("dailies", JSON.stringify(dailiesPayload));
 				}
-
-				console.log(patient?.id, pfPlan?.user_id);
 
 				if (patient) {
 					const personalizedPfPlanId = pfPlan?.user_id === patient.id ? id : undefined;
@@ -325,6 +328,7 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 		setPhoto(null);
 		setSelectedDay(null);
 		setDays([]);
+		setTrimester(undefined);
 	};
 
 	const onToggleSwitch = (value: string) => {
@@ -508,6 +512,35 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 						className="z-[99]"
 						categories={category}
 						onChange={(e) => setCategory(e as OptionsModel[])}
+					/>
+				</div>
+				<div>
+					<div className="flex space-x-1 items-end mb-2">
+						<p className="font-medium">Trimester</p>
+						<InfoPopover side="right" className="!z-[99]">
+							<div className="text-sm text-neutral-700 max-w-xs flex flex-col space-y-1 !z-[99]">
+								<span className="font-semibold">Trimester</span>
+								<p className="text-xs">
+									A trimester marks one of the three stages of pregnancy. Selecting a trimester in the pelvic floor plan
+									lets the system match the appropriate plan to pregnant users during signup.
+								</p>
+							</div>
+						</InfoPopover>
+					</div>
+					<SelectCmp
+						options={Array.from({ length: 3 }, (_, index) => ({
+							label: `Trimester ${index + 1}`,
+							value: (index + 1).toString(),
+						}))}
+						value={
+							trimester
+								? {
+										label: `Trimester ${trimester}`,
+										value: trimester.toString(),
+									}
+								: undefined
+						}
+						onChange={(e) => setTrimester(Number(e?.value))}
 					/>
 				</div>
 				<div>

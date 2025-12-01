@@ -1,56 +1,42 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 export function middleware(request: NextRequest) {
-  const token = request.cookies.get("token");
-  const { pathname } = request.nextUrl;
+	const token = request.cookies.get("token");
+	const { pathname } = request.nextUrl;
 
-  // Normalize the pathname to remove trailing slashes
-  const normalizedPath = pathname.replace(/\/$/, "");
+	// Normalize the pathname to remove trailing slashes
+	const normalizedPath = pathname.replace(/\/$/, "");
 
-  // Define the paths that don't require authentication
-  const publicPaths = [
-    "/",
-    "/login",
-    "/forgot-password",
-    "/reset-password",
-  ];
+	// Define the paths that don't require authentication
+	const publicPaths = ["/", "/login", "/forgot-password", "/reset-password"];
 
-  const publicPaths2 = [
-    "/mobile-app",
-    "/delete-account",
-    "/privacy-policy",
-  ];
+	const publicPaths2 = ["/mobile-app", "/delete-account", "/privacy-policy", "/stripe"];
 
-  // Function to handle dynamic reset-password route
-  const isPublicPath = publicPaths.some(
-    (path) => normalizedPath === path || normalizedPath.startsWith(`${path}/`)
-  );
-  
-  const isPublicPath2 = publicPaths2.some(
-    (path) => normalizedPath === path || normalizedPath.startsWith(`${path}/`)
-  );
+	// Function to handle dynamic reset-password route
+	const isPublicPath = publicPaths.some((path) => normalizedPath === path || normalizedPath.startsWith(`${path}/`));
 
-  if (isPublicPath2) {
-    return NextResponse.next();
-  }
+	const isPublicPath2 = publicPaths2.some((path) => normalizedPath === path || normalizedPath.startsWith(`${path}/`));
 
-  // Check if token is missing and the route is protected
-  if (!token && !isPublicPath) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
+	if (isPublicPath2) {
+		return NextResponse.next();
+	}
 
-  if (token && isPublicPath) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
+	// Check if token is missing and the route is protected
+	if (!token && !isPublicPath) {
+		return NextResponse.redirect(new URL("/login", request.url));
+	}
 
-  // If authenticated, proceed as normal
-  return NextResponse.next();
+	if (token && isPublicPath) {
+		return NextResponse.redirect(new URL("/dashboard", request.url));
+	}
+
+	// If authenticated, proceed as normal
+	return NextResponse.next();
 }
 
 // Specify paths for which middleware should run
 export const config = {
-  // Skip API routes, Next.js static assets, and all public folder assets
-  matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|images|svg|.well-known).*)",
-  ],
+	// Skip API routes, Next.js static assets, and all public folder assets
+	matcher: ["/((?!api|_next/static|_next/image|favicon.ico|images|svg|.well-known).*)"],
 };

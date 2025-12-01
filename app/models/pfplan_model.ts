@@ -8,6 +8,7 @@ export interface PfPlanModel {
 	content: string;
 	photo: string;
 	user_id: number | null;
+	trimester?: number | null;
 	is_premium: boolean | null;
 	is_custom: boolean | null;
 	created_at: string;
