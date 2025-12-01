@@ -35,6 +35,7 @@ import type { PfPlanModel } from "@/app/models/pfplan_model";
 import clsx from "clsx";
 import useAuth from "@/app/hooks/useAuth";
 import { FormSkeletons } from "../elements/FormSkeletons";
+import SelectCmp from "../elements/SelectCmp";
 
 const PatientSurveyModal = dynamic(() => import("@/app/components/patients/patient-survey-modal"), { ssr: false });
 
@@ -69,6 +70,11 @@ export default function PatientForm({
 	const [errors, setErrors] = useState<ValidationErrorModel[]>([]);
 	const [isProcessing, setIsProcessing] = useState<boolean>(false);
 	const [isPfPlanListModalOpen, setIsPfPlanListModalOpen] = useState<boolean>(false);
+	const [isPregnant, setIsPregnant] = useState<boolean>(false);
+	const [trimester, setTrimester] = useState<number | undefined>(undefined);
+	const [gender, setGender] = useState<string>("");
+	const [givenBirthLastSixMonth, setGivenBirthLastSixMonth] = useState<boolean>(false);
+	const [monthsPostpartum, setMonthsPostpartum] = useState<number | undefined>(undefined);
 
 	useEffect(() => {
 		if (action === "Edit" && patient) {
@@ -80,6 +86,11 @@ export default function PatientForm({
 			if (patient.user_profile.birthdate && !Number.isNaN(new Date(patient.user_profile.birthdate).getTime())) {
 				setBirthdate(handleSetBirthDate(patient.user_profile.birthdate));
 			}
+			setIsPregnant(patient.user_profile?.is_pregnant ?? false);
+			setTrimester(patient.user_profile?.trimester ?? undefined);
+			setGender(patient.user_profile?.gender ?? "female");
+			setGivenBirthLastSixMonth(patient.user_profile?.given_birth_last_six_months ?? false);
+			setMonthsPostpartum(patient.user_profile?.months_postpartum ?? undefined);
 		}
 	}, [patient]);
 
@@ -138,6 +149,11 @@ export default function PatientForm({
 				body.append("birthdate", birthdate ? formatDate(birthdate) : "");
 				body.append("description", description);
 				body.append("type_id", userType.toString());
+				body.append("is_pregnant", isPregnant.toString());
+				if (trimester) body.append("trimester", trimester.toString());
+				if (gender) body.append("gender", gender);
+				body.append("given_birth_last_six_months", givenBirthLastSixMonth.toString());
+				if (monthsPostpartum) body.append("months_postpartum", monthsPostpartum.toString());
 				if (photo) body.append("photo", photo);
 
 				await savePatient({ method, id, body });
@@ -204,6 +220,11 @@ export default function PatientForm({
 		setUserType(1);
 		setDescription("");
 		setPhoto(null);
+		setIsPregnant(false);
+		setTrimester(undefined);
+		setGender("");
+		setGivenBirthLastSixMonth(false);
+		setMonthsPostpartum(undefined);
 	};
 
 	if (!isLoaded) return <FormSkeletons />;
@@ -314,6 +335,81 @@ export default function PatientForm({
 							onChange={(e) => setDescription(e.target.value)}
 						/>
 					</div>
+					<div>
+						<div className="flex justify-between items-end mb-2">
+							<p className="font-medium mb-2">Gender</p>
+							<ToggleSwitch
+								label1="Male"
+								label2="Female"
+								active={gender === "male" ? "Male" : gender === "female" ? "Female" : ""}
+								onToggle={(label) => setGender(label.toLowerCase())}
+							/>
+						</div>
+					</div>
+					<div>
+						<div className="flex justify-between items-end mb-2">
+							<p className="font-medium">Is Pregnant</p>
+							<ToggleSwitch
+								label1="No"
+								label2="Yes"
+								active={isPregnant ? "Yes" : "No"}
+								onToggle={(label) => setIsPregnant(label === "Yes")}
+							/>
+						</div>
+					</div>
+					{isPregnant && (
+						<div>
+							<p className="font-medium mb-2">Trimester</p>
+							<SelectCmp
+								options={Array.from({ length: 3 }, (_, index) => ({
+									label: `Trimester ${index + 1}`,
+									value: (index + 1).toString(),
+								}))}
+								value={
+									trimester
+										? {
+												label: `Trimester ${trimester}`,
+												value: trimester.toString(),
+											}
+										: undefined
+								}
+								onChange={(e) => setTrimester(e ? Number(e.value) : undefined)}
+								placeholder="Select trimester"
+							/>
+						</div>
+					)}
+					<div>
+						<div className="flex justify-between items-end mb-2">
+							<p className="font-medium">Given Birth Last Six Months</p>
+							<ToggleSwitch
+								label1="No"
+								label2="Yes"
+								active={givenBirthLastSixMonth ? "Yes" : "No"}
+								onToggle={(label) => setGivenBirthLastSixMonth(label === "Yes")}
+							/>
+						</div>
+					</div>
+					{givenBirthLastSixMonth && (
+						<div>
+							<p className="font-medium mb-2">Months Postpartum</p>
+							<SelectCmp
+								options={Array.from({ length: 6 }, (_, index) => ({
+									label: `${index + 1} ${index === 0 ? "month" : "months"}`,
+									value: (index + 1).toString(),
+								}))}
+								value={
+									monthsPostpartum
+										? {
+												label: `${monthsPostpartum} ${monthsPostpartum === 1 ? "month" : "months"}`,
+												value: monthsPostpartum.toString(),
+											}
+										: undefined
+								}
+								onChange={(e) => setMonthsPostpartum(e ? Number(e.value) : undefined)}
+								placeholder="Select months postpartum"
+							/>
+						</div>
+					)}
 					{action === "Edit" && patientSurvey && (
 						<span
 							className="text-sm text-neutral-600 cursor-pointer underline"
