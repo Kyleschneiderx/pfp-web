@@ -22,6 +22,7 @@ export interface PfPlanModel {
 export interface PfPlanCategoryModel {
 	id: number;
 	value: string;
+	description: string;
 }
 
 interface Status {

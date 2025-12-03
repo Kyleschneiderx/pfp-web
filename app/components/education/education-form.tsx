@@ -76,7 +76,7 @@ export default function EducationForm({ action = "Create", education }: Props) {
 			setCategory(
 				education.categories
 					? education.categories.map((el) => ({
-							label: el.value,
+							label: el.description,
 							value: el.id.toString(),
 						}))
 					: null,
