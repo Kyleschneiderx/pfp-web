@@ -84,7 +84,7 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 			setCategory(
 				pfPlan.categories
 					? pfPlan.categories.map((el) => ({
-							label: el.value,
+							label: el.description,
 							value: el.id.toString(),
 						}))
 					: null,
@@ -494,6 +494,8 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 							type="image"
 							recommendedText="405 x 225 pixels"
 							isEdit={action === "Edit"}
+							previewImage={true}
+							fileUrl={pfPlan?.photo}
 						/>
 					</Card>
 					{action === "Edit" && !pfPlan?.is_archived && (

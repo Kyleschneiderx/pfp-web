@@ -18,6 +18,7 @@ export interface EducationModel {
 export interface EducationCategoryModel {
 	id: number;
 	value: string;
+	description: string;
 }
 
 interface Status {
