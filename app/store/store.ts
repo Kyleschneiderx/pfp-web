@@ -12,6 +12,7 @@ interface PfPlanDailiesState {
 	setDays: (days: PfPlanDailies[]) => void;
 	selectedDay: PfPlanDailies | null;
 	setSelectedDay: (day: PfPlanDailies | null) => void;
+	copyDay: (day: PfPlanDailies) => void;
 }
 
 const usePfPlanDailiesStore = create<PfPlanDailiesState>((set) => ({
@@ -37,6 +38,11 @@ const usePfPlanDailiesStore = create<PfPlanDailiesState>((set) => ({
 
 			return { days: reindexedDays };
 		}),
+
+	copyDay: (day: PfPlanDailies) =>
+		set((state) => ({
+			days: [...state.days, day],
+		})),
 
 	setDays: (newDays) => set(() => ({ days: newDays })),
 	selectedDay: null,
