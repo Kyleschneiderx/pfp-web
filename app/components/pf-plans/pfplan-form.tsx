@@ -206,7 +206,6 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 				const method = action === "Create" ? "POST" : "PUT";
 				const id = action === "Edit" ? pfPlan?.id : null;
 				const body = new FormData();
-				console.log(days);
 				const dailiesPayload = days.map((item) => ({
 					daily_id: item.id,
 					name: item.name,
@@ -317,9 +316,17 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 
 	const handleCopyDay = (day: PfPlanDailies) => {
 		copyDay({
-			...day,
 			day: day.day + 1,
 			name: `${day.name} - Copy`,
+			contents: day.contents.map((content) => {
+				if ("exercise" in content) {
+					const { id, ...newContent } = content;
+
+					return { id: undefined, ...newContent };
+				}
+
+				return { ...content, pfPlanDayContentId: undefined };
+			}),
 		});
 	};
 
