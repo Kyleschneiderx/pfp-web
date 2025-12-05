@@ -42,6 +42,7 @@ import useAuth from "@/app/hooks/useAuth";
 import { FormSkeletons } from "../elements/FormSkeletons";
 import SelectCmp from "../elements/SelectCmp";
 import InfoPopover from "../elements/InfoPopover";
+import { IconCopy } from "@tabler/icons-react";
 
 const ConfirmModal = dynamic(() => import("@/app/components/elements/ConfirmModal"), { ssr: false });
 
@@ -56,7 +57,7 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 	const router = useRouter();
 	const { hasPermission, isLoaded } = useAuth();
 
-	const { days, removeDay, setDays, setSelectedDay } = usePfPlanDailiesStore();
+	const { days, removeDay, setDays, setSelectedDay, copyDay } = usePfPlanDailiesStore();
 
 	const [name, setName] = useState<string>("");
 	const [description, setDescription] = useState<string>("");
@@ -314,6 +315,14 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 		setIsPanelOpen(true);
 	};
 
+	const handleCopyDay = (day: PfPlanDailies) => {
+		copyDay({
+			...day,
+			day: day.day + 1,
+			name: `${day.name} - Copy`,
+		});
+	};
+
 	const handleEditorChange = (content: string) => {
 		setContent(content);
 		// setIsSaved(false);
@@ -457,6 +466,7 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 													<div className="text-xl sm:text-[22px] font-medium whitespace-nowrap">Day {item.day} -</div>
 													<div className="ml-2 mr-3 text-[18px] font-semibold">{item.name}</div>
 													<div className="flex space-x-3 ml-auto">
+														<IconCopy size={24} className="text-primary-500" onClick={() => handleCopyDay(item)} />
 														<PencilIcon
 															onClick={(e) => {
 																e.stopPropagation();
