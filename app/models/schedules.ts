@@ -13,5 +13,6 @@ export interface Schedule {
 	description?: string;
 	timezone: string;
 	duration: number;
+	is_active?: boolean;
 	availabilities: Availability[];
 }

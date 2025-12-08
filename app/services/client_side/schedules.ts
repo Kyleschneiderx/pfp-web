@@ -1,15 +1,6 @@
 import { apiClient } from "@/app/services/apiClient";
 import type { Schedule } from "@/app/models/schedules";
 
-export const getAccountSchedule = async (id: number): Promise<Schedule> => {
-	const url = `/users/${id}/schedule`;
-	const data = await apiClient({
-		url: url,
-		method: "GET",
-	});
-	return data as Schedule;
-};
-
 export const saveSchedule = async ({
 	method,
 	id,
