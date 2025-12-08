@@ -57,6 +57,11 @@ export default function Page() {
 				setIsProcessing(true);
 				const response: LoginModel = await login(email, password);
 
+				if (response.has_twofa === undefined) {
+					handleVerifyTwoFactor("");
+					return;
+				}
+
 				modal.open({
 					type: "default",
 					component: (

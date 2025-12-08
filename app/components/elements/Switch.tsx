@@ -18,6 +18,10 @@ export default function Switch({ className, onCheckedChange, checkedLabel, unChe
 		onCheckedChange?.(value);
 	};
 
+	useEffect(() => {
+		setIsCheck(checked);
+	}, [checked]);
+
 	return (
 		<label className={clsx("relative inline-flex items-center cursor-pointer select-none", className)}>
 			<input type="checkbox" checked={isCheck} onChange={handleChange} className="sr-only peer" />

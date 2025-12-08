@@ -1,5 +1,6 @@
 import { apiClient } from "@/app/services/apiClient";
 import type { Account, AccountPermission } from "@/app/models/accounts";
+import type { Schedule } from "@/app/models/schedules";
 
 export const saveAccount = async ({
 	method,
@@ -55,4 +56,13 @@ export const updateAccountPermission = async (data: { user_id: number; permissio
 	const response = apiClient<AccountPermission>({ url: url, method: "PUT", body: data });
 
 	return await response;
+};
+
+export const getAccountSchedule = async (id: number): Promise<Schedule> => {
+	const url = `/accounts/${id}/schedule`;
+	const data = await apiClient({
+		url: url,
+		method: "GET",
+	});
+	return data as Schedule;
 };

@@ -12,9 +12,11 @@ import clsx from "clsx";
 import type { Availability, Schedule } from "@/app/models/schedules";
 import type { ErrorModel } from "@/app/models/error_model";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
-import { getAccountSchedule, saveSchedule } from "@/app/services/client_side/schedules";
+import { saveSchedule } from "@/app/services/client_side/schedules";
+import { getAccountSchedule } from "@/app/services/client_side/accounts";
 import useAuth from "@/app/hooks/useAuth";
 import Textarea from "../elements/Textarea";
+import Switch from "../elements/Switch";
 
 export default function ManageScheduleModal({ onClose }: { onClose: (callback?: () => void) => void }) {
 	const { user } = useAuth();
@@ -31,6 +33,7 @@ export default function ManageScheduleModal({ onClose }: { onClose: (callback?: 
 		timezone: schedule?.timezone || clientTimeZone || "",
 		description: schedule?.description || "",
 		duration: schedule?.duration || 0,
+		is_active: schedule?.is_active ?? false,
 		availabilities:
 			schedule?.availabilities ||
 			DAYS_OF_WEEK.map((day, index) => ({
@@ -56,6 +59,7 @@ export default function ManageScheduleModal({ onClose }: { onClose: (callback?: 
 				timezone: schedule?.timezone || clientTimeZone || "",
 				description: schedule?.description || "",
 				duration: schedule?.duration || 0,
+				is_active: schedule?.is_active ?? false,
 				availabilities: schedule?.availabilities,
 			});
 
@@ -63,7 +67,7 @@ export default function ManageScheduleModal({ onClose }: { onClose: (callback?: 
 		};
 
 		getSchedule();
-	}, [reset]);
+	}, [reset, user]);
 
 	const handleRemoveRule = (field: ControllerRenderProps<typeof defaultValues, "availabilities">, index: number) => {
 		field.onChange(field.value.map((rule, i) => (i === index ? { ...rule, starts_at: null, ends_at: null } : rule)));
@@ -90,6 +94,11 @@ export default function ManageScheduleModal({ onClose }: { onClose: (callback?: 
 						body: data,
 					});
 
+					showSnackBar({
+						message: "Schedule saved successfully",
+						success: true,
+					});
+
 					modal.closeAll();
 				} catch (error) {
 					const err = error as ErrorModel;
@@ -112,6 +121,14 @@ export default function ManageScheduleModal({ onClose }: { onClose: (callback?: 
 						seamlessly book meetings.
 					</p>
 					<div className="flex flex-col space-y-3">
+						<div className="flex flex-row items-center justify-between">
+							<span className="font-semibold">Schedule Status</span>
+							<Controller
+								name="is_active"
+								control={control}
+								render={({ field }) => <Switch checked={field.value} onCheckedChange={field.onChange} />}
+							/>
+						</div>
 						<div className="flex flex-col space-y-1">
 							<span className="font-semibold">Description</span>
 							<Controller
@@ -128,6 +145,7 @@ export default function ManageScheduleModal({ onClose }: { onClose: (callback?: 
 								)}
 							/>
 						</div>
+
 						<div className="flex flex-col space-y-1">
 							<span className="font-semibold">Timezone</span>
 							<Controller
