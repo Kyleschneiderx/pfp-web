@@ -238,7 +238,7 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 				if (description) body.append("description", description);
 				body.append("category_id", JSON.stringify(category?.map((el: CategoryOptionsModel) => Number(el.value)) ?? []));
 				body.append("content", content);
-				if (trimester) body.append("trimester", trimester.toString());
+				body.append("trimester", trimester?.toString() ?? "0");
 				body.append("status_id", statusId);
 				body.append("is_custom", patient ? "false" : isCustom.toString());
 				if (photo) body.append("photo", photo);
@@ -551,6 +551,7 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 							label: `Trimester ${index + 1}`,
 							value: (index + 1).toString(),
 						}))}
+						isClearable={true}
 						value={
 							trimester
 								? {
@@ -559,7 +560,7 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 									}
 								: undefined
 						}
-						onChange={(e) => setTrimester(Number(e?.value))}
+						onChange={(e) => setTrimester(e?.value ? Number(e?.value) : undefined)}
 					/>
 				</div>
 				<div>
