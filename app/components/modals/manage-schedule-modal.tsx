@@ -154,49 +154,17 @@ export default function ManageScheduleModal({ onClose }: { onClose: (callback?: 
 								render={({ field }) => (
 									<SelectCmp
 										defaultValue={{ label: field.value, value: field.value }}
-										value={{
-											label: field.value,
-											value: field.value,
-										}}
 										placeholder="Select timezone"
 										options={timezones?.map((timezone) => ({ label: timezone, value: timezone }))}
-										onChange={field.onChange}
-									/>
-								)}
-							/>
-						</div>
-						{/* <div className="flex flex-col space-y-1">
-							<span className="font-semibold">Duration</span>
-							<Controller
-								name="duration"
-								control={control}
-								render={({ field }) => (
-									<SelectCmp
-										defaultValue={{ label: field.value, value: field.value }}
-										value={{
-											label: field.value,
-											value: field.value,
+										onChange={(e) => {
+											console.log(e);
+											field.onChange(e?.value);
 										}}
-										placeholder="Select timezone"
-										options={visitPrices?.map((price) => ({
-											label: `${price.name} ($${price.price})`,
-											value: price.id,
-										}))}
-										onChange={field.onChange}
 									/>
 								)}
 							/>
 						</div>
-						<div className="flex flex-col space-y-1">
-							<span className="font-semibold">Duration (minutes)</span>
-							<Controller
-								name="duration"
-								control={control}
-								render={({ field }) => (
-									<Input type="number" min={1} placeholder="Duration" value={field.value} onChange={field.onChange} />
-								)}
-							/>
-						</div> */}
+
 						<div className="flex flex-col space-y-3">
 							<span className="font-semibold">Time Slots</span>
 							<div className="flex flex-col gap-y-3">
