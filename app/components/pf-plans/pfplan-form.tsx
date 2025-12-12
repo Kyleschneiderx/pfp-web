@@ -316,7 +316,7 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 
 	const handleCopyDay = (day: PfPlanDailies) => {
 		copyDay({
-			day: day.day + 1,
+			day: (days.length ?? 0) + 1,
 			name: `${day.name} - Copy`,
 			contents: day.contents.map((content) => {
 				if ("exercise" in content) {
