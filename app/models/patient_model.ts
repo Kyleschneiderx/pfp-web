@@ -56,6 +56,7 @@ export interface PatientSurveyModel {
 interface QuestionAnswer {
 	yes_no: "yes" | "no";
 	if_yes_how_much_bother: string;
+	updated_at: string;
 }
 
 export interface PfPlanProgressModel {
