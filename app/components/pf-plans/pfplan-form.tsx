@@ -511,8 +511,8 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 							type="image"
 							recommendedText="405 x 225 pixels"
 							isEdit={action === "Edit"}
-							previewImage={true}
-							fileUrl={pfPlan?.photo}
+							previewImage={patient ? patient.id === pfPlan?.user_id : true}
+							fileUrl={patient ? (patient.id === pfPlan?.user_id ? pfPlan?.photo : undefined) : pfPlan?.photo}
 						/>
 					</Card>
 					{action === "Edit" && !pfPlan?.is_archived && (
