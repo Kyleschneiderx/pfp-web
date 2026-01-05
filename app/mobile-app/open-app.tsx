@@ -4,6 +4,7 @@ import Button from "@/app/components/elements/Button";
 import { useDetectOS } from "@/app/hooks/useDetectOS";
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
+import Card from "../components/elements/Card";
 
 interface Props {
 	path: String;
@@ -26,44 +27,49 @@ export default function OpenApp({ path }: Props) {
 	}, [openApp]);
 
 	return (
-		<div className="flex flex-col w-auto sm:w-[300px] pt-[50px] space-x-4 items-center">
-			<Button label="Open app" onClick={openApp} />
+		<div className="relative bg-cover bg-center h-screen bg-[url('/images/login-bg.png')]">
+			<div className="z-[0] absolute inset-0 bg-gradient-to-r from-primary-50/95 to-primary-50/70" />
+			<div className="flex items-center justify-center h-screen">
+				<div className="z-10 flex flex-col w-auto sm:w-[300px] pt-[50px] space-x-4 items-center">
+					<Button label="Open app" onClick={openApp} />
 
-			{/* Show the fallback only if app open was attempted */}
-			{attempted && (
-				<div className="flex flex-col items-center mt-8 space-y-3">
-					<p>If the app didn’t open, please download it:</p>
-					{os === "iOS" ? (
-						<a href="https://apps.apple.com/app/id6737835957" target="_blank" rel="noopener noreferrer">
-							<Image
-								src="/images/app-store-btn.png"
-								alt="Google Play Button"
-								width={200}
-								height={60}
-								quality={100}
-								className="mx-auto w-[200px] h-[60px]"
-								priority
-							/>
-						</a>
-					) : (
-						<a
-							href="https://play.google.com/store/apps/details?id=com.lakecitypt.pelvic_floor_pro"
-							target="_blank"
-							rel="noopener noreferrer"
-						>
-							<Image
-								src="/images/google-play-btn.png"
-								alt="Google Play Button"
-								width={200}
-								height={60}
-								quality={100}
-								className="mx-auto w-[200px] h-[60px]"
-								priority
-							/>
-						</a>
+					{/* Show the fallback only if app open was attempted */}
+					{attempted && (
+						<div className="flex flex-col items-center mt-8 space-y-3">
+							<p>If the app didn’t open, please download it:</p>
+							{os === "iOS" ? (
+								<a href="https://apps.apple.com/app/id6737835957" target="_blank" rel="noopener noreferrer">
+									<Image
+										src="/images/app-store-btn.png"
+										alt="Google Play Button"
+										width={200}
+										height={60}
+										quality={100}
+										className="mx-auto w-[200px] h-[60px]"
+										priority
+									/>
+								</a>
+							) : (
+								<a
+									href="https://play.google.com/store/apps/details?id=com.lakecitypt.pelvic_floor_pro"
+									target="_blank"
+									rel="noopener noreferrer"
+								>
+									<Image
+										src="/images/google-play-btn.png"
+										alt="Google Play Button"
+										width={200}
+										height={60}
+										quality={100}
+										className="mx-auto w-[200px] h-[60px]"
+										priority
+									/>
+								</a>
+							)}
+						</div>
 					)}
 				</div>
-			)}
+			</div>
 		</div>
 	);
 }
