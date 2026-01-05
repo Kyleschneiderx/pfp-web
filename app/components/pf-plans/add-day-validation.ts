@@ -27,12 +27,7 @@ export const validateDayForm = ({
 		errors.push({ fieldName: "name", message: "Please enter a day name." });
 	}
 
-	if (exercises.length === 0) {
-		errors.push({
-			fieldName: "exercise",
-			message: "Please add at least 1 exercise.",
-		});
-	} else {
+	if (exercises.length) {
 		let setsErrorAdded = false;
 		let repsErrorAdded = false;
 		let restErrorAdded = false;
