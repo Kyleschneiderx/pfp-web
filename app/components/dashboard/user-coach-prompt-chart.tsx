@@ -101,7 +101,7 @@ export default function UserCoachPromptChart() {
 				backgroundColor: "black",
 				callbacks: {
 					label: (context: any) => {
-						return `${context.formattedValue}%`;
+						return `${context.formattedValue}`;
 					},
 				},
 			},
