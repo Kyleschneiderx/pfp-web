@@ -398,12 +398,30 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 								<StatusBadge label={pfPlan ? pfPlan.status.value : "Draft"} />
 							</div>
 							<div className="ml-auto">
-								<ToggleSwitch
-									label1="Public"
-									label2="Custom"
-									active={!isCustom ? "Public" : "Custom"}
-									onToggle={onToggleSwitch}
-								/>
+								<div className="flex items-center space-x-2">
+									<ToggleSwitch
+										label1="Public"
+										label2="Custom"
+										active={!isCustom ? "Public" : "Custom"}
+										onToggle={onToggleSwitch}
+									/>
+									<InfoPopover side="right" className="!z-[99]">
+										<div className="text-sm text-neutral-700 max-w-xs flex flex-col space-y-1 !z-[99]">
+											<span className="font-semibold">PF Plan Visibility</span>
+											<p className="text-xs">
+												<b>Public</b> - PF Plans are visible to all users. <br />
+												<b>Custom</b> - PF Plans are only available for auto suggestions when users go through the
+												PFDI-20 assessment and Pregnancy Screening.
+											</p>
+											<p className="text-xs">
+												<i className="text-error-600">
+													Note: Custom PF Plans that are linked to trimester will only be used for users who are
+													pregnant and have selected the corresponding trimester or postpartum months.
+												</i>
+											</p>
+										</div>
+									</InfoPopover>
+								</div>
 							</div>
 						</>
 					)}
