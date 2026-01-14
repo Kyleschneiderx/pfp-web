@@ -541,13 +541,14 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 								<span className="font-semibold">Trimester</span>
 								<p className="text-xs">
 									A trimester marks one of the three stages of pregnancy. Selecting a trimester in the pelvic floor plan
-									lets the system match the appropriate plan to pregnant users during signup.
+									lets the system match the appropriate plan to pregnant users during signup. Selecting 4th trimester
+									will match the plan to users who are 36 weeks pregnant or later.
 								</p>
 							</div>
 						</InfoPopover>
 					</div>
 					<SelectCmp
-						options={Array.from({ length: 3 }, (_, index) => ({
+						options={Array.from({ length: 4 }, (_, index) => ({
 							label: `Trimester ${index + 1}`,
 							value: (index + 1).toString(),
 						}))}
