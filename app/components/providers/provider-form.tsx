@@ -6,13 +6,13 @@ import ReqIndicator from "@/app/components/elements/ReqIndicator";
 import UploadCmp from "@/app/components/elements/UploadCmp";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import { useWindowSizeCheck } from "@/app/hooks/useWindowSizeCheck";
-import { ROLES } from "@/app/lib/constants";
+import { ROLES, STATES } from "@/app/lib/constants";
 import { revalidatePage } from "@/app/lib/revalidate";
 import { hasFieldError, toFormData } from "@/app/lib/utils";
 import type { ErrorModel } from "@/app/models/error_model";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useModal } from "@/app/contexts/ModalContext";
 import { Controller, type ControllerRenderProps, useForm } from "react-hook-form";
 import { PlusIcon, XIcon } from "lucide-react";
@@ -20,6 +20,11 @@ import type { Account, License, ProviderFormSchema } from "@/app/models/accounts
 import { saveAccount } from "@/app/services/client_side/accounts";
 import AsyncSelectCmp from "../elements/AsyncSelectCmp";
 import Textarea from "../elements/Textarea";
+import dynamic from "next/dynamic";
+import { OptionsModel } from "@/app/models/common_model";
+// import SelectCmp from "../elements/SelectCmp";
+
+const SelectCmp = dynamic(() => import("../elements/SelectCmp"), { ssr: false });
 
 export default function ProviderForm({ account }: { account?: Account }) {
 	const { showSnackBar } = useSnackBar();
@@ -28,6 +33,7 @@ export default function ProviderForm({ account }: { account?: Account }) {
 	const modalData = modal.getData();
 	const { isMobile } = useWindowSizeCheck();
 	const [formError, setFormError] = useState<ErrorModel>();
+	const containerRef = useRef<HTMLDivElement>(null);
 
 	const form = useForm<ProviderFormSchema>({
 		defaultValues: modalData?.data ?? {
@@ -53,6 +59,7 @@ export default function ProviderForm({ account }: { account?: Account }) {
 			title: `${account ? "Update" : "Create"} Provider`,
 			message: `Are you sure you want to ${account ? "update" : "create"} this provider?`,
 			onConfirm: async () => {
+				console.log("data", data);
 				try {
 					const formData = toFormData(data);
 
@@ -117,7 +124,7 @@ export default function ProviderForm({ account }: { account?: Account }) {
 				</div>
 			</div>
 			<hr />
-			<div className="flex flex-col sm:flex-row mt-3 sm:mt-8">
+			<div ref={containerRef} className="flex flex-col sm:flex-row mt-3 sm:mt-8">
 				<div className="mb-3 order-first sm:order-2">
 					<div className="sm:w-[446px] sm:h-fit z-10 rounded-lg sm:bg-white sm:p-5 sm:drop-shadow-center">
 						<Controller
@@ -263,7 +270,31 @@ export default function ProviderForm({ account }: { account?: Account }) {
 																	handleChangeLicense(field, index, { license: e.target.value, state: value.state });
 																}}
 															/>
-															<Input
+															<SelectCmp
+																menuPortalTarget={containerRef.current}
+																menuPosition="fixed"
+																className="!w-[250px] !p-[1px]"
+																placeholder="Select State"
+																options={STATES.map((state) => ({
+																	label: state.name,
+																	value: state.abbreviation,
+																}))}
+																defaultValue={{
+																	label: STATES.find((state) => state.abbreviation === value.state)?.name ?? "",
+																	value: value.state,
+																}}
+																value={{
+																	label: STATES.find((state) => state.abbreviation === value.state)?.name ?? "",
+																	value: value.state,
+																}}
+																onChange={(e) => {
+																	handleChangeLicense(field, index, {
+																		license: value?.license ?? "",
+																		state: (e as OptionsModel)?.value ?? "",
+																	});
+																}}
+															/>
+															{/* <Input
 																type="text"
 																className="!p-2"
 																containerClassName="w-full"
@@ -272,7 +303,7 @@ export default function ProviderForm({ account }: { account?: Account }) {
 																onChange={(e) => {
 																	handleChangeLicense(field, index, { license: value.license, state: e.target.value });
 																}}
-															/>
+															/> */}
 															<div className="flex items-center min-w-16">
 																<Button onClick={() => handleAddLicense(field)} className="h-8 w-8 !p-0 ml-auto">
 																	<PlusIcon className="h-4 w-4" />
