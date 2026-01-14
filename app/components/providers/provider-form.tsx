@@ -21,6 +21,7 @@ import { saveAccount } from "@/app/services/client_side/accounts";
 import AsyncSelectCmp from "../elements/AsyncSelectCmp";
 import Textarea from "../elements/Textarea";
 import dynamic from "next/dynamic";
+import { OptionsModel } from "@/app/models/common_model";
 // import SelectCmp from "../elements/SelectCmp";
 
 const SelectCmp = dynamic(() => import("../elements/SelectCmp"), { ssr: false });
@@ -278,14 +279,18 @@ export default function ProviderForm({ account }: { account?: Account }) {
 																	label: state.name,
 																	value: state.abbreviation,
 																}))}
+																defaultValue={{
+																	label: STATES.find((state) => state.abbreviation === value.state)?.name ?? "",
+																	value: value.state,
+																}}
 																value={{
 																	label: STATES.find((state) => state.abbreviation === value.state)?.name ?? "",
 																	value: value.state,
 																}}
-																onChange={(e: OptionsModel) => {
+																onChange={(e) => {
 																	handleChangeLicense(field, index, {
 																		license: value?.license ?? "",
-																		state: e?.value ?? "",
+																		state: (e as OptionsModel)?.value ?? "",
 																	});
 																}}
 															/>
