@@ -165,12 +165,12 @@ export default function PromoCodeList({
 							</div>
 							<div className="flex flex-row items-center space-x-1">
 								<TicketIcon className="" strokeWidth={2} size={24} />
-								<span className="text-sm">{`${code.voucher_to_generate} Voucher` || "N/A"}</span>
+								<span className="text-sm">{`${code.voucher_to_generate ?? 0} Voucher` || "N/A"}</span>
 							</div>
 							<div className="flex flex-row items-center space-x-1">
 								<TicketXIcon className="" strokeWidth={2} size={24} />
 								{/* <span>Exp:</span> */}
-								<span className="text-sm">{formatDateToLocal(code.expires_at)}</span>
+								<span className="text-sm">{code.expires_at ? formatDateToLocal(code.expires_at) : "N/A"}</span>
 							</div>
 						</div>
 					</Card>
