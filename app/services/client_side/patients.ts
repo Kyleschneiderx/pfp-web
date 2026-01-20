@@ -81,3 +81,15 @@ export const getPersonalizedPfPlan = async (id: string): Promise<PfPlanModel> =>
 	});
 	return data as PfPlanModel;
 };
+
+export interface ExportResponse {
+	url: string;
+	expiresAt: string;
+	fileName: string;
+}
+
+export const exportPatients = async (params: string): Promise<ExportResponse> => {
+	const cleanParams = params.startsWith("&") ? params.substring(1) : params;
+	const url = `/users?${cleanParams}&export=true`;
+	return await apiClient<ExportResponse>({ url: url, method: "GET" });
+};

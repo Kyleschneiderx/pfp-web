@@ -6,10 +6,11 @@ import { revalidatePage } from "@/app/lib/revalidate";
 import { formatDateToLocal, getLastLoginStatus } from "@/app/lib/utils";
 import type { ErrorModel } from "@/app/models/error_model";
 import type { PatientModel } from "@/app/models/patient_model";
-import { deletePatient, sendInvite } from "@/app/services/client_side/patients";
+import { deletePatient, sendInvite, exportPatients } from "@/app/services/client_side/patients";
+import type { ExportResponse } from "@/app/services/client_side/patients";
 import { useActionMenuStore } from "@/app/store/store";
 import clsx from "clsx";
-import { EllipsisVertical, Mail, PhoneCall } from "lucide-react";
+import { EllipsisVertical, Mail, PhoneCall, Download } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
@@ -51,6 +52,7 @@ export default function PatientList({
 	const [patients, setPatients] = useState(initialList);
 	const [page, setPage] = useState(1);
 	const [ref, inView] = useInView();
+	const [isExporting, setIsExporting] = useState(false);
 
 	const { showSnackBar } = useSnackBar();
 
@@ -134,6 +136,44 @@ export default function PatientList({
 		});
 	};
 
+	const handleExport = async () => {
+		setIsExporting(true);
+		try {
+			const params = `&search=${search}${
+				!["0", ""].includes(status_id ?? "") ? `&status_id[]=${status_id}` : ""
+			}&sort[]=${sort}`;
+
+			const exportResponse: ExportResponse = await exportPatients(params);
+
+			const response = await fetch(exportResponse.url);
+			const blob = await response.blob();
+
+			const blobUrl = window.URL.createObjectURL(blob);
+			const link = document.createElement("a");
+			link.href = blobUrl;
+			link.download = exportResponse.fileName;
+			document.body.appendChild(link);
+			link.click();
+
+			link.remove();
+			window.URL.revokeObjectURL(blobUrl);
+
+			showSnackBar({
+				message: "Patients exported successfully.",
+				success: true,
+			});
+		} catch (error) {
+			const apiError = error as ErrorModel;
+			if (apiError?.msg) {
+				showSnackBar({ message: apiError.msg, success: false });
+			} else {
+				showSnackBar({ message: "Failed to export patients.", success: false });
+			}
+		} finally {
+			setIsExporting(false);
+		}
+	};
+
 	return (
 		<DataList
 			data={patients}
@@ -141,12 +181,35 @@ export default function PatientList({
 				<div className="flex items-center mb-8">
 					<SearchCmp placeholder="Search patients" className="mr-4 sm:mr-0" param="search" />
 					<PatientFilterSort />
-					{hasPermission(PERMISSIONS.PATIENT_CREATE) && (
-						<Link href="/patients/create" className="ml-auto">
-							<Button label="Add Patients" showIcon className="hidden sm:flex" />
-							<IconAddButton className="sm:hidden" />
-						</Link>
-					)}
+					<div className="ml-auto flex items-center gap-3">
+						<Button
+							label="Export"
+							icon={<Download size={18} className="mr-2" />}
+							onClick={handleExport}
+							isProcessing={isExporting}
+							className="hidden sm:flex"
+							secondary
+						/>
+						<button
+            type="button"
+							onClick={handleExport}
+							disabled={isExporting}
+							className="sm:hidden bg-white active:bg-neutral-100 p-2 rounded-full drop-shadow"
+							aria-label="Export patients"
+						>
+							{isExporting ? (
+								<Loader className="text-primary-500" />
+							) : (
+								<Download size={20} className="text-primary-500" />
+							)}
+						</button>
+						{hasPermission(PERMISSIONS.PATIENT_CREATE) && (
+							<Link href="/patients/create">
+								<Button label="Add Patients" showIcon className="hidden sm:flex" />
+								<IconAddButton className="sm:hidden" />
+							</Link>
+						)}
+					</div>
 				</div>
 			}
 		>
