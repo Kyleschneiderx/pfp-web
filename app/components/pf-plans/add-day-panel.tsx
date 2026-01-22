@@ -15,6 +15,7 @@ import Button from "../elements/Button";
 import Card from "../elements/Card";
 import Input from "../elements/Input";
 import MoveTaskIcon from "../icons/move_task_icon";
+import Switch from "../elements/Switch";
 import { validateDayForm } from "./add-day-validation";
 
 const ExerciseEducationPanel = dynamic(() => import("./exercise-education-panel"), { ssr: false });
@@ -33,6 +34,7 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
 	const [selectedEducation, setSelectedEducation] = useState<EducationModel | null>(null);
 	const [activeTab, setActiveTab] = useState(1);
 	const [currentDayCount, setCurrentDayCount] = useState(1);
+	const [requiresPfdiUpdate, setRequiresPfdiUpdate] = useState<boolean>(false);
 
 	const [errors, setErrors] = useState<ValidationErrorModel[]>([]);
 
@@ -44,6 +46,7 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
 		if (!selectedDay) return;
 
 		setName(selectedDay.name);
+		setRequiresPfdiUpdate(selectedDay.requires_pfdi_update ?? false);
 
 		const [firstContent, ...restContents] = selectedDay.contents;
 		const isEducationContent = firstContent && "title" in firstContent;
@@ -137,6 +140,7 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
 				name: name,
 				day: selectedDay?.day || currentDayCount,
 				contents: contents,
+				requires_pfdi_update: requiresPfdiUpdate,
 			};
 			setDay(day);
 			clear();
@@ -152,6 +156,7 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
 		setSelectedEducation(null);
 		setExercises([]);
 		setSelectedDay(null);
+		setRequiresPfdiUpdate(false);
 	};
 
 	const pClass = "truncate max-w-xs overflow-hidden text-ellipsis whitespace-nowrap";
@@ -203,6 +208,14 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
 								invalid={false}
 								onChange={(e) => setName(e.target.value)}
 								className="sm:!w-[440px]"
+							/>
+						</div>
+						<div className="flex items-center mb-4">
+							<Switch
+								checked={requiresPfdiUpdate}
+								onCheckedChange={setRequiresPfdiUpdate}
+								checkedLabel="Requires PFDI-20 Update"
+								unCheckedLabel="No PFDI-20 Update Required"
 							/>
 						</div>
 

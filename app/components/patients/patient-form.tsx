@@ -27,7 +27,7 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ProgressBar from "../elements/ProgressBar";
 import { validateForm } from "./validation";
 import { PfPlanListModal } from "./pf-plan-list.modal";
@@ -36,6 +36,15 @@ import clsx from "clsx";
 import useAuth from "@/app/hooks/useAuth";
 import { FormSkeletons } from "../elements/FormSkeletons";
 import SelectCmp from "../elements/SelectCmp";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "../elements/Tabs";
+import { capitalizeFirstLetter, formatDateToLocal } from "@/app/lib/utils";
+import { parseISO } from "date-fns";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "../elements/Accordion";
+import { useInView } from "react-intersection-observer";
+import { getPatientSurvey } from "@/app/services/client_side/patients";
+import type { PaginationModel } from "@/app/models/global_model";
+import { PAGE_ITEMS } from "@/app/lib/constants";
+import Loader from "../elements/Loader";
 
 const PatientSurveyModal = dynamic(() => import("@/app/components/patients/patient-survey-modal"), { ssr: false });
 
@@ -43,14 +52,12 @@ interface Props {
 	action: "Create" | "Edit";
 	patient?: PatientModel;
 	personalizedPfPlan?: PfPlanModel;
-	patientSurvey?: PatientSurveyModel[];
 	pfPlanProgress?: PfPlanProgressModel | null;
 }
 
 export default function PatientForm({
 	action = "Create",
 	patient,
-	patientSurvey,
 	pfPlanProgress,
 	personalizedPfPlan,
 }: Props) {
@@ -97,6 +104,11 @@ export default function PatientForm({
 	const [modalOpen, setModalOpen] = useState(false);
 	const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 	const [surveyModalOpen, setSurveyModelOpen] = useState(false);
+	const [patientSurvey, setPatientSurvey] = useState<PatientSurveyModel[]>([]);
+	const [surveyPagination, setSurveyPagination] = useState<PaginationModel | null>(null);
+	const [isLoadingSurvey, setIsLoadingSurvey] = useState<boolean>(false);
+	const [surveyRef, surveyInView] = useInView();
+	const isLoadingRef = useRef(false);
 
 	const handleToggle = (label: string) => {
 		setUserType(label === "Free" ? 1 : 2);
@@ -130,6 +142,56 @@ export default function PatientForm({
 			showSnackBar({ message: errorMessages, success: false });
 		}
 	}, [errors]);
+
+	const loadSurveyData = useCallback(
+		async (page = 1) => {
+			if (!patient?.id || isLoadingRef.current) return;
+
+			try {
+				isLoadingRef.current = true;
+				setIsLoadingSurvey(true);
+				const params = `page=${page}&page_items=${PAGE_ITEMS}`;
+				const response = await getPatientSurvey(patient.id.toString(), params);
+				const { data, ...metadata } = response;
+
+				if (page === 1) {
+					setPatientSurvey(data);
+				} else {
+					setPatientSurvey((prev) => [...prev, ...data]);
+				}
+				setSurveyPagination(metadata);
+			} catch (error) {
+				const apiError = error as ErrorModel;
+				if (apiError?.msg) {
+					showSnackBar({ message: apiError.msg, success: false });
+				}
+			} finally {
+				isLoadingRef.current = false;
+				setIsLoadingSurvey(false);
+			}
+		},
+		[patient?.id, showSnackBar],
+	);
+
+	useEffect(() => {
+		if (action === "Edit" && patient?.id) {
+			loadSurveyData(1);
+		} else {
+			setPatientSurvey([]);
+			setSurveyPagination(null);
+		}
+	}, [patient?.id, action, loadSurveyData]);
+
+	useEffect(() => {
+		if (
+			surveyInView &&
+			surveyPagination &&
+			surveyPagination.page < surveyPagination.max_page &&
+			!isLoadingRef.current
+		) {
+			loadSurveyData(surveyPagination.page + 1);
+		}
+	}, [surveyInView, surveyPagination, loadSurveyData]);
 
 	const handleFileSelect = (file: File | null) => {
 		setPhoto(file);
@@ -250,29 +312,49 @@ export default function PatientForm({
 				</div>
 			</div>
 			<hr />
-			<div className="flex flex-col sm:flex-row mt-3 sm:mt-8">
-				<div className="mb-3 order-first sm:order-2">
-					<div className="sm:w-[446px] sm:h-fit z-10 rounded-lg sm:bg-white sm:p-5 sm:drop-shadow-center">
-						<UploadCmp
-							label="Upload a Photo"
-							onFileSelect={handleFileSelect}
-							clearImagePreview={photo === null}
-							type="image"
-							previewImage={isMobile}
-							isEdit={action === "Edit"}
-							fileUrl={patient?.user_profile.photo ?? undefined}
-						/>
-					</div>
-					{action === "Edit" && (
-						<Button
-							label="Delete"
-							outlined
-							className="mt-5 ml-auto hidden sm:block"
-							onClick={() => setDeleteModalOpen(true)}
-						/>
-					)}
-				</div>
-				<div className="w-full order-2 sm:order-first sm:w-[636px] sm:p-5 space-y-4 sm:mr-6 z-10 rounded-lg sm:bg-white sm:drop-shadow-center">
+			<Tabs defaultValue="details" className="mt-3 sm:mt-8">
+				<TabsList>
+					<TabsTrigger value="details">Details</TabsTrigger>
+					<TabsTrigger
+						value="pf-plans"
+						disabled={action === "Create"}
+						className={clsx(action === "Create" && "opacity-50 cursor-not-allowed")}
+					>
+						PF Plans
+					</TabsTrigger>
+					<TabsTrigger
+						value="pfdi-20"
+						disabled={action === "Create"}
+						className={clsx(action === "Create" && "opacity-50 cursor-not-allowed")}
+					>
+						PFDI-20
+					</TabsTrigger>
+				</TabsList>
+
+				<TabsContent value="details" className="mt-5">
+					<div className="flex flex-col sm:flex-row">
+						<div className="mb-3 order-first sm:order-2">
+							<div className="sm:w-[446px] sm:h-fit z-10 rounded-lg sm:bg-white sm:p-5 sm:drop-shadow-center">
+								<UploadCmp
+									label="Upload a Photo"
+									onFileSelect={handleFileSelect}
+									clearImagePreview={photo === null}
+									type="image"
+									previewImage={isMobile}
+									isEdit={action === "Edit"}
+									fileUrl={patient?.user_profile.photo ?? undefined}
+								/>
+							</div>
+							{action === "Edit" && (
+								<Button
+									label="Delete"
+									outlined
+									className="mt-5 ml-auto hidden sm:block"
+									onClick={() => setDeleteModalOpen(true)}
+								/>
+							)}
+						</div>
+						<div className="w-full order-2 sm:order-first sm:w-[636px] sm:p-5 space-y-4 sm:mr-6 z-10 rounded-lg sm:bg-white sm:drop-shadow-center">
 					<div>
 						<div className="flex justify-between items-end mb-2">
 							<p className="font-medium">
@@ -410,107 +492,200 @@ export default function PatientForm({
 							/>
 						</div>
 					)}
-					{action === "Edit" && patientSurvey && (
-						<span
-							className="text-sm text-neutral-600 cursor-pointer underline"
-							onClick={() => setSurveyModelOpen(true)}
-							onKeyDown={() => {}}
-						>
-							View survey
-						</span>
-					)}
-					{action === "Edit" && true && (
-						<div>
-							<p className="font-medium mb-2">Personalized PF Plan</p>
-							{/* <hr className="w-[130px] mx-auto mb-3" /> */}
-							<div className={clsx("flex space-x-4 mb-3", !personalizedPfPlan && "items-center justify-center")}>
-								{personalizedPfPlan ? (
-									<Link href={`pf-plan/${personalizedPfPlan.id}`}>
+						</div>
+						<div className="sm:hidden order-last flex flex-col w-full mt-4 space-y-3">
+							<Link href="/patients">
+								<Button label="Cancel" secondary className="w-full" />
+							</Link>
+							<Button label="Save" onClick={onSave} />
+						</div>
+					</div>
+				</TabsContent>
+
+				<TabsContent value="pf-plans" className="mt-5">
+					<div className="w-full sm:w-1/2 sm:p-5 z-10 rounded-lg sm:bg-white sm:drop-shadow-center">
+						{action === "Edit" && (
+							<div className="space-y-4">
+								<div>
+									<p className="font-medium mb-2">Personalized PF Plan</p>
+									<div className={clsx("flex space-x-4 mb-3", !personalizedPfPlan && "items-center justify-center")}>
+										{personalizedPfPlan ? (
+											<Link href={`pf-plan/${personalizedPfPlan.id}`}>
+												<div className="flex space-x-4 mb-3">
+													<Image
+														src={personalizedPfPlan.photo || "/images/exercise-banner.jpg"}
+														width={80}
+														height={56}
+														alt="Thumbnail"
+														className="w-[80px] h-[56px] mt-1"
+													/>
+													<div>
+														<p>{personalizedPfPlan.name}</p>
+														<p className="text-sm text-neutral-600 line-clamp-5" title={personalizedPfPlan.description}>
+															{personalizedPfPlan.description}
+														</p>
+													</div>
+												</div>
+											</Link>
+										) : (
+											<Button label="Manage PF Plan" onClick={() => setIsPfPlanListModalOpen(true)} />
+										)}
+									</div>
+								</div>
+
+								{pfPlanProgress && (
+									<div>
+										<p className="font-medium mb-2">PF Plan Progress</p>
 										<div className="flex space-x-4 mb-3">
 											<Image
-												src={personalizedPfPlan.photo || "/images/exercise-banner.jpg"}
+												src={pfPlanProgress.photo || "/images/exercise-banner.jpg"}
 												width={80}
 												height={56}
 												alt="Thumbnail"
 												className="w-[80px] h-[56px] mt-1"
 											/>
 											<div>
-												<p>{personalizedPfPlan.name}</p>
-												<p className="text-sm text-neutral-600 line-clamp-5" title={personalizedPfPlan.description}>
-													{personalizedPfPlan.description}
+												<p>{pfPlanProgress.name}</p>
+												<p className="text-sm text-neutral-600 line-clamp-5" title={pfPlanProgress.description}>
+													{pfPlanProgress.description}
 												</p>
 											</div>
 										</div>
-									</Link>
-								) : (
-									<Button label="Manage PF Plan" onClick={() => setIsPfPlanListModalOpen(true)} />
+										<ProgressBar value={pfPlanProgress.user_pf_plan_progress_percentage} />
+									</div>
 								)}
 							</div>
-						</div>
-					)}
-
-					{action === "Edit" && pfPlanProgress && (
-						<div>
-							<p className="font-medium mb-2">PF Plan Progress</p>
-							{/* <hr className="w-[130px] mx-auto mb-3" /> */}
-							<div className="flex space-x-4 mb-3">
-								<Image
-									src={pfPlanProgress.photo || "/images/exercise-banner.jpg"}
-									width={80}
-									height={56}
-									alt="Thumbnail"
-									className="w-[80px] h-[56px] mt-1"
-								/>
-								<div>
-									<p>{pfPlanProgress.name}</p>
-									<p className="text-sm text-neutral-600 line-clamp-5" title={pfPlanProgress.description}>
-										{pfPlanProgress.description}
-									</p>
-								</div>
-							</div>
-							<ProgressBar value={pfPlanProgress.user_pf_plan_progress_percentage} />
-						</div>
-					)}
-				</div>
-				<div className="sm:hidden order-last flex flex-col w-full mt-4 space-y-3">
-					<Link href="/patients">
-						<Button label="Cancel" secondary className="w-full" />
-					</Link>
-					<Button label="Save" onClick={onSave} />
-				</div>
-				<ConfirmModal
-					title={`Are you sure you want to ${
-						action === "Create" ? "create this Patient's account?" : "save this changes?"
-					} `}
-					subTitle={CONFIRM_SAVE_DESCRIPTION}
-					isOpen={modalOpen}
-					confirmBtnLabel="Save"
-					isProcessing={isProcessing}
-					onConfirm={handleConfirm}
-					onClose={handleCloseModal}
-				/>
-				{action === "Edit" && (
-					<>
-						<ConfirmModal
-							title="Are you sure you want to delete this account?"
-							subTitle={CONFIRM_DELETE_DESCRIPTION}
-							isOpen={deleteModalOpen}
-							confirmBtnLabel="Delete"
-							isProcessing={isProcessing}
-							onConfirm={handleDeleteConfirm}
-							onClose={handleCloseModal}
-						/>
-						{isPfPlanListModalOpen && <PfPlanListModal onClose={() => setIsPfPlanListModalOpen(false)} />}
-						{patientSurvey && (
-							<PatientSurveyModal
-								patientSurvey={patientSurvey}
-								isOpen={surveyModalOpen}
-								onClose={() => setSurveyModelOpen(false)}
-							/>
 						)}
-					</>
-				)}
+					</div>
+				</TabsContent>
+
+				<TabsContent value="pfdi-20" className="mt-5">
+					<div className="w-full sm:w-1/2 sm:p-5 z-10 rounded-lg sm:bg-white sm:drop-shadow-center">
+						{action === "Edit" ? (
+							<div>
+								<div className="mb-4">
+									<p className="font-medium text-lg mb-2">PFDI-20 Survey History</p>
+								</div>
+								{patientSurvey.length > 0 ? (
+									<>
+										<Accordion type="single" collapsible className="w-full">
+											{patientSurvey.map((surveyResponse, surveyIndex) => {
+												const dateStr = surveyResponse.updated_at || surveyResponse.created_at;
+												const displayDate = dateStr ? formatDateToLocal(parseISO(dateStr)) : "No Date";
+
+												return (
+													<AccordionItem key={surveyResponse.id || surveyIndex} value={`item-${surveyIndex}`}>
+														<AccordionTrigger className="text-left">
+															<div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+																<span className="font-medium">{displayDate}</span>
+																{surveyResponse.pf_plan?.name && (
+																	<span className="text-sm text-neutral-600 font-normal">
+																		- {surveyResponse.pf_plan.name}
+																	</span>
+																)}
+															</div>
+														</AccordionTrigger>
+														<AccordionContent>
+															<div className="space-y-4">
+																{surveyResponse.survey_questions && surveyResponse.survey_questions.length > 0 ? (
+																	<>
+																		{surveyResponse.survey_questions.map((question, questionIndex) => (
+																			<div key={question.id || questionIndex} className="pb-3 last:pb-0">
+																				<div className="flex mb-2">
+																					<span className="font-medium">{questionIndex + 1}.&nbsp;</span>
+																					<p className="font-medium">{question.question}</p>
+																				</div>
+																				<div className="text-sm ml-4 mt-2 space-y-1">
+																					<div className="flex flex-wrap gap-2">
+																						<span>Answer:</span>
+																						<span className="font-semibold">
+																							{capitalizeFirstLetter(question.user_survey_question_answer?.yes_no) || "Not answered"}
+																						</span>
+																					</div>
+
+																					{question.user_survey_question_answer?.yes_no === "yes" && (
+																						<div className="flex flex-wrap gap-2">
+																							<span>How much does it bother you?:</span>
+																							<span className="font-semibold">
+																								{question.user_survey_question_answer?.if_yes_how_much_bother || "N/A"}
+																							</span>
+																						</div>
+																					)}
+																				</div>
+																			</div>
+																		))}
+																	</>
+																) : (
+																	<p className="text-neutral-600">No questions available for this survey.</p>
+																)}
+															</div>
+														</AccordionContent>
+													</AccordionItem>
+												);
+											})}
+										</Accordion>
+										{surveyPagination && surveyPagination.page < surveyPagination.max_page && (
+											<div ref={surveyRef} className="flex justify-center py-4">
+												{isLoadingSurvey && <Loader />}
+											</div>
+										)}
+									</>
+								) : isLoadingSurvey ? (
+									<div className="flex justify-center py-8">
+										<Loader />
+									</div>
+								) : (
+									<div className="text-center py-8">
+										<p className="text-neutral-600">No PFDI-20 survey data available.</p>
+									</div>
+								)}
+							</div>
+						) : (
+							<div className="text-center py-8">
+								<p className="text-neutral-600">No PFDI-20 survey data available.</p>
+							</div>
+						)}
+					</div>
+				</TabsContent>
+			</Tabs>
+			<div className="sm:hidden flex flex-col w-full mt-4 space-y-3">
+				<Link href="/patients">
+					<Button label="Cancel" secondary className="w-full" />
+				</Link>
+				<Button label="Save" onClick={onSave} />
 			</div>
+			<ConfirmModal
+				title={`Are you sure you want to ${
+					action === "Create" ? "create this Patient's account?" : "save this changes?"
+				} `}
+				subTitle={CONFIRM_SAVE_DESCRIPTION}
+				isOpen={modalOpen}
+				confirmBtnLabel="Save"
+				isProcessing={isProcessing}
+				onConfirm={handleConfirm}
+				onClose={handleCloseModal}
+			/>
+			{action === "Edit" && (
+				<>
+					<ConfirmModal
+						title="Are you sure you want to delete this account?"
+						subTitle={CONFIRM_DELETE_DESCRIPTION}
+						isOpen={deleteModalOpen}
+						confirmBtnLabel="Delete"
+						isProcessing={isProcessing}
+						onConfirm={handleDeleteConfirm}
+						onClose={handleCloseModal}
+					/>
+					{isPfPlanListModalOpen && <PfPlanListModal onClose={() => setIsPfPlanListModalOpen(false)} />}
+					{patientSurvey.length > 0 && (
+						<PatientSurveyModal
+							patientSurvey={patientSurvey}
+							isOpen={surveyModalOpen}
+							onClose={() => setSurveyModelOpen(false)}
+						/>
+					)}
+				</>
+			)}
 		</>
 	);
 }

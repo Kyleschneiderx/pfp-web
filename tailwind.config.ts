@@ -37,6 +37,14 @@ const config: Config = {
 					"0%": { transform: "translateY(0)" },
 					"100%": { transform: "translateY(100%)" },
 				},
+				"accordion-down": {
+					from: { height: "0" },
+					to: { height: "var(--radix-accordion-content-height)" },
+				},
+				"accordion-up": {
+					from: { height: "var(--radix-accordion-content-height)" },
+					to: { height: "0" },
+				},
 			},
 			animation: {
 				"slide-in": "slide-in 0.2s ease-in-out forwards",
@@ -44,6 +52,8 @@ const config: Config = {
 				"slide-up": "slide-up 0.2s ease-in-out forwards",
 				"slide-down": "slide-down 0.2s ease-in-out forwards",
 				shimmer: "shimmer 2s linear infinite",
+				"accordion-down": "accordion-down 0.2s ease-out",
+				"accordion-up": "accordion-up 0.2s ease-out",
 			},
 			colors: {
 				neutral: {

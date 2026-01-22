@@ -35,6 +35,7 @@ export interface PfPlanDailies {
 	name: string;
 	day: number;
 	contents: (EducationModel | PfPlanExerciseModel)[];
+	requires_pfdi_update?: boolean;
 }
 
 export interface PfPlanExerciseModel {
