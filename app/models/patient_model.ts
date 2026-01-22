@@ -47,17 +47,53 @@ export interface PatientsResponse {
 	max_page: number;
 }
 
-export interface PatientSurveyModel {
+export interface PatientSurveyResponseModel {
+	id: number;
+	pf_plan_id: number | null;
+	day: number | null;
+	created_at: string;
+	updated_at: string;
+	pf_plan: PfPlanInfo | null;
+	survey_questions: SurveyQuestionModel[];
+	answers: AnswerModel[];
+	scores: ScoreModel[];
+}
+
+export interface SurveyQuestionModel {
 	id: number;
 	question: string;
-	user_survey_question_answer: QuestionAnswer | null;
+	group_id: string;
+	user_survey_question_answer: QuestionAnswer;
 }
 
 interface QuestionAnswer {
 	yes_no: "yes" | "no";
 	if_yes_how_much_bother: string;
-	updated_at: string;
+	score: number;
 }
+
+interface AnswerModel {
+	score: number;
+	yes_no: "yes" | "no";
+	question_id: number;
+	if_yes_how_much_bother: string;
+}
+
+interface ScoreModel {
+	score: number;
+	avg_score: number;
+	max_score: number;
+	final_score: number;
+	group_weight: number;
+	question_group_id: number;
+}
+
+interface PfPlanInfo {
+	id: number;
+	name: string;
+}
+
+export type PatientSurveyModel = PatientSurveyResponseModel;
 
 export interface PfPlanProgressModel {
 	id: number;

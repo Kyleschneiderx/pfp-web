@@ -98,10 +98,12 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 					name: string;
 					day: number;
 					contents: Record<string, any>[];
+					requires_pfdi_update?: boolean;
 				}) => ({
 					id: item.id,
 					name: item.name,
 					day: item.day,
+					requires_pfdi_update: item.requires_pfdi_update ?? false,
 					contents: item.contents.map((el) => {
 						if (el.exercise) {
 							return {
@@ -210,6 +212,7 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 					daily_id: item.id,
 					name: item.name,
 					day: item.day,
+					requires_pfdi_update: item.requires_pfdi_update ?? false,
 					contents: item.contents
 						.map((el) => {
 							if ("exercise" in el) {
@@ -318,6 +321,7 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 		copyDay({
 			day: (days.length ?? 0) + 1,
 			name: `${day.name} - Copy`,
+			requires_pfdi_update: day.requires_pfdi_update ?? false,
 			contents: day.contents.map((content) => {
 				if ("exercise" in content) {
 					const { id, ...newContent } = content;

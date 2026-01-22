@@ -1,6 +1,8 @@
 import type { PfPlanModel } from "@/app/models/pfplan_model";
 import type { UserSummaryModel } from "@/app/models/user_summary_model";
 import type { UserVisitStatsModel } from "@/app/models/user_visit_stats";
+import type { PatientSurveyModel } from "@/app/models/patient_model";
+import type { List } from "@/app/models/global_model";
 import { apiClient } from "@/app/services/apiClient";
 
 interface FormPatientParams {
@@ -92,4 +94,10 @@ export const exportPatients = async (params: string): Promise<ExportResponse> =>
 	const cleanParams = params.startsWith("&") ? params.substring(1) : params;
 	const url = `/users?${cleanParams}&export=true`;
 	return await apiClient<ExportResponse>({ url: url, method: "GET" });
+};
+
+export const getPatientSurvey = async (id: string, params?: string): Promise<List<PatientSurveyModel>> => {
+	const url = `/users/${id}/survey${params ? `?${params}` : ""}`;
+	const data = await apiClient<List<PatientSurveyModel>>({ url: url, method: "GET" });
+	return data;
 };
