@@ -19,15 +19,26 @@ import {
 } from "@/app/lib/constants";
 import { revalidatePage } from "@/app/lib/revalidate";
 import { formatDate, onPhoneNumKeyDown } from "@/app/lib/utils";
+import type {
+	BladderDiaryEntryModel,
+	BladderDiaryTimeSlot,
+} from "@/app/models/bladder_diary_model";
+import type {
+	BowelDiaryEntryModel,
+	BowelDiaryTimeSlot,
+} from "@/app/models/bowel_diary_model";
 import type { ErrorModel } from "@/app/models/error_model";
 import type { PatientModel, PatientSurveyModel, PfPlanProgressModel } from "@/app/models/patient_model";
+import type { UserToolsModel } from "@/app/models/user_tools_model";
 import type { ValidationErrorModel } from "@/app/models/validation_error_model";
 import { deletePatient, savePatient } from "@/app/services/client_side/patients";
+import { updateUserTools } from "@/app/services/client_side/user-tools";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import DataTable from "../elements/DataTable";
 import ProgressBar from "../elements/ProgressBar";
 import { validateForm } from "./validation";
 import { PfPlanListModal } from "./pf-plan-list.modal";
@@ -48,11 +59,58 @@ import Loader from "../elements/Loader";
 
 const PatientSurveyModal = dynamic(() => import("@/app/components/patients/patient-survey-modal"), { ssr: false });
 
+const BLADDER_DIARY_COLUMNS: {
+	header: string;
+	accessor: keyof BladderDiaryTimeSlot | ((row: BladderDiaryTimeSlot) => React.ReactNode);
+}[] = [
+	{ header: "Time", accessor: "time" },
+	{
+		header: "Drinks",
+		accessor: (row) =>
+			row.drinks_kind
+				? `${row.drinks_kind}${row.drinks_amount ? ` (${row.drinks_amount})` : ""}`
+				: "—",
+	},
+	{ header: "Bathroom", accessor: "trips_to_bathroom" },
+	{ header: "Urine", accessor: "urine_amount" },
+	{
+		header: "Leaks",
+		accessor: (row) => (row.accidental_leaks ? "Yes" : "—"),
+	},
+	{
+		header: "Strong Urge",
+		accessor: (row) => (row.strong_urge ? "Yes" : "—"),
+	},
+	{ header: "Activity", accessor: "activity" },
+];
+
+const BOWEL_DIARY_COLUMNS: {
+	header: string;
+	accessor: keyof BowelDiaryTimeSlot | ((row: BowelDiaryTimeSlot) => React.ReactNode);
+}[] = [
+	{ header: "Time", accessor: "time" },
+	{ header: "Food/Drink/Med", accessor: "food_drink_medication" },
+	{
+		header: "Bowel Movement",
+		accessor: (row) => (row.bowel_movement ? "Yes" : "—"),
+	},
+	{ header: "Urgency", accessor: "bowel_urgency" },
+	{ header: "Pains", accessor: "pains_discomfort" },
+	{ header: "Stool Type", accessor: "stool_type" },
+	{
+		header: "Accidents",
+		accessor: (row) => (row.accidents_leakage ? "Yes" : "—"),
+	},
+];
+
 interface Props {
 	action: "Create" | "Edit";
 	patient?: PatientModel;
 	personalizedPfPlan?: PfPlanModel;
 	pfPlanProgress?: PfPlanProgressModel | null;
+	userTools?: UserToolsModel | null;
+	bladderDiaryEntries?: BladderDiaryEntryModel[];
+	bowelDiaryEntries?: BowelDiaryEntryModel[];
 }
 
 export default function PatientForm({
@@ -60,6 +118,9 @@ export default function PatientForm({
 	patient,
 	pfPlanProgress,
 	personalizedPfPlan,
+	userTools,
+	bladderDiaryEntries = [],
+	bowelDiaryEntries = [],
 }: Props) {
 	const { showSnackBar } = useSnackBar();
 	const router = useRouter();
@@ -82,6 +143,9 @@ export default function PatientForm({
 	const [gender, setGender] = useState<string>("");
 	const [givenBirthLastSixMonth, setGivenBirthLastSixMonth] = useState<boolean>(false);
 	const [monthsPostpartum, setMonthsPostpartum] = useState<number | undefined>(undefined);
+	const [bladderDiaryEnabled, setBladderDiaryEnabled] = useState<boolean>(false);
+	const [bowelDiaryEnabled, setBowelDiaryEnabled] = useState<boolean>(false);
+	const [isUpdatingTools, setIsUpdatingTools] = useState<boolean>(false);
 
 	useEffect(() => {
 		if (action === "Edit" && patient) {
@@ -101,6 +165,13 @@ export default function PatientForm({
 		}
 	}, [patient]);
 
+	useEffect(() => {
+		if (userTools) {
+			setBladderDiaryEnabled(userTools.bladder_diary_enabled);
+			setBowelDiaryEnabled(userTools.bowel_diary_enabled);
+		}
+	}, [userTools]);
+
 	const [modalOpen, setModalOpen] = useState(false);
 	const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 	const [surveyModalOpen, setSurveyModelOpen] = useState(false);
@@ -112,6 +183,46 @@ export default function PatientForm({
 
 	const handleToggle = (label: string) => {
 		setUserType(label === "Free" ? 1 : 2);
+	};
+
+	const handleBladderDiaryToggle = async (label: string) => {
+		if (!patient?.id || isUpdatingTools) return;
+		const enabled = label === "Enabled";
+		setBladderDiaryEnabled(enabled);
+		try {
+			setIsUpdatingTools(true);
+			await updateUserTools(patient.id, {
+				bladder_diary_enabled: enabled,
+				bowel_diary_enabled: bowelDiaryEnabled,
+			});
+			showSnackBar({ message: "Bladder diary setting updated.", success: true });
+		} catch (error) {
+			setBladderDiaryEnabled(!enabled);
+			const apiError = error as ErrorModel;
+			showSnackBar({ message: apiError?.msg || "Failed to update.", success: false });
+		} finally {
+			setIsUpdatingTools(false);
+		}
+	};
+
+	const handleBowelDiaryToggle = async (label: string) => {
+		if (!patient?.id || isUpdatingTools) return;
+		const enabled = label === "Enabled";
+		setBowelDiaryEnabled(enabled);
+		try {
+			setIsUpdatingTools(true);
+			await updateUserTools(patient.id, {
+				bladder_diary_enabled: bladderDiaryEnabled,
+				bowel_diary_enabled: enabled,
+			});
+			showSnackBar({ message: "Bowel diary setting updated.", success: true });
+		} catch (error) {
+			setBowelDiaryEnabled(!enabled);
+			const apiError = error as ErrorModel;
+			showSnackBar({ message: apiError?.msg || "Failed to update.", success: false });
+		} finally {
+			setIsUpdatingTools(false);
+		}
 	};
 
 	const handleCloseModal = () => {
@@ -323,6 +434,13 @@ export default function PatientForm({
 						PF Plans
 					</TabsTrigger>
 					<TabsTrigger
+						value="patient-tools"
+						disabled={action === "Create"}
+						className={clsx(action === "Create" && "opacity-50 cursor-not-allowed")}
+					>
+						Patient Tools
+					</TabsTrigger>
+					<TabsTrigger
 						value="pfdi-20"
 						disabled={action === "Create"}
 						className={clsx(action === "Create" && "opacity-50 cursor-not-allowed")}
@@ -503,7 +621,7 @@ export default function PatientForm({
 				</TabsContent>
 
 				<TabsContent value="pf-plans" className="mt-5">
-					<div className="w-full sm:w-1/2 sm:p-5 z-10 rounded-lg sm:bg-white sm:drop-shadow-center">
+					<div className="w-full sm:max-w-2xl sm:p-5 z-10 rounded-lg sm:bg-white sm:drop-shadow-center">
 						{action === "Edit" && (
 							<div className="space-y-4">
 								<div>
@@ -559,8 +677,123 @@ export default function PatientForm({
 					</div>
 				</TabsContent>
 
+				<TabsContent value="patient-tools" className="mt-5">
+					<div className="w-full sm:max-w-2xl sm:p-5 z-10 rounded-lg sm:bg-white sm:drop-shadow-center">
+						{action === "Edit" ? (
+							<Tabs defaultValue="bladder-diary" className="w-full">
+								<TabsList>
+									<TabsTrigger value="bladder-diary">Bladder Diary</TabsTrigger>
+									<TabsTrigger value="bowel-diary">Bowel Diary</TabsTrigger>
+								</TabsList>
+								<TabsContent value="bladder-diary" className="mt-5 space-y-4">
+									<div>
+										<p className="font-medium mb-2">Enable for patient</p>
+										<div className="flex items-center gap-2">
+											<ToggleSwitch
+												label1="Disabled"
+												label2="Enabled"
+												active={bladderDiaryEnabled ? "Enabled" : "Disabled"}
+												onToggle={handleBladderDiaryToggle}
+											/>
+											{isUpdatingTools && <Loader className="!h-5 !w-5" />}
+										</div>
+									</div>
+									<div>
+										<p className="font-medium text-lg mb-4">Entries</p>
+										{bladderDiaryEntries.length > 0 ? (
+											<Accordion type="single" collapsible className="w-full">
+												{bladderDiaryEntries.map((entry) => {
+													const slots = Array.isArray(entry.time_slots) ? entry.time_slots : [];
+													const displayDate = formatDateToLocal(entry.diary_date);
+
+													return (
+														<AccordionItem key={entry.id} value={`bladder-${entry.id}`}>
+															<AccordionTrigger className="text-left">
+																<div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+																	<span className="font-medium">{displayDate}</span>
+																	<span className="text-sm text-neutral-600 font-normal">
+																		{slots.length} time slot{slots.length !== 1 ? "s" : ""}
+																		{entry.pads_used != null && ` • Pads: ${entry.pads_used}`}
+																		{entry.diapers_used != null && ` • Diapers: ${entry.diapers_used}`}
+																	</span>
+																</div>
+															</AccordionTrigger>
+															<AccordionContent>
+																<DataTable<BladderDiaryTimeSlot>
+																	columns={BLADDER_DIARY_COLUMNS}
+																	data={slots}
+																	getRowKey={(_, index) => index}
+																/>
+															</AccordionContent>
+														</AccordionItem>
+													);
+												})}
+											</Accordion>
+										) : (
+											<p className="text-neutral-600">No bladder diary entries.</p>
+										)}
+									</div>
+								</TabsContent>
+								<TabsContent value="bowel-diary" className="mt-5 space-y-4">
+									<div>
+										<p className="font-medium mb-2">Enable for patient</p>
+										<div className="flex items-center gap-2">
+											<ToggleSwitch
+												label1="Disabled"
+												label2="Enabled"
+												active={bowelDiaryEnabled ? "Enabled" : "Disabled"}
+												onToggle={handleBowelDiaryToggle}
+											/>
+											{isUpdatingTools && <Loader className="!h-5 !w-5" />}
+										</div>
+									</div>
+									<div>
+										<p className="font-medium text-lg mb-4">Entries</p>
+										{bowelDiaryEntries.length > 0 ? (
+											<Accordion type="single" collapsible className="w-full">
+												{bowelDiaryEntries.map((entry) => {
+													const slots = Array.isArray(entry.time_slots) ? entry.time_slots : [];
+													const displayDate = formatDateToLocal(entry.diary_date);
+
+													return (
+														<AccordionItem key={entry.id} value={`bowel-${entry.id}`}>
+															<AccordionTrigger className="text-left">
+																<div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+																	<span className="font-medium">{displayDate}</span>
+																	<span className="text-sm text-neutral-600 font-normal">
+																		{entry.woke_up_at && `Wake: ${entry.woke_up_at}`}
+																		{entry.went_to_sleep_at && ` • Sleep: ${entry.went_to_sleep_at}`}
+																		{` • ${slots.length} time slot${slots.length !== 1 ? "s" : ""}`}
+																	</span>
+																</div>
+															</AccordionTrigger>
+															<AccordionContent>
+																<DataTable<BowelDiaryTimeSlot>
+																	columns={BOWEL_DIARY_COLUMNS}
+																	data={slots}
+																	getRowKey={(_, index) => index}
+																/>
+															</AccordionContent>
+														</AccordionItem>
+													);
+												})}
+											</Accordion>
+										) : (
+											<p className="text-neutral-600">No bowel diary entries.</p>
+										)}
+									</div>
+								</TabsContent>
+							</Tabs>
+						) : (
+							<div className="text-center py-8">
+								<p className="text-neutral-600">Patient tools are available when editing a patient.</p>
+							</div>
+						)}
+					</div>
+				</TabsContent>
+
 				<TabsContent value="pfdi-20" className="mt-5">
-					<div className="w-full sm:w-1/2 sm:p-5 z-10 rounded-lg sm:bg-white sm:drop-shadow-center">
+					<div className="w-full sm:max-w-2xl sm:p-5 z-10 rounded-lg sm:bg-white sm:drop-shadow-center">
 						{action === "Edit" ? (
 							<div>
 								<div className="mb-4">
