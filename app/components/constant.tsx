@@ -108,6 +108,11 @@ export const NAVIGATIONS = [
 				permissions: [],
 				url: "/settings/promo-codes",
 			},
+			{
+				title: "Form Builder",
+				permissions: [],
+				url: "/settings/form-builder",
+			},
 		],
 	},
 ];

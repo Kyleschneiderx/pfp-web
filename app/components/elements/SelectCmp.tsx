@@ -28,6 +28,7 @@ export default function SelectCmp<IsMulti extends boolean = false>({
 					invalid ? "border-error-400 focus:border-error-600" : "border-gray-200 focus:border-neutral-600 ",
 					className,
 				)}
+				menuPortalTarget={typeof document !== "undefined" ? document.body : undefined}
 				styles={{
 					control: (provided) => ({
 						...provided,
@@ -37,16 +38,11 @@ export default function SelectCmp<IsMulti extends boolean = false>({
 					}),
 					menuPortal: (base) => ({
 						...base,
-						zIndex: 999,
+						zIndex: 9999,
 					}),
 				}}
-				onChange={(newValue, actionMeta) => {
-					if (newValue === null) {
-						onChange(null as any);
-						return;
-					}
-
-					onChange(newValue);
+				onChange={(newValue) => {
+					onChange(newValue ?? (null as OnChangeValue<OptionsModel, IsMulti>));
 				}}
 			/>
 		</div>

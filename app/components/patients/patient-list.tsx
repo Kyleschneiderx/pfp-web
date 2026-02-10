@@ -181,6 +181,12 @@ export default function PatientList({
 				<div className="flex items-center mb-8">
 					<SearchCmp placeholder="Search patients" className="mr-4 sm:mr-0" param="search" />
 					<PatientFilterSort />
+					{/* <Link
+						href="/patients/preview"
+						className="hidden sm:block ml-4 text-sm text-primary-600 hover:text-primary-700"
+					>
+						Table view (preview)
+					</Link> */}
 					<div className="ml-auto flex items-center gap-3">
 						<Button
 							label="Export"
@@ -191,7 +197,7 @@ export default function PatientList({
 							secondary
 						/>
 						<button
-            type="button"
+							type="button"
 							onClick={handleExport}
 							disabled={isExporting}
 							className="sm:hidden bg-white active:bg-neutral-100 p-2 rounded-full drop-shadow"
