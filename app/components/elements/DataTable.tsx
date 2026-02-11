@@ -38,7 +38,7 @@ interface DataTableProps<T> {
 	sortDirection?: SortDirection;
 	onSort?: (field: string, direction: SortDirection) => void;
 	page?: number;
-	maxPage: number;
+	maxPage?: number;
 	onPageChange?: (page: number) => void;
 }
 
@@ -71,7 +71,7 @@ export default function DataTable<T extends object>({
 	sortDirection = "asc",
 	onSort,
 	page = 1,
-	maxPage,
+	maxPage = 1,
 	onPageChange,
 }: DataTableProps<T>) {
 	const padding = cellPadding[size];
