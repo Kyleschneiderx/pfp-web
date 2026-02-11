@@ -19,14 +19,8 @@ import {
 } from "@/app/lib/constants";
 import { revalidatePage } from "@/app/lib/revalidate";
 import { formatDate, onPhoneNumKeyDown } from "@/app/lib/utils";
-import type {
-	BladderDiaryEntryModel,
-	BladderDiaryTimeSlot,
-} from "@/app/models/bladder_diary_model";
-import type {
-	BowelDiaryEntryModel,
-	BowelDiaryTimeSlot,
-} from "@/app/models/bowel_diary_model";
+import type { BladderDiaryEntryModel, BladderDiaryTimeSlot } from "@/app/models/bladder_diary_model";
+import type { BowelDiaryEntryModel, BowelDiaryTimeSlot } from "@/app/models/bowel_diary_model";
 import type { ErrorModel } from "@/app/models/error_model";
 import type { PatientModel, PatientSurveyModel, PfPlanProgressModel } from "@/app/models/patient_model";
 import type { UserToolsModel } from "@/app/models/user_tools_model";
@@ -67,9 +61,7 @@ const BLADDER_DIARY_COLUMNS: {
 	{
 		header: "Drinks",
 		accessor: (row) =>
-			row.drinks_kind
-				? `${row.drinks_kind}${row.drinks_amount ? ` (${row.drinks_amount})` : ""}`
-				: "—",
+			row.drinks_kind ? `${row.drinks_kind}${row.drinks_amount ? ` (${row.drinks_amount})` : ""}` : "—",
 	},
 	{ header: "Bathroom", accessor: "trips_to_bathroom" },
 	{ header: "Urine", accessor: "urine_amount" },
@@ -473,143 +465,143 @@ export default function PatientForm({
 							)}
 						</div>
 						<div className="w-full order-2 sm:order-first sm:w-[636px] sm:p-5 space-y-4 sm:mr-6 z-10 rounded-lg sm:bg-white sm:drop-shadow-center">
-					<div>
-						<div className="flex justify-between items-end mb-2">
-							<p className="font-medium">
-								Patient Name <ReqIndicator />
-							</p>
-							<ToggleSwitch
-								label1="Free"
-								label2="Premium"
-								active={userType === 1 ? "Free" : "Premium"}
-								onToggle={handleToggle}
-							/>
-						</div>
-						<Input
-							type="text"
-							placeholder="Enter patient name"
-							value={name}
-							invalid={hasError("name")}
-							onChange={(e) => setName(e.target.value)}
-						/>
-					</div>
-					<div>
-						<p className="font-medium mb-2">
-							Email Address <ReqIndicator />
-						</p>
-						<Input
-							type="email"
-							placeholder="Enter patient's email address"
-							value={email}
-							invalid={hasError("email")}
-							onChange={(e) => setEmail(e.target.value)}
-						/>
-					</div>
-					<div className="flex flex-col sm:flex-row sm:space-x-3">
-						<div className="w-full mb-3 sm:mb-0">
-							<p className="font-medium mb-2">Contact Number</p>
-							<Input
-								type="text"
-								placeholder="xxx xxx xxx"
-								value={contactNo}
-								invalid={hasError("contactNo")}
-								onChange={(e) => setContactNo(e.target.value)}
-								onKeyDown={onPhoneNumKeyDown}
-							/>
-						</div>
-						<div className="w-full">
-							<p className="font-medium mb-2">Date of Birth</p>
-							<DateInput
-								selected={birthdate}
-								invalid={hasError("birthdate")}
-								maxDate={new Date()}
-								onChange={(date) => setBirthdate(date)}
-							/>
-						</div>
-					</div>
-					<div>
-						<p className="font-medium mb-2">Description</p>
-						<Textarea
-							placeholder="Enter the patient's description"
-							value={description}
-							onChange={(e) => setDescription(e.target.value)}
-						/>
-					</div>
-					<div>
-						<div className="flex justify-between items-end mb-2">
-							<p className="font-medium mb-2">Gender</p>
-							<ToggleSwitch
-								label1="Male"
-								label2="Female"
-								active={gender === "male" ? "Male" : gender === "female" ? "Female" : ""}
-								onToggle={(label) => setGender(label.toLowerCase())}
-							/>
-						</div>
-					</div>
-					<div>
-						<div className="flex justify-between items-end mb-2">
-							<p className="font-medium">Is Pregnant</p>
-							<ToggleSwitch
-								label1="No"
-								label2="Yes"
-								active={isPregnant ? "Yes" : "No"}
-								onToggle={(label) => setIsPregnant(label === "Yes")}
-							/>
-						</div>
-					</div>
-					{isPregnant && (
-						<div>
-							<p className="font-medium mb-2">Trimester</p>
-							<SelectCmp
-								options={Array.from({ length: 3 }, (_, index) => ({
-									label: `Trimester ${index + 1}`,
-									value: (index + 1).toString(),
-								}))}
-								value={
-									trimester
-										? {
-												label: `Trimester ${trimester}`,
-												value: trimester.toString(),
-											}
-										: undefined
-								}
-								onChange={(e) => setTrimester(e ? Number(e.value) : undefined)}
-								placeholder="Select trimester"
-							/>
-						</div>
-					)}
-					<div>
-						<div className="flex justify-between items-end mb-2">
-							<p className="font-medium">Given Birth Last Six Months</p>
-							<ToggleSwitch
-								label1="No"
-								label2="Yes"
-								active={givenBirthLastSixMonth ? "Yes" : "No"}
-								onToggle={(label) => setGivenBirthLastSixMonth(label === "Yes")}
-							/>
-						</div>
-					</div>
-					{givenBirthLastSixMonth && (
-						<div>
-							<p className="font-medium mb-2">Months Postpartum</p>
-							<SelectCmp
-								options={Array.from({ length: 6 }, (_, index) => ({
-									label: `${index + 1} ${index === 0 ? "month" : "months"}`,
-									value: (index + 1).toString(),
-								}))}
-								value={
-									monthsPostpartum
-										? {
-												label: `${monthsPostpartum} ${monthsPostpartum === 1 ? "month" : "months"}`,
-												value: monthsPostpartum.toString(),
-											}
-										: undefined
-								}
-								onChange={(e) => setMonthsPostpartum(e ? Number(e.value) : undefined)}
-								placeholder="Select months postpartum"
-							/>
-						</div>
-					)}
+							<div>
+								<div className="flex justify-between items-end mb-2">
+									<p className="font-medium">
+										Patient Name <ReqIndicator />
+									</p>
+									<ToggleSwitch
+										label1="Free"
+										label2="Premium"
+										active={userType === 1 ? "Free" : "Premium"}
+										onToggle={handleToggle}
+									/>
+								</div>
+								<Input
+									type="text"
+									placeholder="Enter patient name"
+									value={name}
+									invalid={hasError("name")}
+									onChange={(e) => setName(e.target.value)}
+								/>
+							</div>
+							<div>
+								<p className="font-medium mb-2">
+									Email Address <ReqIndicator />
+								</p>
+								<Input
+									type="email"
+									placeholder="Enter patient's email address"
+									value={email}
+									invalid={hasError("email")}
+									onChange={(e) => setEmail(e.target.value)}
+								/>
+							</div>
+							<div className="flex flex-col sm:flex-row sm:space-x-3">
+								<div className="w-full mb-3 sm:mb-0">
+									<p className="font-medium mb-2">Contact Number</p>
+									<Input
+										type="text"
+										placeholder="xxx xxx xxx"
+										value={contactNo}
+										invalid={hasError("contactNo")}
+										onChange={(e) => setContactNo(e.target.value)}
+										onKeyDown={onPhoneNumKeyDown}
+									/>
+								</div>
+								<div className="w-full">
+									<p className="font-medium mb-2">Date of Birth</p>
+									<DateInput
+										selected={birthdate}
+										invalid={hasError("birthdate")}
+										maxDate={new Date()}
+										onChange={(date) => setBirthdate(date)}
+									/>
+								</div>
+							</div>
+							<div>
+								<p className="font-medium mb-2">Description</p>
+								<Textarea
+									placeholder="Enter the patient's description"
+									value={description}
+									onChange={(e) => setDescription(e.target.value)}
+								/>
+							</div>
+							<div>
+								<div className="flex justify-between items-end mb-2">
+									<p className="font-medium mb-2">Gender</p>
+									<ToggleSwitch
+										label1="Male"
+										label2="Female"
+										active={gender === "male" ? "Male" : gender === "female" ? "Female" : ""}
+										onToggle={(label) => setGender(label.toLowerCase())}
+									/>
+								</div>
+							</div>
+							<div>
+								<div className="flex justify-between items-end mb-2">
+									<p className="font-medium">Is Pregnant</p>
+									<ToggleSwitch
+										label1="No"
+										label2="Yes"
+										active={isPregnant ? "Yes" : "No"}
+										onToggle={(label) => setIsPregnant(label === "Yes")}
+									/>
+								</div>
+							</div>
+							{isPregnant && (
+								<div>
+									<p className="font-medium mb-2">Trimester</p>
+									<SelectCmp
+										options={Array.from({ length: 3 }, (_, index) => ({
+											label: `Trimester ${index + 1}`,
+											value: (index + 1).toString(),
+										}))}
+										value={
+											trimester
+												? {
+														label: `Trimester ${trimester}`,
+														value: trimester.toString(),
+													}
+												: undefined
+										}
+										onChange={(e) => setTrimester(e ? Number(e.value) : undefined)}
+										placeholder="Select trimester"
+									/>
+								</div>
+							)}
+							<div>
+								<div className="flex justify-between items-end mb-2">
+									<p className="font-medium">Given Birth Last Six Months</p>
+									<ToggleSwitch
+										label1="No"
+										label2="Yes"
+										active={givenBirthLastSixMonth ? "Yes" : "No"}
+										onToggle={(label) => setGivenBirthLastSixMonth(label === "Yes")}
+									/>
+								</div>
+							</div>
+							{givenBirthLastSixMonth && (
+								<div>
+									<p className="font-medium mb-2">Months Postpartum</p>
+									<SelectCmp
+										options={Array.from({ length: 6 }, (_, index) => ({
+											label: `${index + 1} ${index === 0 ? "month" : "months"}`,
+											value: (index + 1).toString(),
+										}))}
+										value={
+											monthsPostpartum
+												? {
+														label: `${monthsPostpartum} ${monthsPostpartum === 1 ? "month" : "months"}`,
+														value: monthsPostpartum.toString(),
+													}
+												: undefined
+										}
+										onChange={(e) => setMonthsPostpartum(e ? Number(e.value) : undefined)}
+										placeholder="Select months postpartum"
+									/>
+								</div>
+							)}
 						</div>
 						<div className="sm:hidden order-last flex flex-col w-full mt-4 space-y-3">
 							<Link href="/patients">
@@ -832,7 +824,8 @@ export default function PatientForm({
 																					<div className="flex flex-wrap gap-2">
 																						<span>Answer:</span>
 																						<span className="font-semibold">
-																							{capitalizeFirstLetter(question.user_survey_question_answer?.yes_no) || "Not answered"}
+																							{capitalizeFirstLetter(question.user_survey_question_answer?.yes_no) ||
+																								"Not answered"}
 																						</span>
 																					</div>
 
