@@ -1,3 +1,4 @@
+import type { CustomForm } from "./custom_form_model";
 import type { EducationModel } from "./education_model";
 import type { ExerciseModel } from "./exercise_model";
 
@@ -36,6 +37,7 @@ export interface PfPlanDailies {
 	day: number;
 	contents: (EducationModel | PfPlanExerciseModel)[];
 	requires_pfdi_update?: boolean;
+	custom_forms?: CustomForm[];
 }
 
 export interface PfPlanExerciseModel {
