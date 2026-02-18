@@ -1,5 +1,5 @@
 import type { PfPlanModel } from "@/app/models/pfplan_model";
-import type { UserSummaryModel } from "@/app/models/user_summary_model";
+import type { InvitedSummaryModel, UserSummaryModel } from "@/app/models/user_summary_model";
 import type { UserVisitStatsModel } from "@/app/models/user_visit_stats";
 import type { PatientSurveyModel } from "@/app/models/patient_model";
 import type { List } from "@/app/models/global_model";
@@ -29,6 +29,11 @@ export const deletePatient = async (id: number): Promise<{ msg: string }> => {
 export const getUserSummary = async (params: string): Promise<UserSummaryModel> => {
 	const url = `/stats/user-summary?${params}`;
 	return apiClient<UserSummaryModel>({ url: url, method: "GET" });
+};
+
+export const getInvitedSummary = async (params: string): Promise<InvitedSummaryModel> => {
+	const url = `/stats/invite?${params}`;
+	return apiClient<InvitedSummaryModel>({ url: url, method: "GET" });
 };
 
 export const sendInvite = async (id: number): Promise<{ msg: string }> => {

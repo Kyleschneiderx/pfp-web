@@ -5,14 +5,25 @@ import clsx from "clsx";
 import Input from "./Input";
 import SelectCmp from "./SelectCmp";
 import Pagination from "./Pagination";
+import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon } from "lucide-react";
+import { useState } from "react";
 
-export interface Column<T> {
+type ColumnSort =
+	| {
+			sortField: string;
+			sortDirection?: SortDirection;
+			onSort?: (field: string, direction: SortDirection) => void;
+			currentSortField?: string;
+	  }
+	| { sortField?: never; sortDirection?: never; onSort?: never; currentSortField?: never };
+
+export type Column<T> = {
 	header: string;
 	accessor: keyof T | ((row: T) => React.ReactNode);
 	className?: string;
-}
+} & ColumnSort;
 
-export type SortDirection = "asc" | "desc";
+export type SortDirection = "asc" | "desc" | undefined | string;
 
 export interface TableFilterOption {
 	label: string;
@@ -30,13 +41,17 @@ interface DataTableProps<T> {
 	searchPlaceholder?: string;
 	searchValue?: string;
 	onSearch?: (term: string) => void;
-	filterOptions?: TableFilterOption[];
-	filterValue?: string;
-	onFilter?: (value: string) => void;
-	sortFieldOptions?: TableFilterOption[];
-	sortField?: string;
-	sortDirection?: SortDirection;
-	onSort?: (field: string, direction: SortDirection) => void;
+
+	filters?: Record<
+		string,
+		{
+			options: { label: string; value: string }[];
+			selectedValue?: string;
+			placeholder?: string;
+			className?: string;
+			onChange: (value: string) => void;
+		}
+	>;
 	page?: number;
 	maxPage?: number;
 	onPageChange?: (page: number) => void;
@@ -63,22 +78,13 @@ export default function DataTable<T extends object>({
 	searchPlaceholder,
 	searchValue = "",
 	onSearch,
-	filterOptions,
-	filterValue,
-	onFilter,
-	sortFieldOptions,
-	sortField,
-	sortDirection = "asc",
-	onSort,
+	filters,
 	page = 1,
 	maxPage = 1,
 	onPageChange,
 }: DataTableProps<T>) {
 	const padding = cellPadding[size];
-	const showFilterBar =
-		onSearch !== undefined ||
-		(onFilter !== undefined && filterOptions?.length) ||
-		(onSort !== undefined && sortFieldOptions?.length);
+	const showFilterBar = onSearch !== undefined || (filters && Object.keys(filters).length > 0);
 
 	const getCellValue = (row: T, column: Column<T>): React.ReactNode => {
 		if (typeof column.accessor === "function") {
@@ -98,7 +104,7 @@ export default function DataTable<T extends object>({
 		<div className={clsx("overflow-x-auto text-sm", className)}>
 			{showFilterBar && (
 				<div className="py-4">
-					<div className="flex flex-wrap items-center gap-3">
+					<div className="flex flex-wrap items-center gap-3 w-full">
 						{onSearch !== undefined && (
 							<div className="w-full sm:w-96">
 								<Input
@@ -112,80 +118,89 @@ export default function DataTable<T extends object>({
 								/>
 							</div>
 						)}
-						{onFilter !== undefined && filterOptions && filterOptions.length > 0 && (
-							<div className="w-full sm:w-40">
-								<SelectCmp
-									options={filterOptions}
-									value={filterOptions.find((o) => o.value === (filterValue ?? "")) ?? null}
-									onChange={(e) => onFilter((e as OptionsModel)?.value ?? "")}
-									placeholder="Filter by"
-									aria-label="Filter by column"
-								/>
+						{filters && (
+							<div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+								{Object.entries(filters).map(([key, filter]) => (
+									<div key={key} className={clsx("w-full", filter.className)}>
+										<SelectCmp
+											className="!py-[1px]"
+											options={filter.options}
+											value={filter.selectedValue ? filter.options.find((o) => o.value === filter.selectedValue) : null}
+											onChange={(e) => filter.onChange((e as OptionsModel)?.value ?? "")}
+											placeholder={filter.placeholder}
+										/>
+									</div>
+								))}
 							</div>
-						)}
-						{onSort !== undefined && sortFieldOptions && sortFieldOptions.length > 0 && (
-							<>
-								<div className="w-full sm:w-40">
-									<SelectCmp
-										options={sortFieldOptions}
-										value={sortFieldOptions.find((o) => o.value === (sortField ?? "")) ?? null}
-										onChange={(e) =>
-											onSort((e as OptionsModel)?.value ?? sortFieldOptions[0]?.value ?? "", sortDirection)
-										}
-										placeholder="Sort by"
-										aria-label="Sort by field"
-									/>
-								</div>
-								<div className="w-full sm:w-36">
-									<SelectCmp
-										options={SORT_DIRECTION_OPTIONS}
-										value={SORT_DIRECTION_OPTIONS.find((o) => o.value === sortDirection) ?? null}
-										onChange={(e) =>
-											onSort(sortField ?? sortFieldOptions[0]?.value ?? "", (e as OptionsModel)?.value as SortDirection)
-										}
-										placeholder="Direction"
-										aria-label="Sort direction"
-									/>
-								</div>
-							</>
 						)}
 					</div>
 				</div>
 			)}
-			<div className="bg-white rounded-lg border border-neutral-200 overflow-hidden">
-				<table className="w-full">
-					<thead>
-						<tr className="border-b border-neutral-200">
-							{columns.map((col) => (
-								<th
-									key={col.header}
-									className={clsx("text-left font-semibold text-neutral-600 uppercase text-xs", padding, col.className)}
-								>
-									{col.header}
-								</th>
-							))}
-						</tr>
-					</thead>
-					<tbody>
-						{data.length === 0 && emptyMessage ? (
-							<tr>
-								<td colSpan={columns.length} className={clsx(padding, "text-center text-neutral-500")}>
-									{emptyMessage}
-								</td>
+			<div className="bg-white rounded-lg border border-neutral-200">
+				<div className="overflow-x-auto">
+					<table className="w-full overflow-x-auto">
+						<thead>
+							<tr className="border-b border-neutral-200">
+								{columns.map((col) => (
+									<th
+										key={col.header}
+										className={clsx(
+											"text-left font-semibold text-neutral-600 uppercase text-xs",
+											padding,
+											col.className,
+										)}
+									>
+										<div className="flex items-center">
+											{col.header}
+											{col?.onSort && (
+												<button
+													type="button"
+													onClick={() => {
+														col?.onSort?.(
+															col?.sortField,
+															col?.sortDirection === "asc" && col?.currentSortField === col?.sortField
+																? "desc"
+																: col?.sortDirection === "desc" && col?.currentSortField === col?.sortField
+																	? undefined
+																	: "asc",
+														);
+													}}
+												>
+													{col?.currentSortField === col?.sortField && col?.sortDirection === "asc" ? (
+														<ArrowUpIcon size={16} className="ml-1 text-primary-500" />
+													) : col?.currentSortField === col?.sortField && col?.sortDirection === "desc" ? (
+														<ArrowDownIcon size={16} className="ml-1 text-primary-500" />
+													) : (
+														<ArrowUpDownIcon size={16} className="ml-1" />
+													)}
+												</button>
+											)}
+										</div>
+									</th>
+								))}
 							</tr>
-						) : (
-							data.map((row, index) => (
-								<tr key={getRowKey(row, index)} className="border-b border-neutral-100 last:border-0">
-									{columns.map((col) => (
-										<td key={col.header} className={clsx(padding, col.className)}>
-											{getCellValue(row, col)}
-										</td>
-									))}
+						</thead>
+						<tbody>
+							{data.length === 0 && emptyMessage ? (
+								<tr>
+									<td colSpan={columns.length} className={clsx(padding, "text-center text-neutral-500")}>
+										{emptyMessage}
+									</td>
 								</tr>
-							))
-						)}
-					</tbody>
-				</table>
+							) : (
+								data.map((row, index) => (
+									<tr key={getRowKey(row, index)} className="border-b border-neutral-100 last:border-0">
+										{columns.map((col) => (
+											<td key={col.header} className={clsx(padding, col.className)}>
+												{getCellValue(row, col)}
+											</td>
+										))}
+									</tr>
+								))
+							)}
+						</tbody>
+					</table>
+				</div>
 				<div className="p-4 border-t border-neutral-200">
 					<Pagination page={page ?? 1} maxPage={maxPage ?? 1} onPageChange={onPageChange ?? (() => {})} />
 				</div>

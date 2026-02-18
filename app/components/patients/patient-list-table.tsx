@@ -3,40 +3,45 @@
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import { PERMISSIONS } from "@/app/lib/constants";
 import { revalidatePage } from "@/app/lib/revalidate";
-import { formatDateToLocal, getLastLoginStatus } from "@/app/lib/utils";
+import { formatDate, formatDateToLocal, getLastLoginStatus } from "@/app/lib/utils";
 import type { ErrorModel } from "@/app/models/error_model";
 import type { PatientModel } from "@/app/models/patient_model";
-import { deletePatient, sendInvite, exportPatients } from "@/app/services/client_side/patients";
+import {
+	deletePatient,
+	sendInvite,
+	exportPatients,
+	getUserSummary,
+	getInvitedSummary,
+} from "@/app/services/client_side/patients";
 import type { ExportResponse } from "@/app/services/client_side/patients";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
 import clsx from "clsx";
-import { Download, EllipsisIcon, EllipsisVertical, Mail, PhoneCall } from "lucide-react";
+import { CalendarDays, Download, EllipsisIcon, MessageCircle, Send, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
-import { IconSend } from "@tabler/icons-react";
+import { IconClipboardCheck, IconMailFast, IconSend, IconUserPlus, IconUsersGroup } from "@tabler/icons-react";
 import { useModal } from "@/app/contexts/ModalContext";
 import useAuth from "@/app/hooks/useAuth";
 import Button from "../elements/Button";
 import DataTable, { type Column } from "../elements/DataTable";
-import Input from "../elements/Input";
 import Loader from "../elements/Loader";
-import Pagination from "../elements/Pagination";
 import ResponsiveActionMenu from "../elements/ResponsiveActionMenu";
 import IconAddButton from "../elements/mobile/IconAddButton";
+import { endOfWeek, startOfWeek } from "date-fns";
+import type { InvitedSummaryModel, UserSummaryModel } from "@/app/models/user_summary_model";
+import AccessControl from "../access-control";
+import AccessLocked from "../access-locked";
+import UserDoughnutChart from "../dashboard/user-doughnut-chart";
+import Card from "../elements/Card";
+import UserLineChart from "../dashboard/user-line-chart";
+import { formatNumber } from "@/app/lib/number-format";
 
 const STATUS_OPTIONS = [
 	{ label: "All", value: "0" },
 	{ label: "Active", value: "1" },
 	{ label: "Inactive", value: "2" },
-];
-
-const SORT_OPTIONS = [
-	{ label: "Name A-Z", value: "name:ASC" },
-	{ label: "Name Z-A", value: "name:DESC" },
-	{ label: "Latest Login", value: "last_login_at:DESC" },
-	{ label: "Oldest Login", value: "last_login_at:ASC" },
 ];
 
 export default function PatientListTable({
@@ -58,6 +63,7 @@ export default function PatientListTable({
 	const router = useRouter();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
+	const currentSort = searchParams.get("sort")?.split(":") ?? undefined;
 	const { hasPermission } = useAuth();
 	const { showSnackBar } = useSnackBar();
 
@@ -66,10 +72,11 @@ export default function PatientListTable({
 	const [isPending, startTransition] = useTransition();
 	const [isExporting, setIsExporting] = useState(false);
 	const [searchInput, setSearchInput] = useState(search);
-	const filterRef = useRef<HTMLDivElement>(null);
+	const [userSummary, setUserSummary] = useState<UserSummaryModel | null>(null);
+	const [invitedSummary, setInvitedSummary] = useState<InvitedSummaryModel | null>(null);
 
 	const updateParams = useCallback(
-		(updates: Record<string, string>) => {
+		(updates: Record<string, string | undefined>) => {
 			const params = new URLSearchParams(searchParams.toString());
 			for (const [key, value] of Object.entries(updates)) {
 				if (value && value !== "0") {
@@ -92,7 +99,7 @@ export default function PatientListTable({
 		updateParams({ status_id: value });
 	};
 
-	const handleSortChange = (value: string) => {
+	const handleSortChange = (value: string | undefined) => {
 		updateParams({ sort: value });
 	};
 
@@ -112,6 +119,23 @@ export default function PatientListTable({
 	useEffect(() => {
 		setSearchInput(search);
 	}, [search]);
+
+	const fetchUserSummary = async () => {
+		const params = `period=weekly&date_from=${formatDate(startOfWeek(new Date()))}&date_to=${formatDate(endOfWeek(new Date()))}`;
+		const response = await getUserSummary(params);
+		setUserSummary(response);
+	};
+
+	const fetchInvitedSummary = async () => {
+		const params = `period=weekly&date_from=${formatDate(startOfWeek(new Date()))}&date_to=${formatDate(endOfWeek(new Date()))}`;
+		const response = await getInvitedSummary(params);
+		setInvitedSummary(response);
+	};
+
+	useEffect(() => {
+		fetchUserSummary();
+		fetchInvitedSummary();
+	}, []);
 
 	const handleSendInvite = (patient: PatientModel) => {
 		modal.open({
@@ -184,6 +208,10 @@ export default function PatientListTable({
 	const columns: Column<PatientModel>[] = [
 		{
 			header: "Patient",
+			onSort: (field, direction) => handleSortChange(direction ? `${field}:${direction}` : undefined),
+			currentSortField: currentSort?.[0],
+			sortDirection: currentSort?.[0] === "name" ? currentSort?.[1] : undefined,
+			sortField: "name",
 			accessor: (row) => (
 				<Link href={`/patients/${row.id}/edit`} className="flex items-center gap-3">
 					<div className="flex items-center gap-3">
@@ -215,7 +243,7 @@ export default function PatientListTable({
 						? "Inactive"
 						: row.last_login_at
 							? getLastLoginStatus(row.last_login_at)
-							: "—"}
+							: "Active"}
 				</span>
 			),
 		},
@@ -232,19 +260,32 @@ export default function PatientListTable({
 			),
 		},
 		{
-			header: "Contact",
-			accessor: (row) => (
-				<div className="flex flex-col gap-0.5 text-sm">
-					<span className="flex items-center gap-1">
-						<PhoneCall size={12} />
-						{row.user_profile.contact_number || "N/A"}
-					</span>
-					<span className="flex items-center gap-1">
-						<Mail size={12} />
-						<span className="truncate max-w-[180px]">{row.email}</span>
-					</span>
-				</div>
-			),
+			header: "Provider",
+			accessor: (row) =>
+				row.provider ? (
+					<div className="flex flex-col">
+						<p className="font-medium text-primary-500">{row.provider.user_profile.name}</p>
+						<p className="text-xs text-neutral-500">{row.provider.email}</p>
+					</div>
+				) : (
+					"N/A"
+				),
+		},
+		{
+			header: "Last Login",
+			onSort: (field, direction) => handleSortChange(direction ? `${field}:${direction}` : undefined),
+			currentSortField: currentSort?.[0],
+			sortDirection: currentSort?.[0] === "last_login_at" ? currentSort?.[1] : undefined,
+			sortField: "last_login_at",
+			accessor: (row) => formatDateToLocal(row.last_login_at ?? ""),
+		},
+		{
+			header: "Registered Date",
+			onSort: (field, direction) => handleSortChange(direction ? `${field}:${direction}` : undefined),
+			currentSortField: currentSort?.[0],
+			sortDirection: currentSort?.[0] === "id" ? currentSort?.[1] : undefined,
+			sortField: "id",
+			accessor: (row) => formatDateToLocal(row.created_at ?? ""),
 		},
 		{
 			header: "",
@@ -281,12 +322,11 @@ export default function PatientListTable({
 	return (
 		<div className="space-y-4">
 			<div className="flex items-center justify-between flex-wrap gap-4">
-				<div className="flex items-center gap-4">
-					<Link href="/patients" className="text-sm text-primary-600 hover:text-primary-700">
-						← Back to card view
-					</Link>
-					<span className="text-sm text-neutral-500">|</span>
-					<span className="text-sm text-neutral-600">Table view (preview)</span>
+				<div className="flex flex-col gap-2">
+					<span className="text-lg font-semibold text-neutral-900">Patients</span>
+					<p className="text-sm text-neutral-500 max-w-[700px]">
+						Manage and track patient information, including contact details, status, and PF plans.
+					</p>
 				</div>
 				<div className="flex items-center gap-3">
 					<Button
@@ -314,6 +354,74 @@ export default function PatientListTable({
 					)}
 				</div>
 			</div>
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4">
+				<div className="flex flex-col w-full">
+					<AccessControl
+						required={[PERMISSIONS.STATS_USERS]}
+						fallback={<AccessLocked title="Total" className="h-[110px]" />}
+					>
+						<Card className="">
+							<div className="flex flex-row items-start justify-between gap-2">
+								<div className="flex flex-col items-start">
+									<p className="text-xl font-bold text-neutral-900">Total</p>
+									<p className="text-lg font-semibold">{formatNumber(userSummary?.total_users ?? 0)}</p>
+								</div>
+								<div className="flex self-center items-center rounded-full bg-primary-500 p-2">
+									<IconUsersGroup size={32} className="text-white my-auto" />
+								</div>
+							</div>
+							<div className="flex flex-col items-start text-xs text-neutral-500">
+								<p>{formatNumber(userSummary?.total_users_by_type.premium ?? 0)} Premium</p>
+								<p>{formatNumber(userSummary?.total_users_by_type.free ?? 0)} Free</p>
+							</div>
+						</Card>
+					</AccessControl>
+				</div>
+				<div className="flex flex-col w-full">
+					<AccessControl
+						required={[PERMISSIONS.STATS_DAILY_SIGNUPS]}
+						fallback={<AccessLocked title="Daily Sign-ups" className="h-[110px]" />}
+					>
+						<Card className="">
+							<div className="flex flex-row items-start justify-between gap-2">
+								<div className="flex flex-col items-start">
+									<p className="text-xl font-bold text-neutral-900">Daily Signups</p>
+									<p className="text-lg font-semibold">{formatNumber(userSummary?.unique_signups.total ?? 0)}</p>
+								</div>
+								<div className="flex self-center items-center rounded-full bg-primary-500 p-2">
+									<IconUserPlus size={32} className="text-white my-auto" />
+								</div>
+							</div>
+							<div className="flex flex-col items-start text-xs text-neutral-500">
+								<p>{formatNumber(userSummary?.unique_signups.premium ?? 0)} Premium</p>
+								<p>{formatNumber(userSummary?.unique_signups.free ?? 0)} Free</p>
+							</div>
+						</Card>
+					</AccessControl>
+				</div>
+				<div className="flex flex-col w-full">
+					<AccessControl
+						required={[PERMISSIONS.STATS_INVITED]}
+						fallback={<AccessLocked title="Invited" className="h-[110px]" />}
+					>
+						<Card className="">
+							<div className="flex flex-row items-start justify-between gap-2">
+								<div className="flex flex-col items-start">
+									<p className="text-xl font-bold text-neutral-900">Invited</p>
+									<p className="text-lg font-semibold">{formatNumber(invitedSummary?.total_invites ?? 0)}</p>
+								</div>
+								<div className="flex self-center items-center rounded-full bg-primary-500 p-2">
+									<IconMailFast size={32} className="text-white my-auto" />
+								</div>
+							</div>
+							<div className="flex flex-col items-start text-xs text-neutral-500">
+								<p>{formatNumber(invitedSummary?.onboarded.total ?? 0)} Onboarded</p>
+								<p>{formatNumber(invitedSummary?.not_onboarded.total ?? 0)} Not Onboarded</p>
+							</div>
+						</Card>
+					</AccessControl>
+				</div>
+			</div>
 
 			<div className="">
 				{isPending ? (
@@ -339,6 +447,14 @@ export default function PatientListTable({
 							maxPage={maxPage}
 							page={page}
 							onPageChange={handlePageChange}
+							filters={{
+								status_id: {
+									options: STATUS_OPTIONS,
+									selectedValue: status_id,
+									placeholder: "Status",
+									onChange: handleStatusChange,
+								},
+							}}
 						/>
 					</>
 				)}

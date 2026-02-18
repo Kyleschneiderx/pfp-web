@@ -14,7 +14,17 @@ import clsx from "clsx";
 import { useDebouncedCallback } from "use-debounce";
 import dynamic from "next/dynamic";
 import Badge from "../elements/Badge";
-import { endOfDay, endOfMonth, format, formatDuration, intervalToDuration, startOfDay, startOfMonth } from "date-fns";
+import {
+	endOfDay,
+	endOfMonth,
+	endOfWeek,
+	format,
+	formatDuration,
+	intervalToDuration,
+	startOfDay,
+	startOfMonth,
+	startOfWeek,
+} from "date-fns";
 import {
 	BookXIcon,
 	CalendarIcon,
@@ -32,17 +42,29 @@ import type { MeetingsSearchQuery } from "@/app/services/server_side/meetings";
 import BigCalendar from "../elements/BigCalendar";
 import type { Event, EventProps, View } from "react-big-calendar";
 import CalendarEventModal from "../modals/calendar-event-modal";
-import { dateToUtc, formatDatetime } from "@/app/lib/utils";
+import { dateToUtc, formatDate, formatDatetime } from "@/app/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../elements/Tabs";
 import ResponsiveActionMenu from "../elements/ResponsiveActionMenu";
 import { notFound, usePathname, useRouter } from "next/navigation";
 import MeetingRoomSidePanel from "../modals/meeting-room-side-panel";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
-import { cancelMeeting } from "@/app/services/client_side/meetings";
+import { cancelMeeting, getVisitPaymentSummary } from "@/app/services/client_side/meetings";
 import { revalidatePage } from "@/app/lib/revalidate";
 import useAuth from "@/app/hooks/useAuth";
 import DataList from "../data-list";
-import { IconUserCheck } from "@tabler/icons-react";
+import {
+	IconCalendarCancel,
+	IconCalendarCheck,
+	IconCalendarPause,
+	IconCalendarWeek,
+	IconCurrencyDollar,
+	IconUserCheck,
+	IconUsersGroup,
+} from "@tabler/icons-react";
+import AccessControl from "../access-control";
+import AccessLocked from "../access-locked";
+import { formatNumber } from "@/app/lib/number-format";
+import type { VisitPaymentSummaryModel } from "@/app/models/visit_payment_stats";
 
 const FilterList = dynamic(() => import("../elements/FilterList"), {
 	ssr: false,
@@ -67,7 +89,7 @@ export default function MeetingList({
 	const [ref, inView] = useInView();
 	const pathname = usePathname();
 	const router = useRouter();
-
+	const [visitPaymentSummary, setVisitPaymentSummary] = useState<VisitPaymentSummaryModel | null>(null);
 	const loadMore = useCallback(async () => {
 		try {
 			const response =
@@ -163,8 +185,110 @@ export default function MeetingList({
 		router.replace(`${pathname}?${params.toString()}`);
 	};
 
+	const fetchVisitPaymentSummary = async () => {
+		const params = `period=weekly&date_from=${formatDate(startOfWeek(new Date()))}&date_to=${formatDate(endOfWeek(new Date()))}`;
+		const response = await getVisitPaymentSummary(params);
+		setVisitPaymentSummary(response);
+	};
+
+	useEffect(() => {
+		fetchVisitPaymentSummary();
+	}, []);
+
 	return (
 		<div className="grid gap-y-3">
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-5 gap-4">
+				<div className="flex flex-col w-full">
+					<AccessControl
+						required={[PERMISSIONS.STATS_VISIT_PAYMENT]}
+						fallback={<AccessLocked title="Total" className="h-[110px]" />}
+					>
+						<Card className="">
+							<div className="flex flex-row items-start justify-between gap-2">
+								<div className="flex flex-col items-start">
+									<p className="text-xl font-bold text-neutral-900">Total</p>
+									<p className="text-lg font-semibold">{formatNumber(visitPaymentSummary?.total_count ?? 0)}</p>
+								</div>
+								<div className="flex self-center items-center rounded-full bg-primary-500 p-2">
+									<IconCalendarWeek size={32} className="text-white my-auto" />
+								</div>
+							</div>
+						</Card>
+					</AccessControl>
+				</div>
+				<div className="flex flex-col w-full">
+					<AccessControl
+						required={[PERMISSIONS.STATS_VISIT_PAYMENT]}
+						fallback={<AccessLocked title="Total" className="h-[110px]" />}
+					>
+						<Card className="">
+							<div className="flex flex-row items-start justify-between gap-2">
+								<div className="flex flex-col items-start">
+									<p className="text-xl font-bold text-neutral-900">Complete</p>
+									<p className="text-lg font-semibold">{formatNumber(visitPaymentSummary?.complete ?? 0)}</p>
+								</div>
+								<div className="flex self-center items-center rounded-full bg-primary-500 p-2">
+									<IconCalendarCheck size={32} className="text-white my-auto" />
+								</div>
+							</div>
+						</Card>
+					</AccessControl>
+				</div>
+				<div className="flex flex-col w-full">
+					<AccessControl
+						required={[PERMISSIONS.STATS_VISIT_PAYMENT]}
+						fallback={<AccessLocked title="Total" className="h-[110px]" />}
+					>
+						<Card className="">
+							<div className="flex flex-row items-start justify-between gap-2">
+								<div className="flex flex-col items-start">
+									<p className="text-xl font-bold text-neutral-900">Draft</p>
+									<p className="text-lg font-semibold">{formatNumber(visitPaymentSummary?.draft ?? 0)}</p>
+								</div>
+								<div className="flex self-center items-center rounded-full bg-primary-500 p-2">
+									<IconCalendarPause size={32} className="text-white my-auto" />
+								</div>
+							</div>
+						</Card>
+					</AccessControl>
+				</div>
+				<div className="flex flex-col w-full">
+					<AccessControl
+						required={[PERMISSIONS.STATS_VISIT_PAYMENT]}
+						fallback={<AccessLocked title="Total" className="h-[110px]" />}
+					>
+						<Card className="">
+							<div className="flex flex-row items-start justify-between gap-2">
+								<div className="flex flex-col items-start">
+									<p className="text-xl font-bold text-neutral-900">Canceled</p>
+									<p className="text-lg font-semibold">{formatNumber(visitPaymentSummary?.canceled ?? 0)}</p>
+								</div>
+								<div className="flex self-center items-center rounded-full bg-primary-500 p-2">
+									<IconCalendarCancel size={32} className="text-white my-auto" />
+								</div>
+							</div>
+						</Card>
+					</AccessControl>
+				</div>
+				<div className="flex flex-col w-full">
+					<AccessControl
+						required={[PERMISSIONS.STATS_VISIT_PAYMENT]}
+						fallback={<AccessLocked title="Total" className="h-[110px]" />}
+					>
+						<Card className="">
+							<div className="flex flex-row items-start justify-between gap-2">
+								<div className="flex flex-col items-start">
+									<p className="text-xl font-bold text-neutral-900">Amount Paid</p>
+									<p className="text-lg font-semibold">${formatNumber(visitPaymentSummary?.total_amount_paid ?? 0)}</p>
+								</div>
+								<div className="flex self-center items-center rounded-full bg-primary-500 p-2">
+									<IconCurrencyDollar size={32} className="text-white my-auto" />
+								</div>
+							</div>
+						</Card>
+					</AccessControl>
+				</div>
+			</div>
 			<div className="flex items-center mb-5">
 				<FilterList
 					searchPlaceholder="Search meetings"

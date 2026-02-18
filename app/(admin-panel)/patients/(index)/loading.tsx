@@ -1,5 +1,5 @@
-import { PageSkeletons } from "@/app/components/elements/PageSkeletons";
+import { TablePageSkeleton } from "@/app/components/elements/TablePageSkeleton";
 
 export default function Loading() {
-  return <PageSkeletons />
+	return <TablePageSkeleton />;
 }
