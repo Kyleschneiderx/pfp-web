@@ -1,20 +1,19 @@
 import { fetchPatients } from "@/app/components/patients/actions";
-import PatientListTable from "@/app/components/patients/patient-list-table";
+import PatientList from "@/app/components/patients/patient-list";
 import type { PatientModel } from "@/app/models/patient_model";
 
 export default async function Page({
 	searchParams,
 }: {
 	searchParams?: {
-		page?: string;
+		page: string;
 		search?: string;
 		sort?: string;
 		status_id?: string;
 	};
 }) {
-	const page = Math.max(1, Number.parseInt(searchParams?.page || "1", 10) || 1);
 	const search = searchParams?.search || "";
-	const sort = searchParams?.sort || "id:DESC";
+	const sort = searchParams?.sort || "name:ASC";
 	const status_id = searchParams?.status_id || "";
 
 	let patients: PatientModel[] = [];
@@ -22,7 +21,6 @@ export default async function Page({
 
 	try {
 		const { patientList, max_page } = await fetchPatients({
-			page,
 			search,
 			sort,
 			status_id,
@@ -34,15 +32,10 @@ export default async function Page({
 	}
 
 	return (
-		<div>
-			<PatientListTable
-				initialList={patients}
-				initialPage={page}
-				maxPage={maxPage}
-				search={search}
-				sort={sort}
-				status_id={status_id}
-			/>
-		</div>
+		<>
+			<div>
+				<PatientList initialList={patients} search={search} sort={sort} status_id={status_id} maxPage={maxPage} />
+			</div>
+		</>
 	);
 }

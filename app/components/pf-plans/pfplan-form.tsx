@@ -43,6 +43,7 @@ import { FormSkeletons } from "../elements/FormSkeletons";
 import SelectCmp from "../elements/SelectCmp";
 import InfoPopover from "../elements/InfoPopover";
 import { IconCopy } from "@tabler/icons-react";
+import type { CustomForm } from "@/app/models/custom_form_model";
 
 const ConfirmModal = dynamic(() => import("@/app/components/elements/ConfirmModal"), { ssr: false });
 
@@ -98,12 +99,14 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 					name: string;
 					day: number;
 					contents: Record<string, any>[];
+					custom_forms?: CustomForm[];
 					requires_pfdi_update?: boolean;
 				}) => ({
 					id: item.id,
 					name: item.name,
 					day: item.day,
 					requires_pfdi_update: item.requires_pfdi_update ?? false,
+					custom_forms: item?.custom_forms ?? [],
 					contents: item.contents.map((el) => {
 						if (el.exercise) {
 							return {
@@ -213,6 +216,7 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 					name: item.name,
 					day: item.day,
 					requires_pfdi_update: item.requires_pfdi_update ?? false,
+					custom_form_ids: item?.custom_forms?.map((form) => form.id) ?? [],
 					contents: item.contents
 						.map((el) => {
 							if ("exercise" in el) {

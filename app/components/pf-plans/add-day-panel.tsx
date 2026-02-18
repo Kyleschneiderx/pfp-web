@@ -3,6 +3,8 @@ import { EducationModel } from "@/app/models/education_model";
 import { ExerciseModel } from "@/app/models/exercise_model";
 import { PfPlanDailies, PfPlanExerciseModel } from "@/app/models/pfplan_model";
 import { ValidationErrorModel } from "@/app/models/validation_error_model";
+import { CustomForm } from "@/app/models/custom_form_model";
+import { OptionsModel } from "@/app/models/common_model";
 import { usePfPlanDailiesStore } from "@/app/store/store";
 import ArrowLeft from "@/public/svg/arrow-left.svg";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
@@ -14,9 +16,11 @@ import { useEffect, useState } from "react";
 import Button from "../elements/Button";
 import Card from "../elements/Card";
 import Input from "../elements/Input";
+import SelectCmp from "../elements/SelectCmp";
 import MoveTaskIcon from "../icons/move_task_icon";
 import Switch from "../elements/Switch";
 import { validateDayForm } from "./add-day-validation";
+import { getCustomForms } from "@/app/services/client_side/custom-forms";
 
 const ExerciseEducationPanel = dynamic(() => import("./exercise-education-panel"), { ssr: false });
 
@@ -32,6 +36,8 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
 	const [isOpenSelectList, setIsOpenSelectList] = useState(false);
 	const [exercises, setExercises] = useState<PfPlanExerciseModel[]>([]);
 	const [selectedEducation, setSelectedEducation] = useState<EducationModel | null>(null);
+	const [selectedCustomForms, setSelectedCustomForms] = useState<CustomForm[]>([]);
+	const [customFormOptions, setCustomFormOptions] = useState<OptionsModel[]>([]);
 	const [activeTab, setActiveTab] = useState(1);
 	const [currentDayCount, setCurrentDayCount] = useState(1);
 	const [requiresPfdiUpdate, setRequiresPfdiUpdate] = useState<boolean>(false);
@@ -43,10 +49,29 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
 	}, [days]);
 
 	useEffect(() => {
+		const fetchCustomForms = async () => {
+			try {
+				const data = await getCustomForms();
+				setCustomFormOptions(
+					data.data.map((form) => ({
+						label: form.name || form.identifier,
+						value: form.id.toString(),
+						customForm: form,
+					})),
+				);
+			} catch (error) {
+				console.error("Failed to fetch custom forms:", error);
+			}
+		};
+		fetchCustomForms();
+	}, []);
+
+	useEffect(() => {
 		if (!selectedDay) return;
 
 		setName(selectedDay.name);
 		setRequiresPfdiUpdate(selectedDay.requires_pfdi_update ?? false);
+		setSelectedCustomForms((selectedDay as any).custom_forms || []);
 
 		const [firstContent, ...restContents] = selectedDay.contents;
 		const isEducationContent = firstContent && "title" in firstContent;
@@ -135,12 +160,13 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
 			if (selectedEducation) {
 				contents.unshift(selectedEducation);
 			}
-			const day: PfPlanDailies = {
+			const day: any = {
 				id: selectedDay?.id,
 				name: name,
 				day: selectedDay?.day || currentDayCount,
 				contents: contents,
 				requires_pfdi_update: requiresPfdiUpdate,
+				custom_forms: selectedCustomForms.length > 0 ? selectedCustomForms : undefined,
 			};
 			setDay(day);
 			clear();
@@ -154,6 +180,7 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
 	const clear = () => {
 		setName("");
 		setSelectedEducation(null);
+		setSelectedCustomForms([]);
 		setExercises([]);
 		setSelectedDay(null);
 		setRequiresPfdiUpdate(false);
@@ -219,17 +246,47 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
 							/>
 						</div>
 
+						<>
+							<div className="flex items-center">
+								<p className="text-[22px] font-semibold">Forms</p>
+							</div>
+							<div className="">
+								<SelectCmp
+									isMulti
+									value={selectedCustomForms.map((form) => ({
+										label: form.name || form.identifier,
+										value: form.id.toString(),
+									}))}
+									options={customFormOptions}
+									onChange={(selected) => {
+										const selectedIds = (selected as OptionsModel[]).map((opt) => parseInt(opt.value));
+										const forms = selectedIds
+											.map((id) => {
+												const existing = selectedCustomForms.find((f) => f.id === id);
+												if (existing) return existing;
+												const option = customFormOptions.find((opt) => opt.value === id.toString());
+												return option?.customForm as CustomForm;
+											})
+											.filter(Boolean);
+										setSelectedCustomForms(forms);
+									}}
+									placeholder="Select forms..."
+								/>
+							</div>
+						</>
+
 						{exercises.length === 0 && !selectedEducation && (
 							<>
-								<Button label="Add" outlined className="ml-auto mb-4" onClick={() => setIsOpenSelectList(true)} />
+								<Button label="Add" outlined className="ml-auto mb-4 mt-3" onClick={() => setIsOpenSelectList(true)} />
 								<p className="text-center text-neutral-400 my-[100px]">
 									You don't have any workout or education added yet
 								</p>
 							</>
 						)}
+
 						{selectedEducation && (
 							<>
-								<div className="flex items-center">
+								<div className="flex items-center mt-5">
 									<p className="text-[22px] font-semibold">Education</p>
 									<Button
 										label="Change"

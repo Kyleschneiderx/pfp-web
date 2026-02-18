@@ -59,7 +59,9 @@ export default function AccessLocked({
 		>
 			{title && <span className="text-xl p-5 font-bold w-full">{title}</span>}
 			<div className="flex items-center justify-center">
-				<div className={`absolute inset-0 flex items-center justify-center ${BLUR_CLASSES[blur]} ${DIM_CLASSES[dim]}`}>
+				<div
+					className={`absolute inset-0 flex p-3 items-center justify-center ${BLUR_CLASSES[blur]} ${DIM_CLASSES[dim]}`}
+				>
 					<div className="flex flex-col items-center justify-center space-y-1">
 						<div className="flex items-center gap-2 text-neutral-800">
 							{showLock && <IconLockAccess className="text-neutral-700" size={20} />}

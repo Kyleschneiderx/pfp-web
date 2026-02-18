@@ -56,6 +56,8 @@ export const PERMISSIONS = {
 	STATS_APP_PAGES: "app_page_stats",
 	STATS_DAILY_SIGNUPS: "daily_signup_stats",
 	STATS_AI_PROMPTS: "ai_prompt_stats",
+	STATS_INVITED: "invited_stats",
+	STATS_VISIT_PAYMENT: "visit_payment_stats",
 	PATIENT_VIEW: "view_patient",
 	PATIENT_CREATE: "add_patient",
 	PATIENT_EDIT: "edit_patient",

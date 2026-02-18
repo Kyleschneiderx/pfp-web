@@ -1,9 +1,22 @@
 import { apiClient } from "@/app/services/apiClient";
 import type { CustomForm, CustomFormCreateBody, CustomFormUpdateBody } from "@/app/models/custom_form_model";
+import type { DefaultSearchQuery, List } from "@/app/models/global_model";
 
 function unwrap<T>(data: T | { data: T }): T {
 	return data && typeof data === "object" && "data" in data ? (data as { data: T }).data : (data as T);
 }
+
+export type CustomFormSearchQuery = DefaultSearchQuery;
+
+export const getCustomForms = async (params?: CustomFormSearchQuery): Promise<List<CustomForm>> => {
+	const url = "/custom-forms";
+	const data = await apiClient<List<CustomForm>>({
+		url,
+		method: "GET",
+		params,
+	});
+	return data;
+};
 
 export const createCustomForm = async (body: CustomFormCreateBody): Promise<CustomForm> => {
 	const result = await apiClient<CustomForm | { data: CustomForm }>({

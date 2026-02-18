@@ -6,6 +6,7 @@ export interface PatientModel {
 	created_at: string;
 	updated_at: string;
 	user_profile: UserProfile;
+	provider?: PatientModel | null;
 	account_type: AccountType;
 	user_type: UserType;
 	status: Status;
