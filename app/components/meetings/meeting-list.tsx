@@ -53,6 +53,7 @@ import { revalidatePage } from "@/app/lib/revalidate";
 import useAuth from "@/app/hooks/useAuth";
 import DataList from "../data-list";
 import {
+	IconCalendar,
 	IconCalendarCancel,
 	IconCalendarCheck,
 	IconCalendarPause,
@@ -64,7 +65,7 @@ import {
 import AccessControl from "../access-control";
 import AccessLocked from "../access-locked";
 import { formatNumber } from "@/app/lib/number-format";
-import type { VisitPaymentSummaryModel } from "@/app/models/visit_payment_stats";
+import type { VisitPaymentStatsModel } from "@/app/models/visit_payment_stats_model";
 
 const FilterList = dynamic(() => import("../elements/FilterList"), {
 	ssr: false,
@@ -89,7 +90,7 @@ export default function MeetingList({
 	const [ref, inView] = useInView();
 	const pathname = usePathname();
 	const router = useRouter();
-	const [visitPaymentSummary, setVisitPaymentSummary] = useState<VisitPaymentSummaryModel | null>(null);
+	const [visitPaymentSummary, setVisitPaymentSummary] = useState<VisitPaymentStatsModel | null>(null);
 	const loadMore = useCallback(async () => {
 		try {
 			const response =
@@ -197,7 +198,7 @@ export default function MeetingList({
 
 	return (
 		<div className="grid gap-y-3">
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-5 gap-4">
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4">
 				<div className="flex flex-col w-full">
 					<AccessControl
 						required={[PERMISSIONS.STATS_VISIT_PAYMENT]}
@@ -207,7 +208,7 @@ export default function MeetingList({
 							<div className="flex flex-row items-start justify-between gap-2">
 								<div className="flex flex-col items-start">
 									<p className="text-xl font-bold text-neutral-900">Total</p>
-									<p className="text-lg font-semibold">{formatNumber(visitPaymentSummary?.total_count ?? 0)}</p>
+									<p className="text-lg font-semibold">{formatNumber(visitPaymentSummary?.stats?.total_count ?? 0)}</p>
 								</div>
 								<div className="flex self-center items-center rounded-full bg-primary-500 p-2">
 									<IconCalendarWeek size={32} className="text-white my-auto" />
@@ -216,6 +217,7 @@ export default function MeetingList({
 						</Card>
 					</AccessControl>
 				</div>
+
 				<div className="flex flex-col w-full">
 					<AccessControl
 						required={[PERMISSIONS.STATS_VISIT_PAYMENT]}
@@ -224,11 +226,11 @@ export default function MeetingList({
 						<Card className="">
 							<div className="flex flex-row items-start justify-between gap-2">
 								<div className="flex flex-col items-start">
-									<p className="text-xl font-bold text-neutral-900">Complete</p>
-									<p className="text-lg font-semibold">{formatNumber(visitPaymentSummary?.complete ?? 0)}</p>
+									<p className="text-xl font-bold text-neutral-900">Upcoming</p>
+									<p className="text-lg font-semibold">{formatNumber(visitPaymentSummary?.stats?.upcoming ?? 0)}</p>
 								</div>
 								<div className="flex self-center items-center rounded-full bg-primary-500 p-2">
-									<IconCalendarCheck size={32} className="text-white my-auto" />
+									<IconCalendar size={32} className="text-white my-auto" />
 								</div>
 							</div>
 						</Card>
@@ -243,7 +245,7 @@ export default function MeetingList({
 							<div className="flex flex-row items-start justify-between gap-2">
 								<div className="flex flex-col items-start">
 									<p className="text-xl font-bold text-neutral-900">Draft</p>
-									<p className="text-lg font-semibold">{formatNumber(visitPaymentSummary?.draft ?? 0)}</p>
+									<p className="text-lg font-semibold">{formatNumber(visitPaymentSummary?.stats?.draft ?? 0)}</p>
 								</div>
 								<div className="flex self-center items-center rounded-full bg-primary-500 p-2">
 									<IconCalendarPause size={32} className="text-white my-auto" />
@@ -261,7 +263,7 @@ export default function MeetingList({
 							<div className="flex flex-row items-start justify-between gap-2">
 								<div className="flex flex-col items-start">
 									<p className="text-xl font-bold text-neutral-900">Canceled</p>
-									<p className="text-lg font-semibold">{formatNumber(visitPaymentSummary?.canceled ?? 0)}</p>
+									<p className="text-lg font-semibold">{formatNumber(visitPaymentSummary?.stats?.canceled ?? 0)}</p>
 								</div>
 								<div className="flex self-center items-center rounded-full bg-primary-500 p-2">
 									<IconCalendarCancel size={32} className="text-white my-auto" />
@@ -278,8 +280,29 @@ export default function MeetingList({
 						<Card className="">
 							<div className="flex flex-row items-start justify-between gap-2">
 								<div className="flex flex-col items-start">
+									<p className="text-xl font-bold text-neutral-900">Complete</p>
+									<p className="text-lg font-semibold">{formatNumber(visitPaymentSummary?.stats?.complete ?? 0)}</p>
+								</div>
+								<div className="flex self-center items-center rounded-full bg-primary-500 p-2">
+									<IconCalendarCheck size={32} className="text-white my-auto" />
+								</div>
+							</div>
+						</Card>
+					</AccessControl>
+				</div>
+
+				<div className="flex flex-col w-full">
+					<AccessControl
+						required={[PERMISSIONS.STATS_VISIT_PAYMENT]}
+						fallback={<AccessLocked title="Total" className="h-[110px]" />}
+					>
+						<Card className="">
+							<div className="flex flex-row items-start justify-between gap-2">
+								<div className="flex flex-col items-start">
 									<p className="text-xl font-bold text-neutral-900">Amount Paid</p>
-									<p className="text-lg font-semibold">${formatNumber(visitPaymentSummary?.total_amount_paid ?? 0)}</p>
+									<p className="text-lg font-semibold">
+										${formatNumber(visitPaymentSummary?.stats?.total_amount_paid ?? 0)}
+									</p>
 								</div>
 								<div className="flex self-center items-center rounded-full bg-primary-500 p-2">
 									<IconCurrencyDollar size={32} className="text-white my-auto" />

@@ -39,3 +39,6 @@ next-env.d.ts
 
 .codegpt
 /.vscode
+.claude
+.cursor
+.codex
