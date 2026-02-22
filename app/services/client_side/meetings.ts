@@ -6,11 +6,11 @@ import type {
 	MeetingForm,
 	MeetingSoapNotes,
 } from "@/app/models/meeting_model";
-import type { VisitPaymentSummaryModel } from "@/app/models/visit_payment_stats";
+import type { VisitPaymentStatsModel } from "@/app/models/visit_payment_stats_model";
 
-export const getVisitPaymentSummary = async (params: string): Promise<VisitPaymentSummaryModel> => {
+export const getVisitPaymentSummary = async (params: string): Promise<VisitPaymentStatsModel> => {
 	const url = `/stats/visit-payment?${params}`;
-	return apiClient<VisitPaymentSummaryModel>({ url: url, method: "GET" });
+	return apiClient<VisitPaymentStatsModel>({ url: url, method: "GET" });
 };
 
 export const getMeeting = async (slug: number | string): Promise<Meeting> => {
