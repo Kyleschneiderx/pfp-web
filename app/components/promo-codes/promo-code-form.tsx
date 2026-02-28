@@ -16,6 +16,7 @@ import { Controller, useForm } from "react-hook-form";
 import type { PromoCode, PromoCodeFormSchema } from "@/app/models/promo-code";
 import InfoPopover from "../elements/InfoPopover";
 import InputCalendar from "../elements/InputCalendar";
+import Switch from "../elements/Switch";
 import { deletePromoCode, savePromoCode } from "@/app/services/client_side/promo-codes";
 
 export default function PromoCodeForm({ promoCode }: { promoCode?: PromoCode }) {
@@ -33,6 +34,7 @@ export default function PromoCodeForm({ promoCode }: { promoCode?: PromoCode }) 
 			times_to_claim: promoCode?.times_to_claim,
 			percent_off: promoCode?.percent_off,
 			expires_at: promoCode?.expires_at,
+			is_user_upgradable: promoCode?.is_user_upgradable ?? false,
 		},
 	});
 
@@ -124,20 +126,42 @@ export default function PromoCodeForm({ promoCode }: { promoCode?: PromoCode }) 
 			<div className="flex flex-col sm:flex-row mt-3 sm:mt-8">
 				<div className="w-full self-start order-2 sm:order-first sm:w-[636px] sm:p-5 space-y-4 sm:mr-6 z-10 rounded-lg sm:bg-white sm:drop-shadow-center">
 					<div>
-						<div className="flex space-x-1 items-end mb-2">
-							<p className="font-medium">Code</p>
-							<InfoPopover side="right">
-								<div className="text-sm text-neutral-700 max-w-xs flex flex-col space-y-1">
-									<span className="font-semibold">Code</span>
-									<p className="text-xs">
-										The unique code that customers will use to redeem the promo code. Code should be alphanumeric and
-										hypen only.
-									</p>
-									<span className="text-error-500 italic text-xs">
-										Note: System will automatically generate a code when left blank. e.g XXXX-XXXX-XXXX
-									</span>
-								</div>
-							</InfoPopover>
+						<div className="flex space-x-1 items-end mb-2 justify-between">
+							<div className="flex items-center space-x-1">
+								<p className="font-medium">Code</p>
+								<InfoPopover side="right">
+									<div className="text-sm text-neutral-700 max-w-xs flex flex-col space-y-1">
+										<span className="font-semibold">Code</span>
+										<p className="text-xs">
+											The unique code that customers will use to redeem the promo code. Code should be alphanumeric and
+											hypen only.
+										</p>
+										<span className="text-error-500 italic text-xs">
+											Note: System will automatically generate a code when left blank. e.g XXXX-XXXX-XXXX
+										</span>
+									</div>
+								</InfoPopover>
+							</div>
+							<div className="flex items-center space-x-1">
+								<Controller
+									name="is_user_upgradable"
+									control={form.control}
+									render={({ field }) => (
+										<Switch
+											checked={field.value ?? false}
+											onCheckedChange={field.onChange}
+											checkedLabel="With Upgrade"
+											unCheckedLabel="Without Upgrade"
+										/>
+									)}
+								/>
+								<InfoPopover side="right">
+									<div className="text-sm text-neutral-700 max-w-xs flex flex-col space-y-1">
+										<span className="font-semibold">Upgrade User</span>
+										<p className="text-xs">Upgrades user account to Premium when claiming this promo code.</p>
+									</div>
+								</InfoPopover>
+							</div>
 						</div>
 						<Controller
 							name="code"
@@ -233,6 +257,7 @@ export default function PromoCodeForm({ promoCode }: { promoCode?: PromoCode }) 
 							render={({ field }) => (
 								<InputCalendar
 									className="!pl-4 !text-base !py-[12px] rounded-md w-full"
+									placeholder="Select Expiration Date"
 									dateOnly
 									value={field.value}
 									onChange={field.onChange}

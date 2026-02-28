@@ -9,7 +9,7 @@ interface SurveyGroupResponse {
 }
 
 export const getSurveyGroups = async (): Promise<SurveyGroupModel[]> => {
-	const url = "/selections?survey_groups";
+	const url = "/selections?select[]=survey_group";
 	const data: SurveyGroupResponse = await apiClient({
 		url: url,
 		method: "GET",
@@ -29,7 +29,7 @@ export const getSurveyQuestions = async (): Promise<SurveyQuestionModel[]> => {
 export const saveSurveyGroup = async (
 	method: "POST" | "PUT",
 	id: number | undefined,
-	body: { description: string; question_id: number[] },
+	body: { value: string; description?: string; question_id: number[] },
 ): Promise<SurveyGroupModel> => {
 	const url = `/selections/content-categories/${id ?? ""}`;
 	return await apiClient<SurveyGroupModel>({ url: url, method: method, body: body });

@@ -4,6 +4,7 @@ export interface SurveyQuestionModel {
 }
 export interface SurveyGroupModel {
 	id: number;
+	value: string;
 	description: string;
 	questions: SurveyQuestionModel[];
 }

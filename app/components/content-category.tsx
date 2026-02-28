@@ -22,11 +22,12 @@ import { useSnackBar } from "../contexts/SnackBarContext";
 interface ContentCategoryFormModalProps {
 	onClose: () => void;
 	category?: SurveyGroupModel;
-	onProceed: (data: { name: string; questions: OptionsModel[] }) => void;
+	onProceed: (data: { name: string; description: string; questions: OptionsModel[] }) => void;
 }
 
 export function ContentCategoryFormModal({ onClose, category, onProceed }: ContentCategoryFormModalProps) {
 	const [name, setName] = useState<string>("");
+	const [description, setDescription] = useState<string>("");
 	const [questions, setQuestions] = useState<OptionsModel[]>([]);
 	const [questionList, setQuestionList] = useState<OptionsModel[]>([]);
 
@@ -34,6 +35,7 @@ export function ContentCategoryFormModal({ onClose, category, onProceed }: Conte
 		if (name.trim() !== "") {
 			onProceed({
 				name,
+				description,
 				questions,
 			});
 		}
@@ -60,7 +62,8 @@ export function ContentCategoryFormModal({ onClose, category, onProceed }: Conte
 
 	useEffect(() => {
 		if (category) {
-			setName(category.description);
+			setName(category.value);
+			setDescription(category.description || "");
 			setQuestions(
 				category.questions.map((el) => ({
 					label: `${el.id}. ${el.question}`,
@@ -77,6 +80,15 @@ export function ContentCategoryFormModal({ onClose, category, onProceed }: Conte
 				<div className="mt-2">
 					<p className="mb-2">Category</p>
 					<Input type="text" placeholder="Enter new category" value={name} onChange={(e) => setName(e.target.value)} />
+				</div>
+				<div className="mt-2">
+					<p className="mb-2">Description</p>
+					<Input
+						type="text"
+						placeholder="Enter description"
+						value={description}
+						onChange={(e) => setDescription(e.target.value)}
+					/>
 				</div>
 				<div className="mt-2">
 					<p className="mb-2">Questions</p>
@@ -124,10 +136,13 @@ export function ContentCategoryListModal({
 				<ul className="border border-neutral-300 rounded-lg text-start overflow-auto h-[200px]">
 					{categories.map((item) => (
 						<li
-							key={item.description}
+							key={item.value}
 							className="flex w-full py-2 px-4 text-neutral-600 hover:bg-primary-50 hover:text-primary-500 group"
 						>
-							<span>{item.description}</span>
+							<div className="flex flex-col">
+								<span>{item.value}</span>
+								<span className="text-neutral-500 text-sm font-light">{item.description}</span>
+							</div>
 							<FilePenIcon
 								className="ml-auto mr-2 hidden group-hover:inline-block cursor-pointer"
 								onClick={() => onEditClick(item)}
@@ -157,6 +172,7 @@ export default function ContentCategory({ onChange, categories, className }: Pro
 	const [isContentCategoryFormModalOpen, setIsContentCategoryFormModalOpen] = useState(false);
 	const [isContentCategoryListModalOpen, setIsContentCategoryListModalOpen] = useState<boolean>(false);
 	const [categoryName, setCategoryName] = useState<string>("");
+	const [categoryDescription, setCategoryDescription] = useState<string>("");
 	const [contentCategory, setContentCategory] = useState<SurveyGroupModel>();
 	const [categoryQuestionId, setCategoryQuestionId] = useState<OptionsModel[]>([]);
 	const [isContentCategoryProcessing, setIsContentCategoryProcessing] = useState<boolean>(false);
@@ -169,7 +185,7 @@ export default function ContentCategory({ onChange, categories, className }: Pro
 			const list = await getSurveyGroups();
 			setCategoryList(list);
 			const transformList = list.map((el) => ({
-				label: el.description,
+				label: el.value,
 				value: el.id.toString(),
 			}));
 			setCategoryOptionList(transformList);
@@ -184,8 +200,13 @@ export default function ContentCategory({ onChange, categories, className }: Pro
 		getCategories();
 	}, []);
 
-	const handleCreateCategory = ({ name, questions }: { name: string; questions: OptionsModel[] }) => {
+	const handleCreateCategory = ({
+		name,
+		description,
+		questions,
+	}: { name: string; description: string; questions: OptionsModel[] }) => {
 		setCategoryName(name);
+		setCategoryDescription(description);
 		setCategoryQuestionId(questions);
 		setIsContentCategoryFormModalOpen(false);
 		setIsSaveContentCategoryConfirmModalOpen(true);
@@ -208,7 +229,8 @@ export default function ContentCategory({ onChange, categories, className }: Pro
 			try {
 				setIsContentCategoryProcessing(true);
 				await saveSurveyGroup(contentCategory ? "PUT" : "POST", contentCategory?.id, {
-					description: categoryName,
+					value: categoryName,
+					description: categoryDescription,
 					question_id: categoryQuestionId.map((category) => Number(category.value)),
 				});
 				showSnackBar({
@@ -218,6 +240,9 @@ export default function ContentCategory({ onChange, categories, className }: Pro
 				setIsContentCategoryProcessing(false);
 				setIsSaveContentCategoryConfirmModalOpen(false);
 				setContentCategory(undefined);
+				setCategoryName("");
+				setCategoryDescription("");
+				setCategoryQuestionId([]);
 				await getCategories();
 			} catch (error) {
 				const apiError = error as ErrorModel;

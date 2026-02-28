@@ -6,6 +6,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 interface Props {
+	placeholder?: string;
 	timeOnly?: boolean;
 	dateOnly?: boolean;
 	className?: string;
@@ -24,6 +25,7 @@ const CustomInput = forwardRef(({ value, onClick }: any, ref) => (
 ));
 
 const InputCalendar = ({
+	placeholder = "Select Date",
 	timeFormat = "HH:mm:ss",
 	dateFormat = "yyyy-MM-dd",
 	onChange,
@@ -55,6 +57,7 @@ const InputCalendar = ({
 				selected={date}
 				timeIntervals={15} // step in minutes
 				onChange={handleOnChange}
+				placeholderText={placeholder}
 				dateFormat={inputFormat}
 				timeFormat={timeFormat}
 				showTimeSelect={(timeOnly ?? false) || (!timeOnly && !dateOnly)}
