@@ -22,13 +22,15 @@ export default function InfoPopover({
 					<Info className="h-4 w-4 text-neutral-500" />
 				</div>
 			</Popover.Trigger>
-			<Popover.Content
-				className={clsx("w-80 z-10 outline-none rounded-md drop-shadow-center bg-white p-5", className)}
-				side={side}
-				align={align}
-			>
-				{children ?? content}
-			</Popover.Content>
+			<Popover.Portal>
+				<Popover.Content
+					className={clsx("w-80 z-[9999] outline-none rounded-md drop-shadow-center bg-white p-5", className)}
+					side={side}
+					align={align}
+				>
+					{children ?? content}
+				</Popover.Content>
+			</Popover.Portal>
 		</Popover.Root>
 	);
 }
