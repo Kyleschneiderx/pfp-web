@@ -5,18 +5,32 @@ import { revalidatePage } from "@/app/lib/revalidate";
 import { formatDateToLocal } from "@/app/lib/utils";
 import type { ErrorModel } from "@/app/models/error_model";
 import type { PromoCode } from "@/app/models/promo-code";
+import type { PromoCodeStatsModel } from "@/app/models/promo_code_stats_model";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
-import { Copy, EllipsisIcon } from "lucide-react";
+import {
+	Copy,
+	EllipsisIcon,
+	Ticket,
+	Users,
+	HandCoins,
+	Gift,
+	Gauge,
+	Zap,
+	type LucideIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { useModal } from "@/app/contexts/ModalContext";
 import Button from "../elements/Button";
+import Card from "../elements/Card";
 import DataTable, { type Column } from "../elements/DataTable";
+import InfoPopover from "../elements/InfoPopover";
 import Loader from "../elements/Loader";
 import ResponsiveActionMenu from "../elements/ResponsiveActionMenu";
 import IconAddButton from "../elements/mobile/IconAddButton";
 import { deletePromoCode } from "@/app/services/client_side/promo-codes";
+import { getPromoCodeStats } from "@/app/services/client_side/stats";
 
 export default function PromoCodeList({
 	initialList,
@@ -42,6 +56,8 @@ export default function PromoCodeList({
 	const [page, setPage] = useState(initialPage);
 	const [isPending, startTransition] = useTransition();
 	const [searchInput, setSearchInput] = useState(search);
+	const [promoStats, setPromoStats] = useState<PromoCodeStatsModel | null>(null);
+	const [statsLoading, setStatsLoading] = useState(true);
 
 	const updateParams = useCallback(
 		(updates: Record<string, string | undefined>) => {
@@ -83,6 +99,21 @@ export default function PromoCodeList({
 	useEffect(() => {
 		setSearchInput(search);
 	}, [search]);
+
+	useEffect(() => {
+		let cancelled = false;
+		setStatsLoading(true);
+		getPromoCodeStats()
+			.then((stats) => {
+				if (!cancelled) setPromoStats(stats);
+			})
+			.finally(() => {
+				if (!cancelled) setStatsLoading(false);
+			});
+		return () => {
+			cancelled = true;
+		};
+	}, []);
 
 	const handleCopyCode = async (code: string, e: React.MouseEvent) => {
 		e.preventDefault();
@@ -141,6 +172,14 @@ export default function PromoCodeList({
 			accessor: (row) => `${row.voucher_to_generate ?? 0}`,
 		},
 		{
+			header: "Times claimed",
+			accessor: (row) => row.total_claimed ?? 0,
+		},
+		{
+			header: "Times to claim",
+			accessor: (row) => row.times_to_claim ?? 0,
+		},
+		{
 			header: "User Upgrade",
 			accessor: (row) => (row.is_user_upgradable ? "Yes" : "No"),
 		},
@@ -176,6 +215,34 @@ export default function PromoCodeList({
 		},
 	];
 
+	const statCards: {
+		label: string;
+		value: number;
+		icon: LucideIcon;
+		infoContent?: React.ReactNode;
+	}[] = [
+		{ label: "Total promo codes", value: promoStats?.total_promo_codes ?? 0, icon: Ticket },
+    { label: "Active codes", value: promoStats?.active_promo_codes ?? 0, icon: Zap },
+		{ label: "Unique users claimed", value: promoStats?.unique_users_claimed ?? 0, icon: Users },
+		{ label: "Total claims", value: promoStats?.total_claims ?? 0, icon: HandCoins },
+		{ label: "Vouchers generated", value: promoStats?.total_vouchers_generated ?? 0, icon: Gift },
+		// {
+		// 	label: "Promo codes at limit",
+		// 	value: promoStats?.promo_codes_at_capacity ?? 0,
+		// 	icon: Gauge,
+		// 	infoContent: (
+		// 		<div className="text-sm text-neutral-700 max-w-xs flex flex-col space-y-1">
+		// 			<span className="font-semibold">Promo codes at limit</span>
+		// 			<p className="text-xs">
+		// 				Number of promo codes that have reached their claim limit (times claimed ≥ times to claim). These
+		// 				codes can no longer be claimed until the limit is increased.
+		// 			</p>
+		// 		</div>
+		// 	),
+		// },
+
+	];
+
 	return (
 		<div className="space-y-4">
 			<div className="flex items-center justify-between flex-wrap gap-4">
@@ -190,6 +257,41 @@ export default function PromoCodeList({
 					<IconAddButton className="sm:hidden" />
 				</Link>
 			</div>
+
+			{statsLoading ? (
+				<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+					{statCards.map((_, i) => (
+						<Card key={i} className="animate-pulse">
+							<div className="h-8 bg-neutral-200 rounded w-12" />
+							<div className="h-4 bg-neutral-100 rounded w-24 mt-2" />
+						</Card>
+					))}
+				</div>
+			) : (
+				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+					{statCards.map((card) => {
+						const Icon = card.icon;
+						return (
+							<Card key={card.label}>
+								<div className="flex items-start justify-between gap-2">
+									<div className="min-w-0">
+										<p className="text-2xl font-bold text-neutral-900">{card.value}</p>
+										<div className="flex items-center gap-1 mt-0.5">
+											<p className="text-sm text-neutral-600">{card.label}</p>
+											{card.infoContent ? (
+												<InfoPopover side="top" align="start">
+													{card.infoContent}
+												</InfoPopover>
+											) : null}
+										</div>
+									</div>
+									<Icon className="size-8 shrink-0 text-primary-500" aria-hidden />
+								</div>
+							</Card>
+						);
+					})}
+				</div>
+			)}
 
 			<div>
 				{isPending ? (

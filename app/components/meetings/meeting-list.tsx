@@ -186,132 +186,73 @@ export default function MeetingList({
 		router.replace(`${pathname}?${params.toString()}`);
 	};
 
+	const [statsLoading, setStatsLoading] = useState(true);
+
 	const fetchVisitPaymentSummary = async () => {
 		const params = `period=weekly&date_from=${formatDate(startOfWeek(new Date()))}&date_to=${formatDate(endOfWeek(new Date()))}`;
 		const response = await getVisitPaymentSummary(params);
 		setVisitPaymentSummary(response);
+		setStatsLoading(false);
 	};
 
 	useEffect(() => {
 		fetchVisitPaymentSummary();
 	}, []);
 
+	const statCards = [
+		{ label: "Total", value: formatNumber(visitPaymentSummary?.stats?.total_count ?? 0), Icon: IconCalendarWeek },
+		{ label: "Upcoming", value: formatNumber(visitPaymentSummary?.stats?.upcoming ?? 0), Icon: IconCalendar },
+		{ label: "Draft", value: formatNumber(visitPaymentSummary?.stats?.draft ?? 0), Icon: IconCalendarPause },
+		{ label: "Canceled", value: formatNumber(visitPaymentSummary?.stats?.canceled ?? 0), Icon: IconCalendarCancel },
+		{ label: "Complete", value: formatNumber(visitPaymentSummary?.stats?.complete ?? 0), Icon: IconCalendarCheck },
+		{
+			label: "Amount Paid",
+			value: `$${formatNumber(visitPaymentSummary?.stats?.total_amount_paid ?? 0)}`,
+			Icon: IconCurrencyDollar,
+		},
+	];
+
 	return (
 		<div className="grid gap-y-3">
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4">
-				<div className="flex flex-col w-full">
-					<AccessControl
-						required={[PERMISSIONS.STATS_VISIT_PAYMENT]}
-						fallback={<AccessLocked title="Total" className="h-[110px]" />}
-					>
-						<Card className="">
-							<div className="flex flex-row items-start justify-between gap-2">
-								<div className="flex flex-col items-start">
-									<p className="text-xl font-bold text-neutral-900">Total</p>
-									<p className="text-lg font-semibold">{formatNumber(visitPaymentSummary?.stats?.total_count ?? 0)}</p>
-								</div>
-								<div className="flex self-center items-center rounded-full bg-primary-500 p-2">
-									<IconCalendarWeek size={32} className="text-white my-auto" />
-								</div>
-							</div>
-						</Card>
-					</AccessControl>
+			{statsLoading ? (
+				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+					{statCards.map((_, i) => (
+						<AccessControl
+							key={i}
+							required={[PERMISSIONS.STATS_VISIT_PAYMENT]}
+							fallback={<AccessLocked title="" className="h-[88px]" />}
+						>
+							<Card className="animate-pulse">
+								<div className="h-8 bg-neutral-200 rounded w-12" />
+								<div className="h-4 bg-neutral-100 rounded w-24 mt-2" />
+							</Card>
+						</AccessControl>
+					))}
 				</div>
-
-				<div className="flex flex-col w-full">
-					<AccessControl
-						required={[PERMISSIONS.STATS_VISIT_PAYMENT]}
-						fallback={<AccessLocked title="Total" className="h-[110px]" />}
-					>
-						<Card className="">
-							<div className="flex flex-row items-start justify-between gap-2">
-								<div className="flex flex-col items-start">
-									<p className="text-xl font-bold text-neutral-900">Upcoming</p>
-									<p className="text-lg font-semibold">{formatNumber(visitPaymentSummary?.stats?.upcoming ?? 0)}</p>
-								</div>
-								<div className="flex self-center items-center rounded-full bg-primary-500 p-2">
-									<IconCalendar size={32} className="text-white my-auto" />
-								</div>
-							</div>
-						</Card>
-					</AccessControl>
+			) : (
+				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+					{statCards.map((card) => {
+						const Icon = card.Icon;
+						return (
+							<AccessControl
+								key={card.label}
+								required={[PERMISSIONS.STATS_VISIT_PAYMENT]}
+								fallback={<AccessLocked title={card.label} className="min-h-[88px]" />}
+							>
+								<Card>
+									<div className="flex items-start justify-between gap-2">
+										<div className="min-w-0">
+											<p className="text-2xl font-bold text-neutral-900">{card.value}</p>
+											<p className="text-sm text-neutral-600 mt-0.5">{card.label}</p>
+										</div>
+										<Icon className="size-8 shrink-0 text-primary-500" aria-hidden />
+									</div>
+								</Card>
+							</AccessControl>
+						);
+					})}
 				</div>
-				<div className="flex flex-col w-full">
-					<AccessControl
-						required={[PERMISSIONS.STATS_VISIT_PAYMENT]}
-						fallback={<AccessLocked title="Total" className="h-[110px]" />}
-					>
-						<Card className="">
-							<div className="flex flex-row items-start justify-between gap-2">
-								<div className="flex flex-col items-start">
-									<p className="text-xl font-bold text-neutral-900">Draft</p>
-									<p className="text-lg font-semibold">{formatNumber(visitPaymentSummary?.stats?.draft ?? 0)}</p>
-								</div>
-								<div className="flex self-center items-center rounded-full bg-primary-500 p-2">
-									<IconCalendarPause size={32} className="text-white my-auto" />
-								</div>
-							</div>
-						</Card>
-					</AccessControl>
-				</div>
-				<div className="flex flex-col w-full">
-					<AccessControl
-						required={[PERMISSIONS.STATS_VISIT_PAYMENT]}
-						fallback={<AccessLocked title="Total" className="h-[110px]" />}
-					>
-						<Card className="">
-							<div className="flex flex-row items-start justify-between gap-2">
-								<div className="flex flex-col items-start">
-									<p className="text-xl font-bold text-neutral-900">Canceled</p>
-									<p className="text-lg font-semibold">{formatNumber(visitPaymentSummary?.stats?.canceled ?? 0)}</p>
-								</div>
-								<div className="flex self-center items-center rounded-full bg-primary-500 p-2">
-									<IconCalendarCancel size={32} className="text-white my-auto" />
-								</div>
-							</div>
-						</Card>
-					</AccessControl>
-				</div>
-				<div className="flex flex-col w-full">
-					<AccessControl
-						required={[PERMISSIONS.STATS_VISIT_PAYMENT]}
-						fallback={<AccessLocked title="Total" className="h-[110px]" />}
-					>
-						<Card className="">
-							<div className="flex flex-row items-start justify-between gap-2">
-								<div className="flex flex-col items-start">
-									<p className="text-xl font-bold text-neutral-900">Complete</p>
-									<p className="text-lg font-semibold">{formatNumber(visitPaymentSummary?.stats?.complete ?? 0)}</p>
-								</div>
-								<div className="flex self-center items-center rounded-full bg-primary-500 p-2">
-									<IconCalendarCheck size={32} className="text-white my-auto" />
-								</div>
-							</div>
-						</Card>
-					</AccessControl>
-				</div>
-
-				<div className="flex flex-col w-full">
-					<AccessControl
-						required={[PERMISSIONS.STATS_VISIT_PAYMENT]}
-						fallback={<AccessLocked title="Total" className="h-[110px]" />}
-					>
-						<Card className="">
-							<div className="flex flex-row items-start justify-between gap-2">
-								<div className="flex flex-col items-start">
-									<p className="text-xl font-bold text-neutral-900">Amount Paid</p>
-									<p className="text-lg font-semibold">
-										${formatNumber(visitPaymentSummary?.stats?.total_amount_paid ?? 0)}
-									</p>
-								</div>
-								<div className="flex self-center items-center rounded-full bg-primary-500 p-2">
-									<IconCurrencyDollar size={32} className="text-white my-auto" />
-								</div>
-							</div>
-						</Card>
-					</AccessControl>
-				</div>
-			</div>
+			)}
 			<div className="flex items-center mb-5">
 				<FilterList
 					searchPlaceholder="Search meetings"

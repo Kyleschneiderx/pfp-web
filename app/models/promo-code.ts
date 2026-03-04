@@ -8,6 +8,7 @@ export type PromoCode = {
 	percent_off: number;
 	expires_at: string | Date;
 	is_user_upgradable?: boolean;
+	total_claimed?: number;
 	created_at: string | Date;
 	updated_at: string | Date;
 };
