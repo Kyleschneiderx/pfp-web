@@ -267,7 +267,6 @@ export default function ChatForm() {
 		});
 
 		const acknowledge = (data: ConversationMessageModel) => {
-			// console.log("ack data", data);
 			setMessages((prev) => {
 				const index = prev?.findIndex((msg) => msg.tempId === tempId);
 

@@ -157,7 +157,6 @@ export default function ManageScheduleModal({ onClose }: { onClose: (callback?: 
 										placeholder="Select timezone"
 										options={timezones?.map((timezone) => ({ label: timezone, value: timezone }))}
 										onChange={(e) => {
-											console.log(e);
 											field.onChange(e?.value);
 										}}
 									/>

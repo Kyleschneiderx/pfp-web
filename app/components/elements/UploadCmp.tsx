@@ -179,8 +179,6 @@ export default function UploadCmp({
 		setIsDownloading(false);
 	};
 
-	console.log(fileType);
-
 	return (
 		<div>
 			<div className="flex flex-row items-center mb-2">
