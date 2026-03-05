@@ -25,7 +25,6 @@ import { useEffect, useState } from "react";
 import Card from "../elements/Card";
 import Input from "../elements/Input";
 import StatusBadge from "../elements/StatusBadge";
-import Textarea from "../elements/Textarea";
 import UploadCmp from "../elements/UploadCmp";
 import MoveTaskIcon from "../icons/move_task_icon";
 import PencilIcon from "../icons/pencil_icon";
@@ -457,19 +456,6 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 						</>
 					)}
 				</div>
-				<div className={clsx(editInfo ? "sm:w-[674px]" : "")}>
-					{editInfo ? (
-						<Textarea
-							placeholder="Create a description for your treatment plan"
-							rows={3}
-							value={description}
-							onChange={(e) => setDescription(e.target.value)}
-							className="mt-3"
-						/>
-					) : (
-						<p>{description}</p>
-					)}
-				</div>
 			</div>
 			<div className="flex flex-col sm:flex-row mt-4">
 				<Card className="sm:w-[693px] min-h-[200px] sm:min-h-[300px] px-3 sm:px-5 sm:mr-5 mb-5 sm:mb-0">
@@ -588,6 +574,15 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 								: undefined
 						}
 						onChange={(e) => setTrimester(e?.value ? Number(e?.value) : undefined)}
+					/>
+				</div>
+				<div>
+					<p className="font-medium mb-2">Description</p>
+					<TipTapEditor
+						placeholder="Create a description for your treatment plan"
+						content={description ?? undefined}
+						onChange={(value) => setDescription(value)}
+						editorClassName="!h-[200px]"
 					/>
 				</div>
 				<div>
