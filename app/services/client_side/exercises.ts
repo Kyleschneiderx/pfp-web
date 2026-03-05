@@ -15,7 +15,6 @@ interface ExerciseCategoriesResponse {
 
 export const getExercises = async (params: string): Promise<ExercisesResponse> => {
 	const url = `/exercises?${params}`;
-	console.log(url);
 	const data = await apiClient({
 		url: url,
 		method: "GET",

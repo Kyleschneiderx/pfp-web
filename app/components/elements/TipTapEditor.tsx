@@ -466,12 +466,14 @@ interface Props {
 	placeholder: string;
 	content?: string | undefined;
 	onChange: (content: string) => void;
+	editorClassName?: string;
 }
 
 export default function TipTapEditor({
 	placeholder,
 	content,
 	onChange,
+	editorClassName,
 }: Props) {
 	const editor = useEditor({
 		extensions: [
@@ -534,7 +536,7 @@ export default function TipTapEditor({
 	return (
 		<div className="rounded-md border">
 			<TipTapToolbar editor={editor} />
-			<div className="h-[400px] p-[10px] overflow-auto">
+			<div className={clsx("h-[400px] p-[10px] overflow-auto", editorClassName)}>
 				<EditorContent editor={editor} style={{ all: "unset" }} />
 			</div>
 		</div>

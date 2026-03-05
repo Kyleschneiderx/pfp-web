@@ -127,7 +127,6 @@ export default function ProviderList({
 					modal.closeAll();
 				} catch (e) {
 					const error = e as ErrorModel;
-					console.log(error);
 					showSnackBar({ message: error.msg, success: false });
 				}
 			},

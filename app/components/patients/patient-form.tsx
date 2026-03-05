@@ -528,15 +528,24 @@ export default function PatientForm({
 								/>
 							</div>
 							<div>
-								<div className="flex justify-between items-end mb-2">
-									<p className="font-medium mb-2">Gender</p>
-									<ToggleSwitch
-										label1="Male"
-										label2="Female"
-										active={gender === "male" ? "Male" : gender === "female" ? "Female" : ""}
-										onToggle={(label) => setGender(label.toLowerCase())}
-									/>
-								</div>
+								<p className="font-medium mb-2">Gender</p>
+								<SelectCmp
+									options={[
+										{ label: "Male", value: "male" },
+										{ label: "Female", value: "female" },
+										{ label: "Other", value: "other" },
+									]}
+									value={
+										gender
+											? {
+													label: gender === "male" ? "Male" : gender === "female" ? "Female" : "Other",
+													value: gender,
+												}
+											: undefined
+									}
+									onChange={(e) => setGender(e ? e.value : "")}
+									placeholder="Select gender"
+								/>
 							</div>
 							<div>
 								<div className="flex justify-between items-end mb-2">

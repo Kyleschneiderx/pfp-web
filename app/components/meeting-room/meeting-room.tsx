@@ -41,11 +41,9 @@ export default function MeetingRoom({ meeting }: { meeting: Meeting }) {
 	useAudioStream({
 		start: isRecording,
 		emitLocal: (data: ArrayBuffer) => {
-			console.log("Emitting provider audio data to socket");
 			meetingSocket.emit("audio", { roomId: meeting.id, audio: data, speaker: "provider" });
 		},
 		emitRemote: (data: ArrayBuffer) => {
-			console.log("Emitting patient audio data to socket");
 			meetingSocket.emit("audio", { roomId: meeting.id, audio: data, speaker: "patient" });
 		},
 		emitInterval: 30 * 1000,
@@ -128,7 +126,6 @@ export default function MeetingRoom({ meeting }: { meeting: Meeting }) {
 
 		// Optional: connection state updates
 		peerConnectionRef.current.addEventListener("connectionstatechange", () => {
-			console.log("peer connection change", peerConnectionRef.current?.connectionState);
 			if (
 				peerConnectionRef.current?.connectionState === "failed" ||
 				peerConnectionRef.current?.connectionState === "closed"

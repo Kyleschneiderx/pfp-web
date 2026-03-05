@@ -36,7 +36,10 @@ export default function OpenApp({ path }: Props) {
 					{/* Show the fallback only if app open was attempted */}
 					{attempted && (
 						<div className="flex flex-col items-center mt-8 space-y-3">
-							<p>If the app didn’t open, please download it:</p>
+							<p>
+								If you already installed Pelvic Floor Pro, click the button below. Otherwise download it from the app
+								store.
+							</p>
 							{os === "iOS" ? (
 								<a href="https://apps.apple.com/app/id6737835957" target="_blank" rel="noopener noreferrer">
 									<Image

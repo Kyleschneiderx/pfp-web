@@ -38,7 +38,6 @@ export default function useAudioStream({
 			merged.set(chunk, offset);
 			offset += chunk.length;
 		}
-		console.log("emit to backend!");
 		send(merged.buffer);
 	}, []);
 

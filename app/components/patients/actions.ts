@@ -22,7 +22,6 @@ export async function fetchPatients({
 
 	try {
 		response = await getPatients(params);
-		console.log(response.data.length);
 		return { patientList: response.data, max_page: response.max_page };
 	} catch (error) {
 		const apiError = error as ErrorModel;

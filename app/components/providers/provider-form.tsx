@@ -59,7 +59,6 @@ export default function ProviderForm({ account }: { account?: Account }) {
 			title: `${account ? "Update" : "Create"} Provider`,
 			message: `Are you sure you want to ${account ? "update" : "create"} this provider?`,
 			onConfirm: async () => {
-				console.log("data", data);
 				try {
 					const formData = toFormData(data);
 
