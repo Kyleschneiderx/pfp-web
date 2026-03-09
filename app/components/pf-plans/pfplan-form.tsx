@@ -85,7 +85,7 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 			setCategory(
 				pfPlan.categories
 					? pfPlan.categories.map((el) => ({
-							label: el.description,
+							label: el.value,
 							value: el.id.toString(),
 						}))
 					: null,
