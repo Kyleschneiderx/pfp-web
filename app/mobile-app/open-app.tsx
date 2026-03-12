@@ -7,7 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import Card from "../components/elements/Card";
 
 interface Props {
-	path: String;
+	path?: string;
 }
 
 export default function OpenApp({ path }: Props) {
