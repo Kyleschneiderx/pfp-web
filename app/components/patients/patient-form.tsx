@@ -640,9 +640,12 @@ export default function PatientForm({
 													/>
 													<div>
 														<p>{personalizedPfPlan.name}</p>
-														<p className="text-sm text-neutral-600 line-clamp-5" title={personalizedPfPlan.description}>
-															{personalizedPfPlan.description}
-														</p>
+														<p
+															className="text-sm text-neutral-600 line-clamp-5"
+															title={personalizedPfPlan.description}
+															// biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+															dangerouslySetInnerHTML={{ __html: personalizedPfPlan.description ?? "" }}
+														/>
 													</div>
 												</div>
 											</Link>
@@ -665,9 +668,12 @@ export default function PatientForm({
 											/>
 											<div>
 												<p>{pfPlanProgress.name}</p>
-												<p className="text-sm text-neutral-600 line-clamp-5" title={pfPlanProgress.description}>
-													{pfPlanProgress.description}
-												</p>
+												<p
+													className="text-sm text-neutral-600 line-clamp-5"
+													title={pfPlanProgress.description}
+													// biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+													dangerouslySetInnerHTML={{ __html: pfPlanProgress.description ?? "" }}
+												/>
 											</div>
 										</div>
 										<ProgressBar value={pfPlanProgress.user_pf_plan_progress_percentage} />
