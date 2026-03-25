@@ -8,8 +8,6 @@ import { useModal } from "../contexts/ModalContext";
 import SendPushNotificationModal from "./modals/send-push-notification";
 import useAuth from "../hooks/useAuth";
 import { usePathname, useRouter } from "next/navigation";
-import type { Schedule } from "../models/schedules";
-import ManageScheduleModal from "./modals/manage-schedule-modal";
 import { useSnackBar } from "../contexts/SnackBarContext";
 import ResponsiveActionMenu from "./elements/ResponsiveActionMenu";
 import ChangePasswordModal from "./modals/change-password-modal";
@@ -31,16 +29,6 @@ export default function Header() {
 	!pathname.includes("dashboard") && pathnameSet.unshift("Dashboard");
 
 	const { isOpen, setIsOpen } = useToggle();
-
-	const handleOpenSchedule = (schedule?: Schedule) => {
-		modal.open({
-			type: "default",
-			title: "Manage Schedule",
-			allowClose: true,
-			className: "max-h-[75%] overflow-auto w-[90%] sm:w-[500px] max-w-[500px]",
-			component: ({ close }) => <ManageScheduleModal onClose={close} />,
-		});
-	};
 
 	const handleChangePassword = async () => {
 		modal.open({
@@ -118,7 +106,7 @@ export default function Header() {
 							{
 								label: "Schedule",
 								icon: <CalendarDaysIcon className="mr-2" size={16} />,
-								onClick: handleOpenSchedule,
+								onClick: () => router.push("/settings/schedules"),
 							},
 							{
 								label: "Logout",

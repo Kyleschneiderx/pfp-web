@@ -15,3 +15,11 @@ export const getSchedules = async (params: ScheduleSearchQuery): Promise<List<Sc
 	});
 	return data as List<Schedule>;
 };
+
+export const getSchedule = async (id: number | string): Promise<Schedule> => {
+	const data = await apiServerSide({
+		url: `/schedules/${id}`,
+		method: "GET",
+	});
+	return data as Schedule;
+};

@@ -15,4 +15,8 @@ export interface Schedule {
 	duration: number;
 	is_active?: boolean;
 	availabilities: Availability[];
+	date_start?: string | null;
+	date_end?: string | null;
+	created_at?: string;
+	updated_at?: string;
 }
