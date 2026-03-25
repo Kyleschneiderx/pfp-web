@@ -649,9 +649,12 @@ export default function MeetingRoomSidePanel({ onClose, meeting }: { onClose?: (
 													<p className="line-clamp-1" title={userPfPlan.name}>
 														{userPfPlan.name}
 													</p>
-													<p className="text-sm text-neutral-600 line-clamp-2" title={userPfPlan.description}>
-														{userPfPlan.description}
-													</p>
+													<p
+														className="text-sm text-neutral-600 line-clamp-2"
+														title={userPfPlan.description}
+														// biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+														dangerouslySetInnerHTML={{ __html: userPfPlan.description ?? "" }}
+													/>
 												</div>
 											</div>
 										</Link>
@@ -680,9 +683,12 @@ export default function MeetingRoomSidePanel({ onClose, meeting }: { onClose?: (
 													<p className="line-clamp-2" title={pfPlan.name}>
 														{pfPlan.name}
 													</p>
-													<p className="text-sm text-neutral-600 line-clamp-3" title={pfPlan.description}>
-														{pfPlan.description}
-													</p>
+													<p
+														className="text-sm text-neutral-600 line-clamp-3"
+														title={pfPlan.description}
+														// biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+														dangerouslySetInnerHTML={{ __html: pfPlan.description ?? "" }}
+													/>
 												</div>
 											</div>
 										</Link>

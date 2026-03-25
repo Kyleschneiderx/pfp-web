@@ -95,13 +95,16 @@ export const NAVIGATIONS = [
 	{
 		title: "Settings",
 		url: "/settings",
-		permissions: [],
 		icon: <SettingsIcon activeUrl="/settings" />,
 		subItems: [
 			{
 				title: "AI Coach",
 				permissions: [],
 				url: "/settings/ai-coach",
+			},
+			{
+				title: "Schedules",
+				url: "/settings/schedules",
 			},
 			{
 				title: "Promo Codes",

@@ -212,9 +212,12 @@ export default function PfPlanList({ name, sort, initialList, maxPage }: Props) 
 							<p className="text-lg font-semibold leading-tight mt-[8px] mb-[6px]" title={pfplan.name}>
 								{pfplan.name}
 							</p>
-							<p className="text-sm text-neutral-700 mt-1 line-clamp-5" title={pfplan.description}>
-								{pfplan.description}
-							</p>
+							<p
+								className="text-sm text-neutral-700 mt-1 line-clamp-5"
+								title={pfplan.description}
+								// biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+								dangerouslySetInnerHTML={{ __html: pfplan.description ?? "" }}
+							/>
 						</Card>
 					</div>
 				))}
