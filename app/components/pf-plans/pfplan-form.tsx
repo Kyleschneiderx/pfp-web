@@ -10,6 +10,7 @@ import {
 	UPDATE_DESCRIPTION,
 } from "@/app/lib/constants";
 import { revalidatePage } from "@/app/lib/revalidate";
+import { getFileContentType } from "@/app/lib/utils";
 import type { EducationModel } from "@/app/models/education_model";
 import type { ErrorModel } from "@/app/models/error_model";
 import type { CategoryOptionsModel, PfPlanDailies, PfPlanExerciseModel, PfPlanModel } from "@/app/models/pfplan_model";
@@ -66,6 +67,8 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 	const [content, setContent] = useState("");
 	const [trimester, setTrimester] = useState<number | undefined>();
 	const [photo, setPhoto] = useState<File | null>(null);
+	const [mediaUrl, setMediaUrl] = useState<string>("");
+	const [mediaUpload, setMediaUpload] = useState<File | null>(null);
 	const [statusId, setStatusId] = useState<"4" | "5">("4");
 
 	const [errors, setErrors] = useState<ValidationErrorModel[]>([]);
@@ -92,6 +95,7 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 			);
 			setTrimester(pfPlan.trimester ?? undefined);
 			setIsCustom(pfPlan.is_custom ?? false);
+			setMediaUrl(pfPlan.media_url ?? "");
 			const dailies = pfPlan.pf_plan_dailies.map(
 				(item: {
 					id?: number;
@@ -136,6 +140,10 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 
 	const handleFileSelect = (file: File | null) => {
 		setPhoto(file);
+	};
+
+	const handleMediaSelect = (file: File | null) => {
+		setMediaUpload(file);
 	};
 
 	const togglePanel = () => {
@@ -248,6 +256,18 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 				body.append("status_id", statusId);
 				body.append("is_custom", patient ? "false" : isCustom.toString());
 				if (photo) body.append("photo", photo);
+				body.append("media_url", mediaUrl);
+				if (mediaUpload) {
+					const ext = mediaUpload.name.split(".").pop()?.toLowerCase() ?? "";
+					if (["mp4", "avi", "mov", "wmv", "mkv"].includes(ext)) {
+						const blob = new Blob([mediaUpload], {
+							type: getFileContentType(mediaUpload),
+						});
+						body.append("media_upload", blob, mediaUpload.name);
+					} else {
+						body.append("media_upload", mediaUpload, mediaUpload.name);
+					}
+				}
 				if (dailiesPayload.length) {
 					body.append("dailies", JSON.stringify(dailiesPayload));
 				}
@@ -349,6 +369,8 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 		setDescription("");
 		setContent("");
 		setPhoto(null);
+		setMediaUrl("");
+		setMediaUpload(null);
 		setSelectedDay(null);
 		setDays([]);
 		setTrimester(undefined);
@@ -593,6 +615,36 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 						onChange={handleEditorChange}
 					/>
 				</div>
+			</Card>
+			<Card className="sm:w-[694px] space-y-3 mt-5">
+				<p className="font-medium">Upload Video/Image or URL</p>
+				<hr />
+				<div>
+					<p className="font-medium mb-2">Video/Image URL</p>
+					<Input
+						type="text"
+						placeholder="www.yourvideolink.com"
+						value={mediaUrl}
+						onChange={(e) => setMediaUrl(e.target.value)}
+					/>
+				</div>
+				<p className="text-sm font-medium mb-2 text-center">OR</p>
+				<UploadCmp
+					key="pfplan-media-upload"
+					label="Upload a video/image"
+					onFileSelect={handleMediaSelect}
+					clearImagePreview={mediaUpload === null}
+					type="image/video"
+					isEdit={action === "Edit"}
+					previewImage={patient ? patient.id === pfPlan?.user_id : true}
+					fileUrl={
+						patient
+							? patient.id === pfPlan?.user_id
+								? (pfPlan?.media_upload ?? undefined)
+								: undefined
+							: (pfPlan?.media_upload ?? undefined)
+					}
+				/>
 			</Card>
 			<div className="sm:hidden order-last flex flex-col w-full mt-6 space-y-3">
 				<Link href="/contents/pf-plans">
