@@ -10,12 +10,14 @@ export default async function Page({
 		search?: string;
 		sort?: string;
 		status_id?: string;
+		type_id?: string;
 	};
 }) {
 	const page = Math.max(1, Number.parseInt(searchParams?.page || "1", 10) || 1);
 	const search = searchParams?.search || "";
 	const sort = searchParams?.sort || "id:DESC";
 	const status_id = searchParams?.status_id || "";
+	const type_id = searchParams?.type_id || "";
 
 	let patients: PatientModel[] = [];
 	let maxPage = 0;
@@ -26,6 +28,7 @@ export default async function Page({
 			search,
 			sort,
 			status_id,
+			type_id,
 		});
 		patients = patientList;
 		maxPage = max_page;
@@ -42,6 +45,7 @@ export default async function Page({
 				search={search}
 				sort={sort}
 				status_id={status_id}
+				type_id={type_id}
 			/>
 		</div>
 	);
