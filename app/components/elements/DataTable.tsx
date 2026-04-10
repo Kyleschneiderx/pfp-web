@@ -118,21 +118,18 @@ export default function DataTable<T extends object>({
 								/>
 							</div>
 						)}
-						{filters && (
-							<div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-								{Object.entries(filters).map(([key, filter]) => (
-									<div key={key} className={clsx("w-full", filter.className)}>
-										<SelectCmp
-											className="!py-[1px]"
-											options={filter.options}
-											value={filter.selectedValue ? filter.options.find((o) => o.value === filter.selectedValue) : null}
-											onChange={(e) => filter.onChange((e as OptionsModel)?.value ?? "")}
-											placeholder={filter.placeholder}
-										/>
-									</div>
-								))}
-							</div>
-						)}
+						{filters &&
+							Object.entries(filters).map(([key, filter]) => (
+								<div key={key} className={clsx("w-full sm:w-auto", filter.className)}>
+									<SelectCmp
+										className="!py-[1px]"
+										options={filter.options}
+										value={filter.selectedValue ? filter.options.find((o) => o.value === filter.selectedValue) : null}
+										onChange={(e) => filter.onChange((e as OptionsModel)?.value ?? "")}
+										placeholder={filter.placeholder}
+									/>
+								</div>
+							))}
 					</div>
 				</div>
 			)}

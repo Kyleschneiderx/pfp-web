@@ -9,16 +9,18 @@ export async function fetchPatients({
 	search,
 	sort,
 	status_id,
+	type_id,
 }: {
 	page?: number;
 	search: string;
 	sort: string;
-	status_id: string;
+	status_id?: string;
+	type_id?: string;
 }): Promise<{ patientList: PatientModel[]; max_page: number }> {
 	let response;
 	const params = `&search=${search}${
 		!["0", ""].includes(status_id ?? "") ? `&status_id[]=${status_id}` : ""
-	}&sort[]=${sort}&page=${page}&page_items=15`;
+	}${!["0", ""].includes(type_id ?? "") ? `&type_id[]=${type_id}` : ""}&sort[]=${sort}&page=${page}&page_items=15`;
 
 	try {
 		response = await getPatients(params);

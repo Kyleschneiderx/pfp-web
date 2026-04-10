@@ -44,6 +44,12 @@ const STATUS_OPTIONS = [
 	{ label: "Inactive", value: "2" },
 ];
 
+const TYPE_OPTIONS = [
+	{ label: "All", value: "0" },
+	{ label: "Premium", value: "2" },
+	{ label: "Free", value: "1" },
+];
+
 export default function PatientListTable({
 	initialList,
 	initialPage,
@@ -51,6 +57,7 @@ export default function PatientListTable({
 	search,
 	sort,
 	status_id,
+	type_id,
 }: {
 	initialList: PatientModel[];
 	initialPage: number;
@@ -58,6 +65,7 @@ export default function PatientListTable({
 	search: string;
 	sort: string;
 	status_id: string;
+	type_id: string;
 }) {
 	const modal = useModal();
 	const router = useRouter();
@@ -97,6 +105,10 @@ export default function PatientListTable({
 
 	const handleStatusChange = (value: string) => {
 		updateParams({ status_id: value });
+	};
+
+	const handleTypeChange = (value: string) => {
+		updateParams({ type_id: value });
 	};
 
 	const handleSortChange = (value: string | undefined) => {
@@ -453,6 +465,12 @@ export default function PatientListTable({
 									selectedValue: status_id,
 									placeholder: "Status",
 									onChange: handleStatusChange,
+								},
+								type_id: {
+									options: TYPE_OPTIONS,
+									selectedValue: type_id,
+									placeholder: "Type",
+									onChange: handleTypeChange,
 								},
 							}}
 						/>
