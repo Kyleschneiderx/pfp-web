@@ -281,7 +281,11 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 						userId: patient.id,
 					});
 					await revalidatePage(`/patients/${patient.id}/edit`);
-					router.replace(`${personalizedPfPlan.id.toString()}`);
+					if (pfPlan) {
+						router.replace(`${personalizedPfPlan.id.toString()}`);
+					} else {
+						router.replace(`pf-plan/${personalizedPfPlan.id.toString()}`);
+					}
 				} else {
 					await savePfPlan({ method, id, body });
 					await revalidatePage("/contents/pf-plans");
