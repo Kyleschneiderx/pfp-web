@@ -1,10 +1,10 @@
-import type { Metadata } from "next";
 import {
 	buildCanonicalUrl,
 	defaultOgImageUrl,
 	fetchOpengraphProvider,
 	resolveSiteOrigin,
 } from "@/app/services/server_side/opengraph";
+import type { Metadata } from "next";
 import ProviderOpenApp from "./provider-open-app";
 
 type Props = { searchParams?: Record<string, string | string[] | undefined> };
@@ -24,7 +24,32 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
 	const og = await fetchOpengraphProvider(id);
 	if (!og) {
-		return { title: fallbackTitle, robots: { index: false } };
+		const siteOrigin = await resolveSiteOrigin();
+		const canonicalUrl = new URL("/mobile-app/provider", `${siteOrigin}/`);
+		canonicalUrl.searchParams.set("id", id);
+		const canonical = canonicalUrl.toString();
+		const imageUrl = defaultOgImageUrl(siteOrigin);
+		const fallbackDescription = fallbackTitle;
+
+		return {
+			title: fallbackTitle,
+			description: fallbackDescription,
+			openGraph: {
+				title: fallbackTitle,
+				description: fallbackDescription,
+				url: canonical,
+				images: [{ url: imageUrl }],
+				type: "website",
+			},
+			twitter: {
+				card: "summary_large_image",
+				title: fallbackTitle,
+				description: fallbackDescription,
+				images: [imageUrl],
+			},
+			alternates: { canonical },
+			robots: { index: false },
+		};
 	}
 
 	const siteOrigin = await resolveSiteOrigin();

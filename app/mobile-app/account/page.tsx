@@ -1,10 +1,10 @@
 import OpenApp from "../open-app";
 
 export default function Page({
-  searchParams,
+	searchParams,
 }: {
-  searchParams?: { token: String };
+	searchParams?: { token: string };
 }) {
-  const token = searchParams?.token;
-  return <OpenApp path={`account?token=${token}`} />;
+	const token = searchParams?.token;
+	return <OpenApp path={`account?token=${token}`} />;
 }

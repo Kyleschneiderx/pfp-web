@@ -2,9 +2,17 @@ import { headers } from "next/headers";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 
+const API_ADMIN_SUFFIX = "/api/admin";
+const API_SUFFIX = "/api";
+
 function opengraphFetchOrigin(): string {
 	const trimmed = API_BASE.replace(/\/$/, "");
-	if (trimmed.endsWith("/api")) return trimmed.slice(0, -4);
+	if (trimmed.endsWith(API_ADMIN_SUFFIX)) {
+		return trimmed.slice(0, -API_ADMIN_SUFFIX.length);
+	}
+	if (trimmed.endsWith(API_SUFFIX)) {
+		return trimmed.slice(0, -API_SUFFIX.length);
+	}
 	return trimmed;
 }
 
@@ -23,9 +31,7 @@ export async function resolveSiteOrigin(): Promise<string> {
 	if (fromEnv) return fromEnv;
 
 	const h = await headers();
-	const host =
-		h.get("x-forwarded-host")?.split(",")[0]?.trim() ||
-		h.get("host")?.trim();
+	const host = h.get("x-forwarded-host")?.split(",")[0]?.trim() || h.get("host")?.trim();
 	let proto = h.get("x-forwarded-proto")?.split(",")[0]?.trim()?.toLowerCase();
 	if (proto !== "http" && proto !== "https") {
 		proto = "https";
