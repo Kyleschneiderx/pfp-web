@@ -43,6 +43,11 @@ export async function resolveSiteOrigin(): Promise<string> {
 	return "http://localhost:3000";
 }
 
+export async function resolveSiteHost(): Promise<string> {
+	const origin = await resolveSiteOrigin();
+	return new URL(origin).host;
+}
+
 export function buildCanonicalUrl(siteOrigin: string, canonicalPath: string): string {
 	const base = siteOrigin.replace(/\/$/, "");
 	return new URL(canonicalPath, `${base}/`).toString();
