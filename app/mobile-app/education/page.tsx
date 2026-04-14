@@ -48,7 +48,6 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 				images: [imageUrl],
 			},
 			alternates: { canonical },
-			robots: { index: false },
 		};
 	}
 
