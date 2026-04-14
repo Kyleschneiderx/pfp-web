@@ -1,6 +1,7 @@
+import { headers } from "next/headers";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 
-/** Host for top-level API routes (e.g. /opengraph). Strips trailing /api from NEXT_PUBLIC_API_BASE_URL. */
 function opengraphFetchOrigin(): string {
 	const trimmed = API_BASE.replace(/\/$/, "");
 	if (trimmed.endsWith("/api")) return trimmed.slice(0, -4);
@@ -16,20 +17,33 @@ export type OpengraphPayload = {
 	reference_pf_plan_id?: number | null;
 };
 
-export function siteOrigin(): string {
-	const explicit = process.env.NEXT_PUBLIC_SITE_URL;
-	if (explicit) return explicit.replace(/\/$/, "");
-	if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL.replace(/\/$/, "")}`;
+/** Optional override; otherwise uses this request's Host / X-Forwarded-* (ALB) or localhost in dev. */
+export async function resolveSiteOrigin(): Promise<string> {
+	const fromEnv = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+	if (fromEnv) return fromEnv;
+
+	const h = await headers();
+	const host =
+		h.get("x-forwarded-host")?.split(",")[0]?.trim() ||
+		h.get("host")?.trim();
+	let proto = h.get("x-forwarded-proto")?.split(",")[0]?.trim()?.toLowerCase();
+	if (proto !== "http" && proto !== "https") {
+		proto = "https";
+	}
+	if (host) {
+		return `${proto}://${host}`;
+	}
+
 	return "http://localhost:3000";
 }
 
-export function buildCanonicalUrl(canonicalPath: string): string {
-	const base = siteOrigin();
+export function buildCanonicalUrl(siteOrigin: string, canonicalPath: string): string {
+	const base = siteOrigin.replace(/\/$/, "");
 	return new URL(canonicalPath, `${base}/`).toString();
 }
 
-export function defaultOgImageUrl(): string {
-	return buildCanonicalUrl("/images/og-default.png");
+export function defaultOgImageUrl(siteOrigin: string): string {
+	return buildCanonicalUrl(siteOrigin, "/images/og-default.png");
 }
 
 async function fetchOpengraph(path: string): Promise<OpengraphPayload | null> {
