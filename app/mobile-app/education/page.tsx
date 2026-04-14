@@ -3,6 +3,7 @@ import {
 	buildCanonicalUrl,
 	defaultOgImageUrl,
 	fetchOpengraphEducation,
+	resolveSiteOrigin,
 } from "@/app/services/server_side/opengraph";
 import EducationOpenApp from "./education-open-app";
 
@@ -26,8 +27,9 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 		return { title: fallbackTitle, robots: { index: false } };
 	}
 
-	const canonical = buildCanonicalUrl(og.canonical_path);
-	const imageUrl = og.image ?? defaultOgImageUrl();
+	const siteOrigin = await resolveSiteOrigin();
+	const canonical = buildCanonicalUrl(siteOrigin, og.canonical_path);
+	const imageUrl = og.image ?? defaultOgImageUrl(siteOrigin);
 
 	return {
 		title: og.title,
