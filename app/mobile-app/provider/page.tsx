@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import {
 	buildCanonicalUrl,
 	defaultOgImageUrl,
-	fetchOpengraphEducation,
+	fetchOpengraphProvider,
 } from "@/app/services/server_side/opengraph";
-import EducationOpenApp from "./education-open-app";
+import ProviderOpenApp from "./provider-open-app";
 
 type Props = { searchParams?: Record<string, string | string[] | undefined> };
 
@@ -21,7 +21,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 		return { title: fallbackTitle };
 	}
 
-	const og = await fetchOpengraphEducation(id);
+	const og = await fetchOpengraphProvider(id);
 	if (!og) {
 		return { title: fallbackTitle, robots: { index: false } };
 	}
@@ -37,7 +37,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 			description: og.description,
 			url: canonical,
 			images: [{ url: imageUrl }],
-			type: "article",
+			type: "website",
 		},
 		twitter: {
 			card: "summary_large_image",
@@ -51,5 +51,5 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
 export default function Page({ searchParams }: Props) {
 	const id = firstParam(searchParams?.id);
-	return <EducationOpenApp id={id} />;
+	return <ProviderOpenApp id={id} />;
 }
