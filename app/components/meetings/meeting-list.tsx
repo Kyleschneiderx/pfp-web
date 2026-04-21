@@ -1,19 +1,29 @@
 "use client";
 
-import type { ErrorModel } from "@/app/models/error_model";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useInView } from "react-intersection-observer";
-import Card from "../elements/Card";
-import Loader from "../elements/Loader";
 import { useModal } from "@/app/contexts/ModalContext";
-import Button from "../elements/Button";
-import type { List, PaginationModel } from "@/app/models/global_model";
+import { useSnackBar } from "@/app/contexts/SnackBarContext";
+import useAuth from "@/app/hooks/useAuth";
 import { DEFAULT_LIST, PAGE_ITEMS, PERMISSIONS, STATUSES } from "@/app/lib/constants";
-import { getMeetingList } from "./actions";
+import { formatNumber } from "@/app/lib/number-format";
+import { revalidatePage } from "@/app/lib/revalidate";
+import { dateToUtc, formatDate, formatDatetime } from "@/app/lib/utils";
+import type { ErrorModel } from "@/app/models/error_model";
+import type { List, PaginationModel } from "@/app/models/global_model";
+import type { Meeting } from "@/app/models/meeting_model";
+import type { VisitPaymentStatsModel } from "@/app/models/visit_payment_stats_model";
+import { cancelMeeting, getVisitPaymentSummary } from "@/app/services/client_side/meetings";
+import type { MeetingsSearchQuery } from "@/app/services/server_side/meetings";
+import {
+	IconCalendar,
+	IconCalendarCancel,
+	IconCalendarCheck,
+	IconCalendarPause,
+	IconCalendarWeek,
+	IconCurrencyDollar,
+	IconUserCheck,
+	IconUsersGroup,
+} from "@tabler/icons-react";
 import clsx from "clsx";
-import { useDebouncedCallback } from "use-debounce";
-import dynamic from "next/dynamic";
-import Badge from "../elements/Badge";
 import {
 	endOfDay,
 	endOfMonth,
@@ -37,35 +47,25 @@ import {
 	TextQuoteIcon,
 	UserIcon,
 } from "lucide-react";
-import type { Meeting } from "@/app/models/meeting_model";
-import type { MeetingsSearchQuery } from "@/app/services/server_side/meetings";
-import BigCalendar from "../elements/BigCalendar";
-import type { Event, EventProps, View } from "react-big-calendar";
-import CalendarEventModal from "../modals/calendar-event-modal";
-import { dateToUtc, formatDate, formatDatetime } from "@/app/lib/utils";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../elements/Tabs";
-import ResponsiveActionMenu from "../elements/ResponsiveActionMenu";
+import dynamic from "next/dynamic";
 import { notFound, usePathname, useRouter } from "next/navigation";
-import MeetingRoomSidePanel from "../modals/meeting-room-side-panel";
-import { useSnackBar } from "@/app/contexts/SnackBarContext";
-import { cancelMeeting, getVisitPaymentSummary } from "@/app/services/client_side/meetings";
-import { revalidatePage } from "@/app/lib/revalidate";
-import useAuth from "@/app/hooks/useAuth";
-import DataList from "../data-list";
-import {
-	IconCalendar,
-	IconCalendarCancel,
-	IconCalendarCheck,
-	IconCalendarPause,
-	IconCalendarWeek,
-	IconCurrencyDollar,
-	IconUserCheck,
-	IconUsersGroup,
-} from "@tabler/icons-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { Event, EventProps, View } from "react-big-calendar";
+import { useInView } from "react-intersection-observer";
+import { useDebouncedCallback } from "use-debounce";
 import AccessControl from "../access-control";
 import AccessLocked from "../access-locked";
-import { formatNumber } from "@/app/lib/number-format";
-import type { VisitPaymentStatsModel } from "@/app/models/visit_payment_stats_model";
+import DataList from "../data-list";
+import Badge from "../elements/Badge";
+import BigCalendar from "../elements/BigCalendar";
+import Button from "../elements/Button";
+import Card from "../elements/Card";
+import Loader from "../elements/Loader";
+import ResponsiveActionMenu from "../elements/ResponsiveActionMenu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../elements/Tabs";
+import CalendarEventModal from "../modals/calendar-event-modal";
+import MeetingRoomSidePanel from "../modals/meeting-room-side-panel";
+import { getMeetingList } from "./actions";
 
 const FilterList = dynamic(() => import("../elements/FilterList"), {
 	ssr: false,
@@ -220,7 +220,7 @@ export default function MeetingList({
 						<AccessControl
 							key={i}
 							required={[PERMISSIONS.STATS_VISIT_PAYMENT]}
-							fallback={<AccessLocked title="" className="h-[88px]" />}
+							fallback={<AccessLocked className="h-[88px]" />}
 						>
 							<Card className="animate-pulse">
 								<div className="h-8 bg-neutral-200 rounded w-12" />
@@ -237,7 +237,7 @@ export default function MeetingList({
 							<AccessControl
 								key={card.label}
 								required={[PERMISSIONS.STATS_VISIT_PAYMENT]}
-								fallback={<AccessLocked title={card.label} className="min-h-[88px]" />}
+								fallback={<AccessLocked className="min-h-[88px]" />}
 							>
 								<Card>
 									<div className="flex items-start justify-between gap-2">

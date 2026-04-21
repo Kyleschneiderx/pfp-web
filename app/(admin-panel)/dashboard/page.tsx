@@ -1,417 +1,486 @@
 "use client";
 
-import UserDoughnutChart from "@/app/components/dashboard/user-doughnut-chart";
-import UserLineChart from "@/app/components/dashboard/user-line-chart";
-import AppTrafficChart from "@/app/components/dashboard/app-traffic-chart";
-import Card from "@/app/components/elements/Card";
-import { formatDate, getWeekRange } from "@/app/lib/utils";
-import { yearOptions } from "@/app/lib/years-options";
-import type { OptionsModel } from "@/app/models/common_model";
-import type { UserSummaryModel } from "@/app/models/user_summary_model";
-import { getUserSummary } from "@/app/services/client_side/patients";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
-import UserCoachPromptChart from "@/app/components/dashboard/user-coach-prompt-chart";
-import { PERMISSIONS } from "@/app/lib/constants";
 import AccessLocked from "@/app/components/access-locked";
-import { monthOptions } from "@/app/lib/months-options";
-import { getInviteStats, getVisitPaymentStats } from "@/app/services/client_side/stats";
 import InviteLineChart from "@/app/components/dashboard/InviteLineChart";
 import VisitPaymentLineChart from "@/app/components/dashboard/VisitPaymentLineChart";
+import UserCoachPromptChart from "@/app/components/dashboard/user-coach-prompt-chart";
+import UserDoughnutChart from "@/app/components/dashboard/user-doughnut-chart";
+import UserLineChart from "@/app/components/dashboard/user-line-chart";
+import Card from "@/app/components/elements/Card";
+import { PERMISSIONS } from "@/app/lib/constants";
+import { formatDate, getLastLoginStatus, getWeekRange } from "@/app/lib/utils";
+import { yearOptions } from "@/app/lib/years-options";
+import type { OptionsModel } from "@/app/models/common_model";
 import type { InviteStatsModel } from "@/app/models/invite_stats_model";
+import type { Meeting } from "@/app/models/meeting_model";
+import type { PatientModel } from "@/app/models/patient_model";
+import type { UserSummaryModel } from "@/app/models/user_summary_model";
 import type { VisitPaymentStatsModel } from "@/app/models/visit_payment_stats_model";
-
-const SelectCmp = dynamic(() => import("@/app/components/elements/SelectCmp"), {
-	ssr: false,
-});
+import { getMeetingsList } from "@/app/services/client_side/meetings";
+import { getPatientsList, getUserSummary } from "@/app/services/client_side/patients";
+import { getInviteStats, getVisitPaymentStats } from "@/app/services/client_side/stats";
+import clsx from "clsx";
+import { ArrowRight, Calendar, ChevronLeft, ChevronRight, Users } from "lucide-react";
+import dynamic from "next/dynamic";
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
 const AccessControl = dynamic(() => import("@/app/components/access-control"), {
 	ssr: false,
 });
 
-const formatDate1 = (date: Date): string => {
-	return date.toLocaleDateString("en-US", {
-		year: "numeric",
-		month: "short",
-		day: "numeric",
-	});
-};
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+const formatWeekLabel = (date: Date): string =>
+	date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+
+const formatShortDate = (iso: string): string =>
+	new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+
+const formatTime = (iso: string): string =>
+	new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+
+// ─── Sub-components ─────────────────────────────────────────────────────────
+
+function PeriodToggle({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+	return (
+		<div className="flex items-center bg-neutral-100 rounded-md p-0.5 gap-0.5">
+			{["monthly", "weekly"].map((opt) => (
+				<button
+					key={opt}
+					type="button"
+					onClick={() => onChange(opt)}
+					className={clsx(
+						"px-3 py-1 text-xs font-medium rounded transition-colors duration-200",
+						value === opt ? "bg-white text-neutral-900 drop-shadow-center" : "text-neutral-500 hover:text-neutral-700",
+					)}
+				>
+					{opt.charAt(0).toUpperCase() + opt.slice(1)}
+				</button>
+			))}
+		</div>
+	);
+}
+
+function WeekNav({ start, end, onPrev, onNext }: { start: Date; end: Date; onPrev: () => void; onNext: () => void }) {
+	return (
+		<div className="flex items-center gap-1 text-xs font-medium text-neutral-600">
+			<button type="button" onClick={onPrev} className="p-0.5 hover:text-neutral-900 transition-colors">
+				<ChevronLeft size={14} />
+			</button>
+			<span className="whitespace-nowrap">
+				{formatWeekLabel(start)} – {formatWeekLabel(end)}
+			</span>
+			<button type="button" onClick={onNext} className="p-0.5 hover:text-neutral-900 transition-colors">
+				<ChevronRight size={14} />
+			</button>
+		</div>
+	);
+}
+
+function StatusPill({ label }: { label?: string }) {
+	const map: Record<string, string> = {
+		active: "bg-success-50 text-success-600",
+		inactive: "bg-neutral-100 text-neutral-600",
+		upcoming: "bg-accents-500 text-primary-700",
+		completed: "bg-success-50 text-success-600",
+		cancelled: "bg-error-25 text-error-500",
+		draft: "bg-neutral-100 text-neutral-600",
+	};
+	const key = label?.toLowerCase() ?? "";
+	return (
+		<span
+			className={clsx("text-xs font-medium px-2 py-0.5 rounded-full", map[key] ?? "bg-neutral-100 text-neutral-600")}
+		>
+			{label ?? "—"}
+		</span>
+	);
+}
+
+interface StatCardProps {
+	title: string;
+	total: string | number;
+	period: string;
+	onPeriodChange: (v: string) => void;
+	year: OptionsModel | null;
+	onYearChange: (v: OptionsModel | null) => void;
+	weekStart: Date;
+	weekEnd: Date;
+	onPrevWeek: () => void;
+	onNextWeek: () => void;
+	legend: React.ReactNode;
+	children: React.ReactNode;
+}
+
+function StatCard({
+	title,
+	total,
+	period,
+	onPeriodChange,
+	year,
+	onYearChange,
+	weekStart,
+	weekEnd,
+	onPrevWeek,
+	onNextWeek,
+	legend,
+	children,
+}: StatCardProps) {
+	return (
+		<Card>
+			{/* Row 1: title + total chip + toggle at end */}
+			<div className="flex items-center justify-between gap-3 mb-3">
+				<div className="flex items-center gap-2.5 min-w-0">
+					<span className="text-sm font-semibold text-neutral-900 truncate">{title}</span>
+					<span className="text-xs font-semibold text-primary-600 bg-primary-100 px-2 py-0.5 rounded-full shrink-0">
+						{total} total
+					</span>
+				</div>
+				<PeriodToggle value={period} onChange={onPeriodChange} />
+			</div>
+			{/* Row 2: date selector — centered, more prominent */}
+			<div className="flex justify-center mb-4 min-h-[32px] items-center">
+				{period === "weekly" ? (
+					<WeekNav start={weekStart} end={weekEnd} onPrev={onPrevWeek} onNext={onNextWeek} />
+				) : (
+					<select
+						value={year?.value ?? ""}
+						onChange={(e) => onYearChange({ label: e.target.value, value: e.target.value })}
+						className="text-xs font-medium border border-neutral-200 bg-white rounded-md px-3 py-1.5 text-neutral-700 cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary-500"
+					>
+						{yearOptions.map((opt) => (
+							<option key={opt.value} value={opt.value}>
+								{opt.label}
+							</option>
+						))}
+					</select>
+				)}
+			</div>
+			<div className="mb-1">{children}</div>
+			<div className="flex items-center justify-center text-xs mt-3 gap-3 text-neutral-600">{legend}</div>
+		</Card>
+	);
+}
+
+function LegendDot({ color, label }: { color: string; label: string }) {
+	return (
+		<>
+			<div className={clsx("w-2.5 h-2.5 rounded-full", color)} />
+			<span>{label}</span>
+		</>
+	);
+}
+
+// ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function Page() {
-	const [currentDate, setCurrentDate] = useState<Date>(new Date());
 	const currentYear = new Date().getFullYear();
-	const [selectedOption1, setSelectedOption1] = useState<OptionsModel | null>({
-		label: "Monthly",
-		value: "monthly",
-	});
-	const [selectedYear, setSelectedYear] = useState<OptionsModel | null>({
-		label: currentYear.toString(),
-		value: currentYear.toString(),
-	});
 
+	// Users chart
+	const [period1, setPeriod1] = useState("monthly");
+	const [year1, setYear1] = useState<OptionsModel | null>({ label: `${currentYear}`, value: `${currentYear}` });
+	const [date1, setDate1] = useState(new Date());
+	const [weekStart1, setWeekStart1] = useState(getWeekRange(date1).startOfWeek);
+	const [weekEnd1, setWeekEnd1] = useState(getWeekRange(date1).endOfWeek);
 	const [userSummary, setUserSummary] = useState<UserSummaryModel | null>(null);
 
-	// Invite Stats State
-	const [selectedOptionInvite, setSelectedOptionInvite] = useState<OptionsModel | null>({
-		label: "Monthly",
-		value: "monthly",
+	// Invite chart
+	const [periodInvite, setPeriodInvite] = useState("monthly");
+	const [yearInvite, setYearInvite] = useState<OptionsModel | null>({
+		label: `${currentYear}`,
+		value: `${currentYear}`,
 	});
-	const [selectedYearInvite, setSelectedYearInvite] = useState<OptionsModel | null>({
-		label: currentYear.toString(),
-		value: currentYear.toString(),
-	});
-	const [currentDateInvite, setCurrentDateInvite] = useState<Date>(new Date());
-	const [startOfWeekInvite, setStartOfWeekInvite] = useState<Date>(getWeekRange(currentDateInvite).startOfWeek);
-	const [endOfWeekInvite, setEndOfWeekInvite] = useState<Date>(getWeekRange(currentDateInvite).endOfWeek);
+	const [dateInvite, setDateInvite] = useState(new Date());
+	const [weekStartInvite, setWeekStartInvite] = useState(getWeekRange(dateInvite).startOfWeek);
+	const [weekEndInvite, setWeekEndInvite] = useState(getWeekRange(dateInvite).endOfWeek);
 	const [inviteStats, setInviteStats] = useState<InviteStatsModel | null>(null);
 
-	// Visit Payment Stats State
-	const [selectedOptionVisit, setSelectedOptionVisit] = useState<OptionsModel | null>({
-		label: "Monthly",
-		value: "monthly",
-	});
-	const [selectedYearVisit, setSelectedYearVisit] = useState<OptionsModel | null>({
-		label: currentYear.toString(),
-		value: currentYear.toString(),
-	});
-	const [currentDateVisit, setCurrentDateVisit] = useState<Date>(new Date());
-	const [startOfWeekVisit, setStartOfWeekVisit] = useState<Date>(getWeekRange(currentDateVisit).startOfWeek);
-	const [endOfWeekVisit, setEndOfWeekVisit] = useState<Date>(getWeekRange(currentDateVisit).endOfWeek);
+	// Visit payment chart
+	const [periodVisit, setPeriodVisit] = useState("monthly");
+	const [yearVisit, setYearVisit] = useState<OptionsModel | null>({ label: `${currentYear}`, value: `${currentYear}` });
+	const [dateVisit, setDateVisit] = useState(new Date());
+	const [weekStartVisit, setWeekStartVisit] = useState(getWeekRange(dateVisit).startOfWeek);
+	const [weekEndVisit, setWeekEndVisit] = useState(getWeekRange(dateVisit).endOfWeek);
 	const [visitPaymentStats, setVisitPaymentStats] = useState<VisitPaymentStatsModel | null>(null);
 
-	const [startOfWeek, setStartOfWeek] = useState<Date>(getWeekRange(currentDate).startOfWeek);
-	const [endOfWeek, setEndOfWeek] = useState<Date>(getWeekRange(currentDate).endOfWeek);
+	// Preview tables
+	const [patients, setPatients] = useState<PatientModel[]>([]);
+	const [meetings, setMeetings] = useState<Meeting[]>([]);
 
-	const goToPreviousWeek = () => {
-		const newDate = new Date(currentDate);
-		newDate.setDate(newDate.getDate() - 7);
-		setStartOfWeek(getWeekRange(newDate).startOfWeek);
-		setEndOfWeek(getWeekRange(newDate).endOfWeek);
-		setCurrentDate(newDate);
-	};
-
-	const goToNextWeek = () => {
-		const newDate = new Date(currentDate);
-		newDate.setDate(newDate.getDate() + 7);
-		setStartOfWeek(getWeekRange(newDate).startOfWeek);
-		setEndOfWeek(getWeekRange(newDate).endOfWeek);
-		setCurrentDate(newDate);
-	};
-
-	// Invite Stats Week Navigation
-	const goToPreviousWeekInvite = () => {
-		const newDate = new Date(currentDateInvite);
-		newDate.setDate(newDate.getDate() - 7);
-		setStartOfWeekInvite(getWeekRange(newDate).startOfWeek);
-		setEndOfWeekInvite(getWeekRange(newDate).endOfWeek);
-		setCurrentDateInvite(newDate);
-	};
-
-	const goToNextWeekInvite = () => {
-		const newDate = new Date(currentDateInvite);
-		newDate.setDate(newDate.getDate() + 7);
-		setStartOfWeekInvite(getWeekRange(newDate).startOfWeek);
-		setEndOfWeekInvite(getWeekRange(newDate).endOfWeek);
-		setCurrentDateInvite(newDate);
-	};
-
-	// Visit Payment Week Navigation
-	const goToPreviousWeekVisit = () => {
-		const newDate = new Date(currentDateVisit);
-		newDate.setDate(newDate.getDate() - 7);
-		setStartOfWeekVisit(getWeekRange(newDate).startOfWeek);
-		setEndOfWeekVisit(getWeekRange(newDate).endOfWeek);
-		setCurrentDateVisit(newDate);
-	};
-
-	const goToNextWeekVisit = () => {
-		const newDate = new Date(currentDateVisit);
-		newDate.setDate(newDate.getDate() + 7);
-		setStartOfWeekVisit(getWeekRange(newDate).startOfWeek);
-		setEndOfWeekVisit(getWeekRange(newDate).endOfWeek);
-		setCurrentDateVisit(newDate);
-	};
-
-	const options1: OptionsModel[] = [
-		{ label: "Monthly", value: "monthly" },
-		{ label: "Weekly", value: "weekly" },
-	];
-
-	const handleSelect1Change = (data: OptionsModel | null) => {
-		setSelectedOption1(data);
-	};
-
-	const handleYearChange = (data: OptionsModel | null) => {
-		setSelectedYear(data);
-	};
-
-	// Invite Stats Handlers
-	const handleSelectInviteChange = (data: OptionsModel | null) => {
-		setSelectedOptionInvite(data);
-	};
-
-	const handleYearInviteChange = (data: OptionsModel | null) => {
-		setSelectedYearInvite(data);
-	};
-
-	// Visit Payment Handlers
-	const handleSelectVisitChange = (data: OptionsModel | null) => {
-		setSelectedOptionVisit(data);
-	};
-
-	const handleYearVisitChange = (data: OptionsModel | null) => {
-		setSelectedYearVisit(data);
+	// Week nav helpers
+	const shiftWeek = (
+		current: Date,
+		dir: 1 | -1,
+		setDate: (d: Date) => void,
+		setStart: (d: Date) => void,
+		setEnd: (d: Date) => void,
+	) => {
+		const d = new Date(current);
+		d.setDate(d.getDate() + dir * 7);
+		setDate(d);
+		setStart(getWeekRange(d).startOfWeek);
+		setEnd(getWeekRange(d).endOfWeek);
 	};
 
 	const fetchUserSummary = async () => {
-		let dateFrom = `${selectedYear?.value}-01-01`;
-		let dateTo = `${selectedYear?.value}-12-01`;
-
-		if (selectedOption1?.value === "weekly") {
-			dateFrom = formatDate(startOfWeek);
-			dateTo = formatDate(endOfWeek);
-		}
-
-		const params = `period=${selectedOption1?.value}&date_from=${dateFrom}&date_to=${dateTo}`;
-		const response = await getUserSummary(params);
-		setUserSummary(response);
+		const dateFrom = period1 === "weekly" ? formatDate(weekStart1) : `${year1?.value}-01-01`;
+		const dateTo = period1 === "weekly" ? formatDate(weekEnd1) : `${year1?.value}-12-01`;
+		const res = await getUserSummary(`period=${period1}&date_from=${dateFrom}&date_to=${dateTo}`);
+		setUserSummary(res);
 	};
 
-	// Invite Stats Fetch
 	const fetchInviteStats = async () => {
-		let dateFrom = `${selectedYearInvite?.value}-01-01`;
-		let dateTo = `${selectedYearInvite?.value}-12-01`;
-
-		if (selectedOptionInvite?.value === "weekly") {
-			dateFrom = formatDate(startOfWeekInvite);
-			dateTo = formatDate(endOfWeekInvite);
-		}
-
-		const params = `period=${selectedOptionInvite?.value}&date_from=${dateFrom}&date_to=${dateTo}`;
-		const response = await getInviteStats(params);
-		setInviteStats(response);
+		const dateFrom = periodInvite === "weekly" ? formatDate(weekStartInvite) : `${yearInvite?.value}-01-01`;
+		const dateTo = periodInvite === "weekly" ? formatDate(weekEndInvite) : `${yearInvite?.value}-12-01`;
+		const res = await getInviteStats(`period=${periodInvite}&date_from=${dateFrom}&date_to=${dateTo}`);
+		setInviteStats(res);
 	};
 
-	// Visit Payment Stats Fetch
 	const fetchVisitPaymentStats = async () => {
-		let dateFrom = `${selectedYearVisit?.value}-01-01`;
-		let dateTo = `${selectedYearVisit?.value}-12-01`;
+		const dateFrom = periodVisit === "weekly" ? formatDate(weekStartVisit) : `${yearVisit?.value}-01-01`;
+		const dateTo = periodVisit === "weekly" ? formatDate(weekEndVisit) : `${yearVisit?.value}-12-01`;
+		const res = await getVisitPaymentStats(`period=${periodVisit}&date_from=${dateFrom}&date_to=${dateTo}`);
+		setVisitPaymentStats(res);
+	};
 
-		if (selectedOptionVisit?.value === "weekly") {
-			dateFrom = formatDate(startOfWeekVisit);
-			dateTo = formatDate(endOfWeekVisit);
+	const fetchPatients = async () => {
+		try {
+			const res = await getPatientsList("page=1&page_items=10&sort=id:DESC");
+			setPatients(res.data ?? []);
+		} catch {
+			setPatients([]);
 		}
+	};
 
-		const params = `period=${selectedOptionVisit?.value}&date_from=${dateFrom}&date_to=${dateTo}`;
-		const response = await getVisitPaymentStats(params);
-		setVisitPaymentStats(response);
+	const fetchMeetings = async () => {
+		try {
+			const res = await getMeetingsList("page=1&page_items=10&status_id=6&sort=starts_at:ASC");
+			setMeetings(res.data ?? []);
+		} catch {
+			setMeetings([]);
+		}
 	};
 
 	useEffect(() => {
 		fetchUserSummary();
-	}, [selectedOption1, selectedYear, startOfWeek]);
-
+	}, [period1, year1, weekStart1]);
 	useEffect(() => {
 		fetchInviteStats();
-	}, [selectedOptionInvite, selectedYearInvite, startOfWeekInvite]);
-
+	}, [periodInvite, yearInvite, weekStartInvite]);
 	useEffect(() => {
 		fetchVisitPaymentStats();
-	}, [selectedOptionVisit, selectedYearVisit, startOfWeekVisit]);
+	}, [periodVisit, yearVisit, weekStartVisit]);
+	useEffect(() => {
+		fetchPatients();
+		fetchMeetings();
+	}, []);
 
 	return (
-		<div className="flex flex-wrap flex-col lg:flex-row">
-			<div className="flex flex-col w-full lg:w-2/3">
-				<div className="lg:mr-5 mr-0">
-					<div className="w-full mb-5">
-						<AccessControl
-							required={[PERMISSIONS.STATS_USERS]}
-							fallback={<AccessLocked title="Users" className="h-96" />}
-						>
-							<Card className="">
-								<span className="text-xl font-bold">Users</span>
-								<div className="flex flex-col sm:flex-row items-start">
-									<div>
-										<p className="text-[28px] font-bold">{userSummary?.total_users ?? "0"}</p>
-										<p className="text-neutral-600">Total Users</p>
-									</div>
-									<div className="sm:flex ml-0 sm:space-x-3 sm:ml-auto w-full sm:w-auto mt-5 sm:mt-0">
-										<SelectCmp
-											options={options1}
-											value={selectedOption1}
-											onChange={(e) => handleSelect1Change(e as OptionsModel)}
-											className="p-0 mb-2"
-											wrapperClassName="z-[999]"
+		<div className="space-y-5">
+			{/* ── Row 1: 3 line chart cards ── */}
+			<div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+				<AccessControl required={[PERMISSIONS.STATS_USERS]} fallback={<AccessLocked className="h-72" />}>
+					<StatCard
+						title="Users"
+						total={userSummary?.total_users ?? 0}
+						period={period1}
+						onPeriodChange={setPeriod1}
+						year={year1}
+						onYearChange={setYear1}
+						weekStart={weekStart1}
+						weekEnd={weekEnd1}
+						onPrevWeek={() => shiftWeek(date1, -1, setDate1, setWeekStart1, setWeekEnd1)}
+						onNextWeek={() => shiftWeek(date1, 1, setDate1, setWeekStart1, setWeekEnd1)}
+						legend={
+							<>
+								<LegendDot color="bg-[#3758F9]" label="Premium" />
+								<LegendDot color="bg-secondary-500" label="Free" />
+							</>
+						}
+					>
+						<UserLineChart userSummary={userSummary} />
+					</StatCard>
+				</AccessControl>
+
+				<AccessControl required={[PERMISSIONS.STATS_INVITED]} fallback={<AccessLocked className="h-72" />}>
+					<StatCard
+						title="Invites"
+						total={inviteStats?.total_invites ?? 0}
+						period={periodInvite}
+						onPeriodChange={setPeriodInvite}
+						year={yearInvite}
+						onYearChange={setYearInvite}
+						weekStart={weekStartInvite}
+						weekEnd={weekEndInvite}
+						onPrevWeek={() => shiftWeek(dateInvite, -1, setDateInvite, setWeekStartInvite, setWeekEndInvite)}
+						onNextWeek={() => shiftWeek(dateInvite, 1, setDateInvite, setWeekStartInvite, setWeekEndInvite)}
+						legend={
+							<>
+								<LegendDot color="bg-[#3758F9]" label="Onboarded" />
+								<LegendDot color="bg-secondary-500" label="Not Onboarded" />
+							</>
+						}
+					>
+						<InviteLineChart inviteStats={inviteStats} />
+					</StatCard>
+				</AccessControl>
+
+				<AccessControl required={[PERMISSIONS.STATS_VISIT_PAYMENT]} fallback={<AccessLocked className="h-72" />}>
+					<StatCard
+						title="Telehealth Visits"
+						total={visitPaymentStats?.stats?.total_count ?? 0}
+						period={periodVisit}
+						onPeriodChange={setPeriodVisit}
+						year={yearVisit}
+						onYearChange={setYearVisit}
+						weekStart={weekStartVisit}
+						weekEnd={weekEndVisit}
+						onPrevWeek={() => shiftWeek(dateVisit, -1, setDateVisit, setWeekStartVisit, setWeekEndVisit)}
+						onNextWeek={() => shiftWeek(dateVisit, 1, setDateVisit, setWeekStartVisit, setWeekEndVisit)}
+						legend={
+							<>
+								<LegendDot color="bg-[#2c5bd4]" label="Upcoming" />
+								<LegendDot color="bg-[#4CAF50]" label="Complete" />
+								<LegendDot color="bg-[#FFC107]" label="Draft" />
+								<LegendDot color="bg-[#F44336]" label="Canceled" />
+							</>
+						}
+					>
+						<VisitPaymentLineChart visitPaymentStats={visitPaymentStats} />
+					</StatCard>
+				</AccessControl>
+			</div>
+
+			{/* ── Row 2: doughnut + coach prompts ── */}
+			<div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+				<AccessControl required={[PERMISSIONS.STATS_DAILY_SIGNUPS]} fallback={<AccessLocked className="h-64" />}>
+					<UserDoughnutChart
+						premiumUsers={userSummary?.unique_signups.premium ?? 0}
+						freeUsers={userSummary?.unique_signups.free ?? 0}
+						total={userSummary?.unique_signups.total ?? 0}
+					/>
+				</AccessControl>
+
+				<AccessControl required={[PERMISSIONS.STATS_AI_PROMPTS]} fallback={<AccessLocked className="h-64" />}>
+					<UserCoachPromptChart />
+				</AccessControl>
+			</div>
+
+			{/* ── Row 3: preview tables ── */}
+			<div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+				<AccessControl required={[PERMISSIONS.PATIENT_VIEW]} fallback={<AccessLocked className="h-64" />}>
+					<div className="bg-white rounded-lg drop-shadow-center overflow-hidden">
+						<div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100">
+							<div className="flex items-center gap-2">
+								<Users size={15} className="text-neutral-400" />
+								<span className="text-sm font-semibold text-neutral-900">Recent Patients</span>
+							</div>
+							<Link
+								href="/patients"
+								className="flex items-center gap-1 text-xs font-medium text-primary-500 hover:text-primary-600 transition-colors"
+							>
+								View all <ArrowRight size={12} />
+							</Link>
+						</div>
+						{patients.length === 0 ? (
+							<div className="py-12 text-center text-sm text-neutral-400">No patients found</div>
+						) : (
+							<div className="divide-y divide-neutral-100">
+								{patients.map((patient) => (
+									<div key={patient.id} className="flex items-center gap-3 px-5 py-3">
+										<Image
+											src={patient.user_profile.photo || "/images/avatar.png"}
+											width={36}
+											height={36}
+											alt=""
+											className="w-9 h-9 rounded-full object-cover shrink-0"
 										/>
-										{selectedOption1?.value === "monthly" && (
-											<SelectCmp
-												options={yearOptions}
-												value={selectedYear}
-												onChange={(e) => handleYearChange(e as OptionsModel)}
-												placeholder="Select"
-												className="p-0"
-												wrapperClassName="w-[110px] ml-0 sm:ml-auto w-full sm:w-auto"
+										<div className="min-w-0 flex-1">
+											<Link
+												href={`/patients/${patient.id}/edit`}
+												className="text-sm font-medium text-primary-500 hover:text-primary-600 truncate block leading-tight"
+											>
+												{patient.user_profile.name}
+											</Link>
+											<p className="text-xs text-neutral-400 truncate">
+												{patient.email}
+												{patient.provider && (
+													<>
+														<span className="mx-1.5 text-neutral-300">·</span>
+														<span className="text-neutral-500">{patient.provider.user_profile.name}</span>
+													</>
+												)}
+											</p>
+										</div>
+										<div className="flex flex-col items-end gap-1 shrink-0">
+											<StatusPill
+												label={
+													patient.status.value === "Inactive"
+														? "Inactive"
+														: patient.last_login_at
+															? getLastLoginStatus(patient.last_login_at)
+															: "Active"
+												}
 											/>
-										)}
-									</div>
-								</div>
-								{selectedOption1?.value === "weekly" && (
-									<div className="flex items-center justify-center font-medium text-sm space-x-2 mt-3">
-										<ChevronLeft className="cursor-pointer" onClick={goToPreviousWeek} />
-										<span>
-											{formatDate1(startOfWeek)} - {formatDate1(endOfWeek)}
-										</span>
-										<ChevronRight className="cursor-pointer" onClick={goToNextWeek} />
-									</div>
-								)}
-								<div className="mt-6 mb-2">
-									<UserLineChart userSummary={userSummary} />
-								</div>
-								<div className="flex items-center justify-center text-sm mt-3 space-x-3">
-									<div className="w-3 h-3 rounded-full bg-[#3758F9]" />
-									<p>Premium</p>
-									<div className="w-3 h-3 rounded-full bg-secondary-500" />
-									<p>Free</p>
-								</div>
-							</Card>
-						</AccessControl>
-					</div>
-					<div className="w-full mb-5">
-						<AccessControl
-							required={[PERMISSIONS.STATS_INVITED]}
-							fallback={<AccessLocked title="Invite Stats" className="h-96" />}
-						>
-							<Card className="">
-								<span className="text-xl font-bold">Invite</span>
-								<div className="flex justify-between sm:flex-row items-start">
-									<div className="flex flex-col">
-										<p className="text-[28px] font-bold">{inviteStats?.total_invites ?? "0"}</p>
-										<p className="text-neutral-600">Total Invites</p>
-									</div>
-									<div className="flex flex-wrap items-center space-x-2">
-										<SelectCmp
-											options={options1}
-											value={selectedOptionInvite}
-											onChange={(e) => handleSelectInviteChange(e as OptionsModel)}
-											className="p-0"
-											wrapperClassName="z-[999]"
-										/>
-										{selectedOptionInvite?.value === "monthly" && (
-											<SelectCmp
-												options={yearOptions}
-												value={selectedYearInvite}
-												onChange={(e) => handleYearInviteChange(e as OptionsModel)}
-												placeholder="Select Year"
-												className="p-0"
-												wrapperClassName="w-[110px] ml-0 sm:ml-auto w-full sm:w-auto"
-											/>
-										)}
-									</div>
-								</div>
-								{selectedOptionInvite?.value === "weekly" && (
-									<div className="flex items-center justify-center font-medium text-sm space-x-2 mt-3">
-										<ChevronLeft className="cursor-pointer" onClick={goToPreviousWeekInvite} />
-										<span>
-											{formatDate1(startOfWeekInvite)} - {formatDate1(endOfWeekInvite)}
-										</span>
-										<ChevronRight className="cursor-pointer" onClick={goToNextWeekInvite} />
-									</div>
-								)}
-								<div className="mt-6 mb-2">
-									<InviteLineChart inviteStats={inviteStats} />
-								</div>
-								<div className="flex items-center justify-center text-sm mt-3 space-x-3">
-									<div className="w-3 h-3 rounded-full bg-[#3758F9]" />
-									<p>Onboarded</p>
-									<div className="w-3 h-3 rounded-full bg-secondary-500" />
-									<p>Not Onboarded</p>
-								</div>
-							</Card>
-						</AccessControl>
-					</div>
-					<div className="w-full mb-5">
-						<AccessControl
-							required={[PERMISSIONS.STATS_VISIT_PAYMENT]}
-							fallback={<AccessLocked title="Visit Payment Stats" className="h-96" />}
-						>
-							<Card className="">
-								<span className="text-xl font-bold">Telehealth Visits</span>
-								<div className="flex justify-between sm:flex-row items-start">
-									<div className="flex flex-col">
-										<div>
-											<p className="text-[28px] font-bold">{visitPaymentStats?.stats?.total_count ?? "0"}</p>
-											<p className="text-neutral-600">Total Visits</p>
+											<span
+												className={clsx(
+													"text-xs font-medium",
+													patient.user_type.value === "Premium" ? "text-primary-500" : "text-neutral-400",
+												)}
+											>
+												{patient.user_type.value}
+											</span>
 										</div>
 									</div>
-									<div className="flex flex-wrap items-center space-x-2">
-										<SelectCmp
-											options={options1}
-											value={selectedOptionVisit}
-											onChange={(e) => handleSelectVisitChange(e as OptionsModel)}
-											className="p-0"
-											wrapperClassName="z-[999]"
-										/>
-										{selectedOptionVisit?.value === "monthly" && (
-											<SelectCmp
-												options={yearOptions}
-												value={selectedYearVisit}
-												onChange={(e) => handleYearVisitChange(e as OptionsModel)}
-												placeholder="Select Year"
-												className="p-0"
-												wrapperClassName="w-[110px] ml-0 sm:ml-auto w-full sm:w-auto"
-											/>
-										)}
-									</div>
-								</div>
-								{selectedOptionVisit?.value === "weekly" && (
-									<div className="flex items-center justify-center font-medium text-sm space-x-2 mt-3">
-										<ChevronLeft className="cursor-pointer" onClick={goToPreviousWeekVisit} />
-										<span>
-											{formatDate1(startOfWeekVisit)} - {formatDate1(endOfWeekVisit)}
-										</span>
-										<ChevronRight className="cursor-pointer" onClick={goToNextWeekVisit} />
-									</div>
-								)}
-								<div className="mt-6 mb-2">
-									<VisitPaymentLineChart visitPaymentStats={visitPaymentStats} />
-								</div>
-								<div className="flex items-center justify-center text-sm mt-3 space-x-3">
-									<div className="w-3 h-3 rounded-full bg-[#2c5bd4]" />
-									<p>Upcoming</p>
-									<div className="w-3 h-3 rounded-full bg-[#4CAF50]" />
-									<p>Complete</p>
-									<div className="w-3 h-3 rounded-full bg-[#FFC107]" />
-									<p>Draft</p>
-									<div className="w-3 h-3 rounded-full bg-[#F44336]" />
-									<p>Canceled</p>
-								</div>
-							</Card>
-						</AccessControl>
+								))}
+							</div>
+						)}
 					</div>
-				</div>
-			</div>
-			<div className="flex flex-col w-full lg:w-1/3">
-				<div className="w-full h-auto mb-5">
-					<AccessControl
-						required={[PERMISSIONS.STATS_DAILY_SIGNUPS]}
-						fallback={<AccessLocked title="Daily Sign-ups" className="h-96" />}
-					>
-						<UserDoughnutChart
-							premiumUsers={userSummary?.unique_signups.premium ?? 0}
-							freeUsers={userSummary?.unique_signups.free ?? 0}
-							total={userSummary?.unique_signups.total ?? 0}
-						/>
-					</AccessControl>
-				</div>
-				<div className="w-full h-auto">
-					<AccessControl
-						required={[PERMISSIONS.STATS_AI_PROMPTS]}
-						fallback={<AccessLocked title="Users AI Coach Prompts" className="h-96" />}
-					>
-						<UserCoachPromptChart />
-					</AccessControl>
-				</div>
+				</AccessControl>
+
+				<AccessControl required={[PERMISSIONS.VISIT_VIEW]} fallback={<AccessLocked className="h-64" />}>
+					<div className="bg-white rounded-lg drop-shadow-center overflow-hidden">
+						<div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100">
+							<div className="flex items-center gap-2">
+								<span className="text-neutral-400">
+									<Calendar size={15} />
+								</span>
+								<span className="text-sm font-semibold text-neutral-900">Upcoming Meetings</span>
+							</div>
+							<Link
+								href="/telehealth"
+								className="flex items-center gap-1 text-xs font-medium text-primary-500 hover:text-primary-600 transition-colors"
+							>
+								View all <ArrowRight size={12} />
+							</Link>
+						</div>
+						{meetings.length === 0 ? (
+							<div className="py-12 text-center text-sm text-neutral-400">No upcoming meetings</div>
+						) : (
+							<div className="divide-y divide-neutral-100">
+								{meetings.map((meeting) => (
+									<div key={meeting.id} className="flex items-center justify-between px-5 py-3 gap-3">
+										<div className="min-w-0">
+											<p className="text-sm font-medium text-neutral-900 truncate">
+												{meeting.user_profile?.name || "—"}
+											</p>
+											<p className="text-xs text-neutral-400">
+												{formatShortDate(meeting.starts_at)}
+												<span className="mx-1.5 text-neutral-300">·</span>
+												{formatTime(meeting.starts_at)}
+											</p>
+										</div>
+										<div className="flex items-center gap-2 shrink-0">
+											<span className="text-xs text-neutral-400 hidden sm:block">{meeting.duration} min</span>
+											<StatusPill label={meeting.status?.value} />
+										</div>
+									</div>
+								))}
+							</div>
+						)}
+					</div>
+				</AccessControl>
 			</div>
 		</div>
 	);
