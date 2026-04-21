@@ -1,42 +1,42 @@
 "use client";
 
+import { useModal } from "@/app/contexts/ModalContext";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
+import useAuth from "@/app/hooks/useAuth";
 import { PERMISSIONS } from "@/app/lib/constants";
+import { formatNumber } from "@/app/lib/number-format";
 import { revalidatePage } from "@/app/lib/revalidate";
 import { formatDate, formatDateToLocal, getLastLoginStatus } from "@/app/lib/utils";
 import type { ErrorModel } from "@/app/models/error_model";
 import type { PatientModel } from "@/app/models/patient_model";
+import type { InvitedSummaryModel, UserSummaryModel } from "@/app/models/user_summary_model";
 import {
 	deletePatient,
-	sendInvite,
 	exportPatients,
-	getUserSummary,
 	getInvitedSummary,
+	getUserSummary,
+	sendInvite,
 } from "@/app/services/client_side/patients";
 import type { ExportResponse } from "@/app/services/client_side/patients";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useDebouncedCallback } from "use-debounce";
+import { IconClipboardCheck, IconMailFast, IconSend, IconUserPlus, IconUsersGroup } from "@tabler/icons-react";
 import clsx from "clsx";
+import { endOfWeek, startOfWeek } from "date-fns";
 import { CalendarDays, Download, EllipsisIcon, MessageCircle, Send, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
-import { IconClipboardCheck, IconMailFast, IconSend, IconUserPlus, IconUsersGroup } from "@tabler/icons-react";
-import { useModal } from "@/app/contexts/ModalContext";
-import useAuth from "@/app/hooks/useAuth";
+import { useDebouncedCallback } from "use-debounce";
+import AccessControl from "../access-control";
+import AccessLocked from "../access-locked";
+import UserDoughnutChart from "../dashboard/user-doughnut-chart";
+import UserLineChart from "../dashboard/user-line-chart";
 import Button from "../elements/Button";
+import Card from "../elements/Card";
 import DataTable, { type Column } from "../elements/DataTable";
 import Loader from "../elements/Loader";
 import ResponsiveActionMenu from "../elements/ResponsiveActionMenu";
 import IconAddButton from "../elements/mobile/IconAddButton";
-import { endOfWeek, startOfWeek } from "date-fns";
-import type { InvitedSummaryModel, UserSummaryModel } from "@/app/models/user_summary_model";
-import AccessControl from "../access-control";
-import AccessLocked from "../access-locked";
-import UserDoughnutChart from "../dashboard/user-doughnut-chart";
-import Card from "../elements/Card";
-import UserLineChart from "../dashboard/user-line-chart";
-import { formatNumber } from "@/app/lib/number-format";
 
 const STATUS_OPTIONS = [
 	{ label: "All", value: "0" },
@@ -368,10 +368,7 @@ export default function PatientListTable({
 			</div>
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4">
 				<div className="flex flex-col w-full">
-					<AccessControl
-						required={[PERMISSIONS.STATS_USERS]}
-						fallback={<AccessLocked title="Total" className="h-[110px]" />}
-					>
+					<AccessControl required={[PERMISSIONS.STATS_USERS]} fallback={<AccessLocked className="h-[110px]" />}>
 						<Card className="">
 							<div className="flex flex-row items-start justify-between gap-2">
 								<div className="flex flex-col items-start">
@@ -390,10 +387,7 @@ export default function PatientListTable({
 					</AccessControl>
 				</div>
 				<div className="flex flex-col w-full">
-					<AccessControl
-						required={[PERMISSIONS.STATS_DAILY_SIGNUPS]}
-						fallback={<AccessLocked title="Daily Sign-ups" className="h-[110px]" />}
-					>
+					<AccessControl required={[PERMISSIONS.STATS_DAILY_SIGNUPS]} fallback={<AccessLocked className="h-[110px]" />}>
 						<Card className="">
 							<div className="flex flex-row items-start justify-between gap-2">
 								<div className="flex flex-col items-start">
@@ -412,10 +406,7 @@ export default function PatientListTable({
 					</AccessControl>
 				</div>
 				<div className="flex flex-col w-full">
-					<AccessControl
-						required={[PERMISSIONS.STATS_INVITED]}
-						fallback={<AccessLocked title="Invited" className="h-[110px]" />}
-					>
+					<AccessControl required={[PERMISSIONS.STATS_INVITED]} fallback={<AccessLocked className="h-[110px]" />}>
 						<Card className="">
 							<div className="flex flex-row items-start justify-between gap-2">
 								<div className="flex flex-col items-start">

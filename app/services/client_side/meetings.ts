@@ -1,4 +1,4 @@
-import { apiClient } from "@/app/services/apiClient";
+import type { List } from "@/app/models/global_model";
 import type {
 	CompleteMeetingForm,
 	DraftMeetingForm,
@@ -7,6 +7,12 @@ import type {
 	MeetingSoapNotes,
 } from "@/app/models/meeting_model";
 import type { VisitPaymentStatsModel } from "@/app/models/visit_payment_stats_model";
+import { apiClient } from "@/app/services/apiClient";
+
+export const getMeetingsList = async (params: string): Promise<List<Meeting>> => {
+	const url = `/meetings?${params}`;
+	return apiClient<List<Meeting>>({ url, method: "GET" });
+};
 
 export const getVisitPaymentSummary = async (params: string): Promise<VisitPaymentStatsModel> => {
 	const url = `/stats/visit-payment?${params}`;
