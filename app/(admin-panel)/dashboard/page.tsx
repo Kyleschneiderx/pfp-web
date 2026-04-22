@@ -279,7 +279,7 @@ export default function Page() {
 	return (
 		<div className="space-y-5">
 			{/* ── Row 1: 3 line chart cards ── */}
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+			<div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 				<AccessControl required={[PERMISSIONS.STATS_USERS]} fallback={<AccessLocked className="h-72" />}>
 					<StatCard
 						title="Users"
@@ -353,7 +353,7 @@ export default function Page() {
 			</div>
 
 			{/* ── Row 2: doughnut + coach prompts ── */}
-			<div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+			<div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
 				<AccessControl required={[PERMISSIONS.STATS_DAILY_SIGNUPS]} fallback={<AccessLocked className="h-64" />}>
 					<UserDoughnutChart
 						premiumUsers={userSummary?.unique_signups.premium ?? 0}
@@ -368,7 +368,7 @@ export default function Page() {
 			</div>
 
 			{/* ── Row 3: preview tables ── */}
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+			<div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
 				<AccessControl required={[PERMISSIONS.PATIENT_VIEW]} fallback={<AccessLocked className="h-64" />}>
 					<div className="bg-white rounded-lg drop-shadow-center overflow-hidden">
 						<div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100">

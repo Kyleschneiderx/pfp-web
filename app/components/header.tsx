@@ -1,17 +1,17 @@
 "use client";
 
+import { IconKey, IconUser } from "@tabler/icons-react";
 import { CalendarDaysIcon, EllipsisIcon, LogOut, Menu, TabletSmartphoneIcon } from "lucide-react";
 import Image from "next/image";
-import { useToggle } from "../store/store";
-import { useLogout } from "../hooks/useLogout";
-import { useModal } from "../contexts/ModalContext";
-import SendPushNotificationModal from "./modals/send-push-notification";
-import useAuth from "../hooks/useAuth";
 import { usePathname, useRouter } from "next/navigation";
+import { useModal } from "../contexts/ModalContext";
 import { useSnackBar } from "../contexts/SnackBarContext";
+import useAuth from "../hooks/useAuth";
+import { useLogout } from "../hooks/useLogout";
+import { useToggle } from "../store/store";
 import ResponsiveActionMenu from "./elements/ResponsiveActionMenu";
 import ChangePasswordModal from "./modals/change-password-modal";
-import { IconKey, IconUser } from "@tabler/icons-react";
+import SendPushNotificationModal from "./modals/send-push-notification";
 
 export default function Header() {
 	const logout = useLogout();
@@ -41,23 +41,14 @@ export default function Header() {
 	return (
 		<header className="py-3 px-4 border-b border-neutral-300 flex items-center">
 			<div className="flex flex-row flex-1 items-center">
-				<Menu className="mr-2 md:hidden w-6 h-6" onClick={() => setIsOpen(!isOpen)} />
+				<Menu className="mr-2 lg:hidden w-6 h-6" onClick={() => setIsOpen(!isOpen)} />
 				<div className="flex-col hidden md:flex ml-2 ">
 					{/* <span className="capitalize font-medium text-xl ">{page}</span> */}
 					{/* <span className="capitalize text-neutral-500 text-sm hidden md:block ">{pathnameSet.join(" / ")}</span> */}
 				</div>
-				<Image
-					src="/images/logo.jpg"
-					alt="Logo"
-					width={106}
-					height={50}
-					quality={100}
-					className="w-[106px] h-[50px] md:hidden"
-					priority
-				/>
 			</div>
 			<div className="w-auto flex flex-row items-center">
-				<div className="text-right mr-2 sm:mr-3">
+				<div className="text-right mr-2 sm:mr-3 hidden md:block">
 					<span className="block font-medium text-neutral-900  overflow-hidden text-ellipsis whitespace-nowrap">
 						{userName}
 					</span>
@@ -74,7 +65,7 @@ export default function Header() {
 								width={55}
 								height={55}
 								quality={100}
-								className="rounded-full sm:mr-3 h-[55px] w-[55px] object-cover"
+								className="rounded-full h-[55px] w-[55px] object-cover"
 							/>
 						}
 						customActions={[
