@@ -1,7 +1,8 @@
 "use client";
 
-import { type RefObject, useEffect, useRef, useState } from "react";
-import Button from "../elements/Button";
+import { formatDatetime } from "@/app/lib/utils";
+import type { Meeting } from "@/app/models/meeting_model";
+import clsx from "clsx";
 import {
 	CalendarIcon,
 	ChevronDown,
@@ -13,24 +14,25 @@ import {
 	VideoIcon,
 	VideoOffIcon,
 } from "lucide-react";
+import { useEffect, useRef } from "react";
+import Button from "../elements/Button";
 import Card from "../elements/Card";
-import { formatDate, formatDatetime } from "@/app/lib/utils";
 import ResponsiveActionMenu from "../elements/ResponsiveActionMenu";
-import { useRouter } from "next/navigation";
-import clsx from "clsx";
-import type { Meeting } from "@/app/models/meeting_model";
 
 interface MeetingLobbyProps {
 	meeting: Meeting;
-	onJoin: () => void;
+	onJoin: () => void | Promise<void>;
 	stream: MediaStream | null;
 	streamDevices: MediaDeviceInfo[];
 	toggleVideo: () => void;
 	toggleAudio: () => void;
-	onResume: () => void;
+	onResume: () => void | Promise<void>;
 	isVideoOn: boolean;
 	isAudioOn: boolean;
 	isMeetingEnd: boolean;
+	sessionLoading: boolean;
+	sessionError: string | null;
+	joinDisabled: boolean;
 	onSelectDevice: (kind: MediaDeviceKind, device: MediaDeviceInfo["deviceId"]) => void;
 	selectedDevices: Record<MediaDeviceKind, MediaDeviceInfo["deviceId"] | undefined>;
 }
@@ -44,6 +46,9 @@ export default function MeetingLobby({
 	isVideoOn,
 	isAudioOn,
 	isMeetingEnd,
+	sessionLoading,
+	sessionError,
+	joinDisabled,
 	toggleVideo,
 	toggleAudio,
 	onResume,
@@ -82,7 +87,7 @@ export default function MeetingLobby({
 					<p className="text-4xl font-semibold">You left the visit</p>
 					<div className="flex flex-row items-center space-x-3">
 						<Button secondary label="Close" onClick={() => window.close()} />
-						<Button label="Lobby" onClick={onResume} />
+						<Button label="Lobby" onClick={() => void onResume()} />
 					</div>
 				</div>
 			) : (
@@ -123,9 +128,13 @@ export default function MeetingLobby({
 									<span className="text-lg">{formatDatetime(new Date(meeting.starts_at), "EEE, MMM d h:mm a")}</span>
 								</div>
 							</div>
-							<div className="flex flex-row items-center space-x-3 ml-auto">
-								<Button label="Leave" onClick={() => window.close()} className=" !w-22 !bg-error-400 text-white" />
-								<Button label="Join" onClick={onJoin} className="!w-22" />
+							<div className="flex flex-col items-end gap-2 ml-auto">
+								{sessionLoading && <span className="text-xs text-neutral-500">Preparing visit…</span>}
+								{sessionError && <span className="text-xs text-error-500 max-w-xs text-right">{sessionError}</span>}
+								<div className="flex flex-row items-center space-x-3">
+									<Button label="Leave" onClick={() => window.close()} className=" !w-22 !bg-error-400 text-white" />
+									<Button label="Join" onClick={() => void onJoin()} disabled={joinDisabled} className="!w-22" />
+								</div>
 							</div>
 						</div>
 					</Card>
@@ -143,7 +152,7 @@ export default function MeetingLobby({
 										<span className="text-sm truncate w-32">
 											{
 												streamDevices.find(
-													(device) => device.deviceId === stream?.getVideoTracks()[0].getSettings().deviceId,
+													(device) => device.deviceId === stream?.getVideoTracks()[0]?.getSettings().deviceId,
 												)?.label
 											}
 										</span>
@@ -161,9 +170,10 @@ export default function MeetingLobby({
 												<button
 													type="button"
 													key={device.deviceId}
+													onClick={() => onSelectDevice(device.kind, device.deviceId)}
 													className={clsx(
 														"text-left p-3 hover:bg-primary-100 cursor-pointer",
-														device.deviceId === stream?.getVideoTracks()[0].getSettings().deviceId
+														device.deviceId === stream?.getVideoTracks()[0]?.getSettings().deviceId
 															? "bg-primary-100"
 															: "bg-white",
 													)}
@@ -190,7 +200,7 @@ export default function MeetingLobby({
 												streamDevices.find(
 													(device) =>
 														device.kind === "audioinput" &&
-														device.deviceId === stream?.getAudioTracks()[0].getSettings().deviceId,
+														device.deviceId === stream?.getAudioTracks()[0]?.getSettings().deviceId,
 												)?.label
 											}
 										</span>
@@ -212,7 +222,7 @@ export default function MeetingLobby({
 													className={clsx(
 														"text-left p-3 hover:bg-primary-100 cursor-pointer",
 														device.kind === "audioinput" &&
-															device.deviceId === stream?.getAudioTracks()[0].getSettings().deviceId
+															device.deviceId === stream?.getAudioTracks()[0]?.getSettings().deviceId
 															? "bg-primary-100"
 															: "bg-white",
 													)}

@@ -1,7 +1,7 @@
 import type { OptionsModel } from "@/app/models/common_model";
 import clsx from "clsx";
 import Select from "react-select";
-import type { Props as ReactSelectProps, OnChangeValue } from "react-select";
+import type { OnChangeValue, Props as ReactSelectProps } from "react-select";
 
 interface Props<IsMulti extends boolean = false> extends Omit<ReactSelectProps<OptionsModel>, "onChange"> {
 	className?: string;
@@ -21,7 +21,7 @@ export default function SelectCmp<IsMulti extends boolean = false>({
 	return (
 		<div className={clsx("relative z-20", wrapperClassName)}>
 			<Select<OptionsModel, IsMulti>
-				{...rest}
+				{...(rest as ReactSelectProps<OptionsModel, IsMulti>)}
 				classNamePrefix="react-select"
 				className={clsx(
 					"w-full rounded-md border p-[3px] focus:outline-none bg-white",

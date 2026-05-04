@@ -1,58 +1,41 @@
 "use client";
 
-import { type RefObject, useEffect, useRef, useState } from "react";
-import { DotIcon, MicIcon, MicOffIcon, User, UserIcon, Wifi, WifiIcon, WifiOff, WifiOffIcon } from "lucide-react";
-import Badge from "../elements/Badge";
-import Card from "../elements/Card";
-import clsx from "clsx";
-import Button from "../elements/Button";
 import type { Meeting } from "@/app/models/meeting_model";
+import clsx from "clsx";
+import { MicIcon, MicOffIcon, User, UserIcon } from "lucide-react";
+import type { Ref } from "react";
+import Card from "../elements/Card";
 
 interface VideoCallInterfaceProps {
 	meeting: Meeting;
+	visitBeingRecorded: boolean;
 	isVideoOn: boolean;
 	isAudioOn: boolean;
-	isRecording: boolean;
 	isCallActive: boolean;
 	isScreenSharing: boolean;
+	hasRemoteVideo: boolean;
+	localVideoRef: Ref<HTMLVideoElement>;
+	remoteVideoRef: Ref<HTMLVideoElement>;
 	roomId: string;
 	className?: string;
-	stream: MediaStream | null;
-	remoteStream?: MediaStream | null;
 }
 
 export default function MediaArea({
-	meeting,
+	meeting: _meeting,
+	visitBeingRecorded,
 	isVideoOn,
 	isAudioOn,
-	isRecording,
-	isCallActive,
 	isScreenSharing,
-	roomId,
+	hasRemoteVideo,
+	localVideoRef,
+	remoteVideoRef,
 	className,
-	stream,
-	remoteStream,
 }: VideoCallInterfaceProps) {
-	const localVideoRef = useRef<HTMLVideoElement>(null);
-	const remoteVideoRef = useRef<HTMLVideoElement>(null);
-
-	useEffect(() => {
-		if (!localVideoRef.current) return;
-
-		localVideoRef.current.srcObject = stream ?? null;
-	}, [stream]);
-
-	useEffect(() => {
-		if (!remoteVideoRef.current) return;
-
-		remoteVideoRef.current.srcObject = remoteStream ?? null;
-	}, [remoteStream]);
-
 	return (
 		<div className={clsx("flex flex-col flex-1 px-4 space-y-4 text-neutral-700", className)}>
 			<div className="h-full">
 				<Card className="relative overflow-hidden !bg-neutral-900 !p-0 h-full max-h-[600px]">
-					{isRecording && (
+					{visitBeingRecorded && (
 						<div className="flex absolute top-1 left-1 z-[99]">
 							<div className="flex items-center">
 								<span className="text-error-500 text-2xl -mt-[3px] mr-1">•</span>
@@ -71,7 +54,7 @@ export default function MediaArea({
 						className="w-full h-full object-contain scale-150 origin-center"
 					/>
 
-					{!remoteStream && (
+					{!hasRemoteVideo && (
 						<div className="absolute inset-0 flex items-center justify-center bg-muted">
 							<div className="text-center">
 								<div className="h-16 w-16 rounded-full bg-neutral-300/20 flex items-center justify-center mx-auto mb-3">
@@ -83,18 +66,11 @@ export default function MediaArea({
 					)}
 
 					<Card className="!absolute bottom-0 overflow-hidden !bg-neutral-200 !p-0 !w-44 !h-44 m-3">
-						{/* {connectionStatus !== "connected" && (
-							<div className="absolute top-0 left-0 flex items-center justify-center z-20 gap-1 text-xs m-1 bg-primary-500 p-1 rounded-full text-neutral-100">
-								<WifiOffIcon className="h-3 w-3" />
-								Connecting...
-							</div>
-						)} */}
-
 						<video
 							ref={localVideoRef}
 							autoPlay
 							playsInline
-							muted={true}
+							muted
 							className="w-full h-full object-cover scale-150 origin-center"
 						/>
 						{!isVideoOn && (
@@ -113,7 +89,6 @@ export default function MediaArea({
 				</Card>
 			</div>
 
-			{/* Screen Sharing Indicator */}
 			{isScreenSharing && (
 				<Card className="p-4 bg-primary/5 border-primary/20 !bg-neutral-100">
 					<div className="flex items-center gap-2 text-primary">

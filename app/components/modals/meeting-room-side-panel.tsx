@@ -1,49 +1,49 @@
-import { Fragment, useEffect, useState } from "react";
-import Button from "../elements/Button";
-import { PlusIcon, SparklesIcon, TrashIcon, XIcon } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../elements/Tabs";
-import Textarea from "../elements/Textarea";
-import Image from "next/image";
-import ArrowLeft from "@/public/svg/arrow-left.svg";
-import type {
-	Meeting,
-	DraftMeetingForm,
-	CompleteMeetingForm,
-	MeetingSoapNotes,
-	MeetingSoapNotesIcdCodes,
-	MeetingSoapNotesCptCodes,
-} from "@/app/models/meeting_model";
-import { Controller, type ControllerRenderProps, useForm } from "react-hook-form";
 import { useModal } from "@/app/contexts/ModalContext";
-import {
-	draftMeeting,
-	completeMeeting,
-	transcribeMeeting,
-	generateSoapNotes,
-} from "@/app/services/client_side/meetings";
-import type { ErrorModel } from "@/app/models/error_model";
-import { revalidatePage } from "@/app/lib/revalidate";
-import { PERMISSIONS, STATUSES } from "@/app/lib/constants";
-import { getMeeting } from "@/app/services/client_side/meetings";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
-import type { Selection } from "@/app/models/selection_model";
-import { getSelections } from "@/app/services/client_side/selections";
-import SelectCmp from "../elements/SelectCmp";
-import Input from "../elements/Input";
-import { getPersonalizedPfPlan } from "@/app/services/client_side/patients";
-import type { PfPlanModel } from "@/app/models/pfplan_model";
-import CustomizePfPlanListModal from "./customize-pf-plan-list-modal";
-import { getPfPlans } from "@/app/services/client_side/pfplans";
-import Link from "next/link";
-import { Virtuoso } from "react-virtuoso";
-import type { PaginationModel } from "@/app/models/global_model";
-import Loader from "../elements/Loader";
-import { useInView } from "react-intersection-observer";
 import useAuth from "@/app/hooks/useAuth";
+import { PERMISSIONS, STATUSES } from "@/app/lib/constants";
+import { revalidatePage } from "@/app/lib/revalidate";
+import type { ErrorModel } from "@/app/models/error_model";
+import type { PaginationModel } from "@/app/models/global_model";
+import type {
+	CompleteMeetingForm,
+	DraftMeetingForm,
+	Meeting,
+	MeetingSoapNotes,
+	MeetingSoapNotesCptCodes,
+	MeetingSoapNotesIcdCodes,
+} from "@/app/models/meeting_model";
+import type { PfPlanModel } from "@/app/models/pfplan_model";
+import type { Selection } from "@/app/models/selection_model";
+import { completeMeeting, draftMeeting, generateSoapNotes, getMeeting } from "@/app/services/client_side/meetings";
+import { getPersonalizedPfPlan } from "@/app/services/client_side/patients";
+import { getPfPlans } from "@/app/services/client_side/pfplans";
+import { getSelections } from "@/app/services/client_side/selections";
+import ArrowLeft from "@/public/svg/arrow-left.svg";
+import { PlusIcon, SparklesIcon, TrashIcon, XIcon } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { Fragment, useEffect, useState } from "react";
+import { Controller, type ControllerRenderProps, useForm } from "react-hook-form";
+import { useInView } from "react-intersection-observer";
+import { Virtuoso } from "react-virtuoso";
 import AccessControl from "../access-control";
 import AccessLocked from "../access-locked";
+import Button from "../elements/Button";
+import Input from "../elements/Input";
+import Loader from "../elements/Loader";
+import SelectCmp from "../elements/SelectCmp";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../elements/Tabs";
+import Textarea from "../elements/Textarea";
+import CustomizePfPlanListModal from "./customize-pf-plan-list-modal";
 
-export default function MeetingRoomSidePanel({ onClose, meeting }: { onClose?: () => void; meeting: Meeting }) {
+export default function MeetingRoomSidePanel({
+	onClose,
+	meeting,
+}: {
+	onClose?: () => void;
+	meeting: Meeting;
+}) {
 	const modal = useModal();
 	const { hasPermission } = useAuth();
 	const modalData = modal.getData();
@@ -427,7 +427,10 @@ export default function MeetingRoomSidePanel({ onClose, meeting }: { onClose?: (
 																			onChange={(e) => {
 																				if (!e) return;
 
-																				handleChangeIcd(field, index, { code: e.value, name: e.name });
+																				handleChangeIcd(field, index, {
+																					code: e.value,
+																					name: e.name,
+																				});
 																			}}
 																			wrapperClassName="w-full flex-1"
 																			className="!py-[1px]"
@@ -588,38 +591,13 @@ export default function MeetingRoomSidePanel({ onClose, meeting }: { onClose?: (
 							) : (
 								<>
 									<div className="flex flex-col w-full h-full">
+										<p className="text-xs text-neutral-500 text-center px-2 pt-3">
+											Chime visits are transcribed automatically after the session ends. Refresh this panel or reopen
+											the visit if nothing appears after a minute or two.
+										</p>
 										<div className="flex h-full justify-center items-center">
-											<p className="font-semibold">No Transcription Found</p>
+											<p className="font-semibold">No transcription yet</p>
 										</div>
-										{hasPermission(PERMISSIONS.VISIT_TRANSCRIPTION_GENERATE) && (
-											<Button
-												isProcessing={isLoading}
-												onClick={
-													isLoading
-														? undefined
-														: async () => {
-																try {
-																	setIsLoading(true);
-																	const response = await transcribeMeeting(meeting.id!);
-																	showSnackBar({
-																		message: response.msg,
-																		success: true,
-																	});
-																} catch (e) {
-																	const error = e as ErrorModel;
-																	showSnackBar({
-																		message: error.msg,
-																		success: false,
-																	});
-																} finally {
-																	setIsLoading(false);
-																}
-															}
-												}
-												label="Generate Transcription"
-												className="w-full mt-auto"
-											/>
-										)}
 									</div>
 								</>
 							)}
@@ -653,7 +631,9 @@ export default function MeetingRoomSidePanel({ onClose, meeting }: { onClose?: (
 														className="text-sm text-neutral-600 line-clamp-2"
 														title={userPfPlan.description}
 														// biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
-														dangerouslySetInnerHTML={{ __html: userPfPlan.description ?? "" }}
+														dangerouslySetInnerHTML={{
+															__html: userPfPlan.description ?? "",
+														}}
 													/>
 												</div>
 											</div>
@@ -687,7 +667,9 @@ export default function MeetingRoomSidePanel({ onClose, meeting }: { onClose?: (
 														className="text-sm text-neutral-600 line-clamp-3"
 														title={pfPlan.description}
 														// biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
-														dangerouslySetInnerHTML={{ __html: pfPlan.description ?? "" }}
+														dangerouslySetInnerHTML={{
+															__html: pfPlan.description ?? "",
+														}}
 													/>
 												</div>
 											</div>

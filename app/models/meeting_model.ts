@@ -53,6 +53,8 @@ export interface Meeting {
 	soap_notes: MeetingSoapNotes;
 	transcription?: MeetingTranscription;
 	status: Status;
+	chime_meeting_id?: string | null;
+	chime_media_pipeline_id?: string | null;
 }
 
 export interface MeetingForm {
