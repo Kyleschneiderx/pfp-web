@@ -1,3 +1,4 @@
+import type { ChimeMeetingSessionResponse, MeetingSessionJoinInfo } from "@/app/models/chime_session_model";
 import type { List } from "@/app/models/global_model";
 import type {
 	CompleteMeetingForm,
@@ -28,6 +29,19 @@ export const getMeeting = async (slug: number | string): Promise<Meeting> => {
 	return data as Meeting;
 };
 
+export const getMeetingSession = async (slugOrId: number | string): Promise<MeetingSessionJoinInfo> => {
+	const url = `/meetings/${slugOrId}/session`;
+	const data = await apiClient<ChimeMeetingSessionResponse>({
+		url,
+		method: "GET",
+	});
+	return {
+		chime_meeting: data.chime_meeting,
+		attendee: data.attendee,
+		domainMeetingPatch: data.meeting,
+	};
+};
+
 export const cancelMeeting = async (id: number): Promise<Meeting> => {
 	const url = `/meetings/${id}/cancel`;
 
@@ -40,7 +54,10 @@ export const cancelMeeting = async (id: number): Promise<Meeting> => {
 export const draftMeeting = async ({
 	id,
 	body,
-}: { id: number; body: Omit<DraftMeetingForm, "status_id"> }): Promise<Meeting> => {
+}: {
+	id: number;
+	body: Omit<DraftMeetingForm, "status_id">;
+}): Promise<Meeting> => {
 	const url = `/meetings/${id}/draft`;
 
 	return apiClient<Meeting>({
@@ -53,22 +70,16 @@ export const draftMeeting = async ({
 export const completeMeeting = async ({
 	id,
 	body,
-}: { id: number; body: Omit<CompleteMeetingForm, "status_id"> }): Promise<Meeting> => {
+}: {
+	id: number;
+	body: Omit<CompleteMeetingForm, "status_id">;
+}): Promise<Meeting> => {
 	const url = `/meetings/${id}/complete`;
 
 	return apiClient<Meeting>({
 		url: url,
 		method: "PUT",
 		body: body,
-	});
-};
-
-export const transcribeMeeting = async (id: number): Promise<{ msg: string }> => {
-	const url = `/meetings/${id}/transcribe`;
-
-	return apiClient<{ msg: string }>({
-		url: url,
-		method: "POST",
 	});
 };
 
@@ -79,4 +90,14 @@ export const generateSoapNotes = async (id: number): Promise<MeetingSoapNotes> =
 		url: url,
 		method: "POST",
 	});
+};
+
+export const startMeetingRecording = async (slugOrId: number | string): Promise<{ msg: string }> => {
+	const url = `/meetings/${slugOrId}/recording/start`;
+	return apiClient<{ msg: string }>({ url, method: "POST" });
+};
+
+export const stopMeetingRecording = async (slugOrId: number | string): Promise<{ msg: string }> => {
+	const url = `/meetings/${slugOrId}/recording/stop`;
+	return apiClient<{ msg: string }>({ url, method: "POST" });
 };
