@@ -48,6 +48,7 @@
     "@tiptap/pm": "^2.11.5",
     "@tiptap/react": "^2.11.5",
     "@tiptap/starter-kit": "^2.11.5",
+    "amazon-chime-sdk-js": "^3.29.0",
     "axios": "^1.7.7",
     "chart.js": "^4.4.5",
     "clsx": "^2.1.1",

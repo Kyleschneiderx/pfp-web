@@ -1,42 +1,34 @@
 "use client";
 
-import {
-	ArrowLeftIcon,
-	DiscIcon,
-	DotIcon,
-	MenuIcon,
-	MicIcon,
-	MicOffIcon,
-	MonitorIcon,
-	PhoneIcon,
-	PhoneOffIcon,
-	VideoIcon,
-	VideoOffIcon,
-} from "lucide-react";
-import Button from "../elements/Button";
 import clsx from "clsx";
+import { CircleIcon, MicIcon, MicOffIcon, PhoneIcon, SquareIcon, VideoIcon, VideoOffIcon } from "lucide-react";
+import Button from "../elements/Button";
 
 interface MediaControlsProps {
 	isVideoOn: boolean;
 	isAudioOn: boolean;
-	isRecording: boolean;
 	onEndCall: () => void;
 	onToggleVideo: () => void;
 	onToggleAudio: () => void;
-	onToggleRecording: () => void;
+	isRecording?: boolean;
+	recordingBusy?: boolean;
+	onRecordingClick?: () => void;
 	className?: string;
 }
 
 export default function MediaControls({
 	isVideoOn,
 	isAudioOn,
-	isRecording,
 	onToggleVideo,
 	onToggleAudio,
-	onToggleRecording,
 	onEndCall,
+	isRecording,
+	recordingBusy,
+	onRecordingClick,
 	className,
 }: MediaControlsProps) {
+	const showRecording = onRecordingClick !== undefined;
+
 	return (
 		<div className={clsx("flex flex-row flex-1 justify-center items-center ", className)}>
 			<div className="flex flex-row items-center rounded-2xl py-2 px-10 bg-white shadow-md text-neutral-500 space-x-5">
@@ -54,19 +46,22 @@ export default function MediaControls({
 					{isAudioOn ? <MicIcon className="h-6 w-6" /> : <MicOffIcon className="h-6 w-6" />}
 				</Button>
 
-				<Button onClick={onToggleRecording} className="!rounded-full h-12 w-12 !p-0  hover:text-primary-600">
-					{isRecording ? <DotIcon className="h-24 w-24 text-error-500" /> : <DotIcon className="h-24 w-24 " />}
-				</Button>
-
-				{/* <Button
-					onClick={onToggleScreenSharing}
-					className={clsx(
-						"!rounded-full h-12 w-12 !p-0 ",
-						isScreenSharing ? "bg-primary-500 hover:bg-primary-600 text-white " : "hover:text-primary-600",
-					)}
-				>
-					<MonitorIcon className="h-6 w-6" />
-				</Button> */}
+				{showRecording && (
+					<Button
+						type="button"
+						isProcessing={recordingBusy}
+						disabled={recordingBusy}
+						onClick={onRecordingClick}
+						className={clsx(
+							"!rounded-full h-12 w-12 !p-0",
+							isRecording ? "bg-error-100 text-error-600 hover:bg-error-200" : "hover:text-primary-600",
+						)}
+						aria-pressed={isRecording}
+						aria-label={isRecording ? "Stop recording" : "Start recording"}
+					>
+						{isRecording ? <SquareIcon className="h-6 w-6" /> : <CircleIcon className="h-6 w-6" />}
+					</Button>
+				)}
 			</div>
 		</div>
 	);
