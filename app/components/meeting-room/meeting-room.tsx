@@ -1,29 +1,48 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import MediaArea from "./media-area";
-import { useModal } from "@/app/contexts/ModalContext";
-import MediaControls from "./media-controls";
-import MeetingRoomSidePanel from "../modals/meeting-room-side-panel";
-import Button from "../elements/Button";
-import { PhoneIcon } from "lucide-react";
-import MeetingLobby from "./meeting-lobby";
-import Card from "../elements/Card";
-import clsx from "clsx";
+import { useSnackBar } from "@/app/contexts/SnackBarContext";
+import type { MeetingSessionJoinInfo } from "@/app/models/chime_session_model";
 import type { Meeting } from "@/app/models/meeting_model";
-import socketClient from "@/app/services/socket-client";
-import useAudioStream from "@/app/hooks/useAudioStream";
+import {
+	getMeeting,
+	getMeetingSession,
+	startMeetingRecording,
+	stopMeetingRecording,
+} from "@/app/services/client_side/meetings";
+import {
+	type AudioVideoObserver,
+	ConsoleLogger,
+	DefaultDeviceController,
+	DefaultMeetingSession,
+	LogLevel,
+	MeetingSessionConfiguration,
+} from "amazon-chime-sdk-js";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Card from "../elements/Card";
+import MeetingRoomSidePanel from "../modals/meeting-room-side-panel";
+import MediaArea from "./media-area";
+import MediaControls from "./media-controls";
+import MeetingLobby from "./meeting-lobby";
 
-export default function MeetingRoom({ meeting }: { meeting: Meeting }) {
+export default function MeetingRoom({
+	meeting: meetingProp,
+}: {
+	meeting: Meeting;
+}) {
+	const [meeting, setMeeting] = useState<Meeting>(meetingProp);
 	const [isVideoOn, setIsVideoOn] = useState(true);
 	const [isAudioOn, setIsAudioOn] = useState(true);
-	const [isRecording, setIsRecording] = useState(false);
 	const [isCallActive, setIsCallActive] = useState(false);
 	const [isMeetingEnd, setIsMeetingEnd] = useState(false);
-	const [isScreenSharing, setIsScreenSharing] = useState(false);
+	const [isScreenSharing] = useState(false);
 	const [localStream, setLocalStream] = useState<MediaStream | null>(null);
-	const [remoteStream, setRemoteStream] = useState<MediaStream>();
-	const iceServersRef = useRef<RTCConfiguration["iceServers"]>();
+	const [hasRemoteVideo, setHasRemoteVideo] = useState(false);
+	const [chimeSession, setChimeSession] = useState<MeetingSessionJoinInfo | null>(null);
+	const [sessionLoading, setSessionLoading] = useState(true);
+	const [sessionError, setSessionError] = useState<string | null>(null);
+	const [joining, setJoining] = useState(false);
+	const [lobbyMediaKey, setLobbyMediaKey] = useState(0);
+
 	const [selectedDevices, setSelectedDevices] = useState<
 		Record<MediaDeviceKind, MediaDeviceInfo["deviceId"] | undefined>
 	>({
@@ -32,218 +51,350 @@ export default function MeetingRoom({ meeting }: { meeting: Meeting }) {
 		videoinput: undefined,
 	});
 	const streamDevicesRef = useRef<MediaDeviceInfo[]>([]);
-	const peerConnectionRef = useRef<RTCPeerConnection>();
-	const iceCandidateQueueRef = useRef<RTCLocalIceCandidateInit[]>([]);
-	const modal = useModal();
+	const meetingSessionRef = useRef<InstanceType<typeof DefaultMeetingSession> | null>(null);
+	const chimeObserverRef = useRef<AudioVideoObserver | null>(null);
+	const localVideoRef = useRef<HTMLVideoElement | null>(null);
+	const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
+	const [recordingBusy, setRecordingBusy] = useState(false);
+	const { showSnackBar } = useSnackBar();
+	const meetingSlugRef = useRef(meeting.slug);
+	const meetingRef = useRef(meeting);
 
-	const meetingSocket = useMemo(() => socketClient({ namespace: "meeting" }), []);
-
-	useAudioStream({
-		start: isRecording,
-		emitLocal: (data: ArrayBuffer) => {
-			meetingSocket.emit("audio", { roomId: meeting.id, audio: data, speaker: "provider" });
-		},
-		emitRemote: (data: ArrayBuffer) => {
-			meetingSocket.emit("audio", { roomId: meeting.id, audio: data, speaker: "patient" });
-		},
-		emitInterval: 30 * 1000,
-		localStream: localStream,
-		remoteStream: remoteStream,
-	});
-
-	const cleanupStream = () => {
-		if (localStream) {
-			for (const track of localStream.getTracks()) {
-				track.stop();
-				localStream.removeTrack(track);
-			}
-			setLocalStream(null);
-		}
-
-		if (peerConnectionRef.current) {
-			peerConnectionRef.current.close();
-		}
-	};
-
-	const initializeWebRTC = async () => {
+	const loadChimeSession = useCallback(async () => {
+		setSessionLoading(true);
+		setSessionError(null);
 		try {
-			// Get user media
-			const stream = await navigator.mediaDevices.getUserMedia({
-				video: true,
-				audio: true,
+			const session = await getMeetingSession(meeting.slug);
+			setChimeSession({
+				chime_meeting: session.chime_meeting,
+				attendee: session.attendee,
 			});
-
-			streamDevicesRef.current = await navigator.mediaDevices.enumerateDevices();
-
-			const speaker = streamDevicesRef.current.find(
-				(device) => device.kind === "audiooutput" && device.deviceId === "default",
-			);
-
-			if (speaker) {
-				setSelectedDevices((prev) => {
-					return {
-						...prev,
-						[speaker.kind]: speaker.deviceId,
-					};
-				});
-			}
-
-			setLocalStream(stream);
-		} catch (error) {
-			console.error("Error accessing media devices:", error);
+			setMeeting((prev) => ({
+				...prev,
+				...(session.domainMeetingPatch ?? {}),
+			}));
+		} catch (e) {
+			const msg =
+				e && typeof e === "object" && "msg" in e ? String((e as { msg: string }).msg) : "Could not start visit session";
+			setSessionError(msg);
+			setChimeSession(null);
+		} finally {
+			setSessionLoading(false);
 		}
-	};
+	}, [meeting.slug]);
 
-	const initializePeerConnection = (iceServers: RTCConfiguration["iceServers"]) => {
-		peerConnectionRef.current = new RTCPeerConnection({ iceServers });
-
-		if (localStream) {
-			for (const track of localStream.getTracks()) {
-				peerConnectionRef.current.addTrack(track, localStream);
-			}
-		}
-
-		// Send ICE candidates to other peer via signaling
-		peerConnectionRef.current.addEventListener("icecandidate", (e) => {
-			if (!e.candidate) return;
-
-			meetingSocket.emit("candidate", { roomId: meeting.id, candidate: e.candidate });
-		});
-
-		// Remote track(s) -> attach to remoteVideo
-		peerConnectionRef.current.addEventListener("track", (ev) => {
-			// Most browsers provide ev.streams[0]
-			setRemoteStream((prev) => {
-				let remote = ev?.streams?.[0];
-				if (!remote) {
-					const remoteMediaStream = new MediaStream();
-					remoteMediaStream.addTrack(ev.track);
-					remote = remoteMediaStream;
-				}
-				return remote;
-			});
-		});
-
-		// Optional: connection state updates
-		peerConnectionRef.current.addEventListener("connectionstatechange", () => {
-			if (
-				peerConnectionRef.current?.connectionState === "failed" ||
-				peerConnectionRef.current?.connectionState === "closed"
-			) {
-				setRemoteStream(undefined);
-			}
-		});
-	};
-
-	// Initialize WebRTC connection
 	useEffect(() => {
-		initializeWebRTC();
+		loadChimeSession();
+	}, [loadChimeSession]);
 
-		meetingSocket.connect();
+	useEffect(() => {
+		setMeeting((prev) => ({ ...prev, ...meetingProp }));
+	}, [meetingProp]);
 
-		meetingSocket.on("ice_servers", (data) => {
-			iceServersRef.current = data;
-		});
+	useEffect(() => {
+		meetingSlugRef.current = meeting.slug;
+	}, [meeting.slug]);
 
-		meetingSocket.on("offer", async ({ from, sdp }) => {
-			if (!peerConnectionRef.current) return;
-			await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(sdp));
-			const answer = await peerConnectionRef.current.createAnswer();
-			await peerConnectionRef.current.setLocalDescription(answer);
-			meetingSocket.emit("answer", { roomId: meeting.id, sdp: answer });
-		});
+	useEffect(() => {
+		meetingRef.current = meeting;
+	}, [meeting]);
 
-		meetingSocket.on("answer", async ({ from, sdp }) => {
-			if (!peerConnectionRef.current) return;
-			await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(sdp));
-			if (iceCandidateQueueRef.current.length) {
-				for (const candidate of iceCandidateQueueRef.current) {
-					await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+	const stopLobbyPreview = () => {
+		setLocalStream((prev) => {
+			if (prev) {
+				for (const t of prev.getTracks()) {
+					t.stop();
 				}
-				iceCandidateQueueRef.current = [];
 			}
+			return null;
 		});
+	};
 
-		meetingSocket.on("candidate", async ({ candidate }) => {
-			if (!peerConnectionRef.current) return;
+	useEffect(() => {
+		if (isCallActive || isMeetingEnd) return;
+		if (sessionLoading || !chimeSession) return;
 
-			if (!peerConnectionRef.current.remoteDescription) {
-				iceCandidateQueueRef.current.push(candidate);
-				return;
+		let cancelled = false;
+
+		const run = async () => {
+			try {
+				const stream = await navigator.mediaDevices.getUserMedia({
+					video: selectedDevices.videoinput ? { deviceId: { exact: selectedDevices.videoinput } } : true,
+					audio: selectedDevices.audioinput ? { deviceId: { exact: selectedDevices.audioinput } } : true,
+				});
+
+				if (cancelled) {
+					for (const t of stream.getTracks()) {
+						t.stop();
+					}
+					return;
+				}
+
+				streamDevicesRef.current = await navigator.mediaDevices.enumerateDevices();
+
+				const speaker = streamDevicesRef.current.find(
+					(device) => device.kind === "audiooutput" && device.deviceId === "default",
+				);
+
+				if (speaker) {
+					setSelectedDevices((prev) => ({
+						...prev,
+						audiooutput: prev.audiooutput ?? speaker.deviceId,
+					}));
+				}
+
+				setLocalStream((prev) => {
+					if (prev) {
+						for (const t of prev.getTracks()) {
+							t.stop();
+						}
+					}
+					return stream;
+				});
+			} catch (error) {
+				console.error("Error accessing media devices:", error);
 			}
-			if (!candidate) return;
-			await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
-		});
+		};
 
-		meetingSocket.on("server_error", (data) => {
-			console.error("[MEETING SOCKET]:", data);
-		});
+		void run();
 
 		return () => {
-			meetingSocket.disconnect();
-
-			cleanupStream();
+			cancelled = true;
 		};
-	}, []);
+	}, [
+		isCallActive,
+		isMeetingEnd,
+		sessionLoading,
+		chimeSession,
+		selectedDevices.videoinput,
+		selectedDevices.audioinput,
+		lobbyMediaKey,
+	]);
 
-	// Handle video/audio toggle
 	useEffect(() => {
-		if (localStream) {
-			const videoTrack = localStream.getVideoTracks()[0];
-			const audioTrack = localStream.getAudioTracks()[0];
+		if (!localStream || isCallActive) return;
+		const videoTrack = localStream.getVideoTracks()[0];
+		const audioTrack = localStream.getAudioTracks()[0];
+		if (videoTrack) videoTrack.enabled = isVideoOn;
+		if (audioTrack) audioTrack.enabled = isAudioOn;
+	}, [isVideoOn, isAudioOn, localStream, isCallActive]);
 
-			if (videoTrack) {
-				videoTrack.enabled = isVideoOn;
+	useEffect(() => {
+		const av = meetingSessionRef.current?.audioVideo;
+		if (!av || !isCallActive) return;
+
+		if (isVideoOn) {
+			if (!av.hasStartedLocalVideoTile()) {
+				av.startLocalVideoTile();
 			}
-			if (audioTrack) {
-				audioTrack.enabled = isAudioOn;
+		} else {
+			if (av.hasStartedLocalVideoTile()) {
+				av.stopLocalVideoTile();
 			}
 		}
-	}, [isVideoOn, isAudioOn, localStream]);
+	}, [isVideoOn, isCallActive]);
 
 	useEffect(() => {
-		const updateMediaStream = async () => {
-			const stream = await navigator.mediaDevices.getUserMedia({
-				video: selectedDevices.videoinput ? { deviceId: { exact: selectedDevices.videoinput } } : true,
-				audio: selectedDevices.audioinput ? { deviceId: { exact: selectedDevices.audioinput } } : true,
-			});
+		const av = meetingSessionRef.current?.audioVideo;
+		if (!av || !isCallActive) return;
 
-			streamDevicesRef.current = await navigator.mediaDevices.enumerateDevices();
+		if (isAudioOn) {
+			av.realtimeUnmuteLocalAudio();
+		} else {
+			av.realtimeMuteLocalAudio();
+		}
+	}, [isAudioOn, isCallActive]);
 
-			setLocalStream(stream);
-		};
+	const teardownChime = async () => {
+		const session = meetingSessionRef.current;
+		if (!session) return;
 
-		updateMediaStream();
-	}, [selectedDevices]);
+		const av = session.audioVideo;
+		const observer = chimeObserverRef.current;
+		if (observer) {
+			av.removeObserver(observer);
+			chimeObserverRef.current = null;
+		}
 
-	const handleEndCall = () => {
-		cleanupStream();
-		setIsCallActive(false);
-		setIsMeetingEnd(true);
+		try {
+			if (av.hasStartedLocalVideoTile()) {
+				av.stopLocalVideoTile();
+			}
+		} catch {
+			/* noop */
+		}
+
+		await av.stopVideoInput().catch(() => {});
+		await av.stopAudioInput().catch(() => {});
+
+		// `audioVideo.stop()` does not return the promise from `stopReturningPromise()`.
+		// Destroying the session before disconnect finishes clears EventController config while
+		// async ingestion still reads `configuration.credentials` → TypeError.
+		const audioVideoController = (
+			session as unknown as {
+				audioVideoController: { stopReturningPromise: () => Promise<void> };
+			}
+		).audioVideoController;
+		await audioVideoController.stopReturningPromise().catch(() => {});
+
+		await session.destroy().catch(() => {});
+		meetingSessionRef.current = null;
+		setHasRemoteVideo(false);
 	};
 
-	const handleResume = () => {
-		initializeWebRTC();
+	const stopBackendRecording = useCallback(async () => {
+		if (!meetingRef.current.chime_media_pipeline_id) return;
+		try {
+			await stopMeetingRecording(meetingSlugRef.current);
+		} catch {
+			/* best-effort */
+		}
+	}, []);
+
+	const handleRecordingClick = useCallback(async () => {
+		if (recordingBusy) return;
+		const pipelineActive = Boolean(meeting.chime_media_pipeline_id);
+		setRecordingBusy(true);
+		try {
+			if (pipelineActive) {
+				await stopMeetingRecording(meeting.slug);
+			} else {
+				await startMeetingRecording(meeting.slug);
+			}
+			const updated = await getMeeting(meeting.slug);
+			setMeeting(updated);
+		} catch (e) {
+			const msg =
+				e && typeof e === "object" && "msg" in e ? String((e as { msg: string }).msg) : "Recording request failed";
+			showSnackBar({ message: msg, success: false });
+		} finally {
+			setRecordingBusy(false);
+		}
+	}, [recordingBusy, meeting.chime_media_pipeline_id, meeting.slug, showSnackBar]);
+
+	const handleEndCall = async () => {
+		await stopBackendRecording();
+		await teardownChime();
+		setIsCallActive(false);
+		setIsMeetingEnd(true);
+		try {
+			const updated = await getMeeting(meeting.slug);
+			setMeeting(updated);
+		} catch {
+			/* keep prior meeting state */
+		}
+	};
+
+	const handleResume = async () => {
+		await loadChimeSession();
 		setIsMeetingEnd(false);
 	};
 
-	const handleJoin = () => {
-		if (!iceServersRef.current) return;
+	const handleJoin = async () => {
+		if (!chimeSession || joining) return;
 
-		initializePeerConnection(iceServersRef.current);
+		setJoining(true);
+		setHasRemoteVideo(false);
 
-		meetingSocket.emit("join", { roomId: meeting.id }, async (response) => {
-			if (response !== "ok") return;
+		try {
+			const audioDevice = selectedDevices.audioinput ?? localStream?.getAudioTracks()[0]?.getSettings().deviceId;
+			const videoDevice = selectedDevices.videoinput ?? localStream?.getVideoTracks()[0]?.getSettings().deviceId;
 
-			if (!peerConnectionRef.current) return;
+			stopLobbyPreview();
 
-			const offer = await peerConnectionRef.current.createOffer();
-			await peerConnectionRef.current.setLocalDescription(offer);
-			meetingSocket.emit("offer", { roomId: meeting.id, sdp: offer });
-		});
+			const logger = new ConsoleLogger("PfpChime", LogLevel.WARN);
+			const deviceController = new DefaultDeviceController(logger);
+			const configuration = new MeetingSessionConfiguration(chimeSession.chime_meeting, chimeSession.attendee);
+			const session = new DefaultMeetingSession(configuration, logger, deviceController);
+			meetingSessionRef.current = session;
 
-		setIsCallActive(true);
+			const av = session.audioVideo;
+
+			const audioDevices = await session.deviceController.listAudioInputDevices(true);
+			const videoDevices = await session.deviceController.listVideoInputDevices(true);
+
+			const resolvedAudio = audioDevice ?? audioDevices[0]?.deviceId;
+			const resolvedVideo = videoDevice ?? videoDevices[0]?.deviceId;
+
+			if (resolvedAudio === undefined || resolvedVideo === undefined) {
+				throw new Error("No microphone or camera available for this visit.");
+			}
+
+			await av.startAudioInput(resolvedAudio);
+			await av.startVideoInput(resolvedVideo);
+
+			if (selectedDevices.audiooutput) {
+				await av.chooseAudioOutput(selectedDevices.audiooutput);
+			}
+
+			const observer: AudioVideoObserver = {
+				videoTileDidUpdate: (tileState) => {
+					if (tileState.tileId === null || !tileState.boundAttendeeId) return;
+					if (tileState.isContent) return;
+
+					const localEl = localVideoRef.current;
+					const remoteEl = remoteVideoRef.current;
+
+					if (tileState.localTile) {
+						if (localEl) {
+							av.bindVideoElement(tileState.tileId, localEl);
+						}
+					} else if (remoteEl) {
+						av.bindVideoElement(tileState.tileId, remoteEl);
+						setHasRemoteVideo(true);
+					}
+				},
+				videoTileWasRemoved: (tileId) => {
+					av.unbindVideoElement(tileId, true);
+					const remoteTiles = av.getAllRemoteVideoTiles();
+					setHasRemoteVideo(remoteTiles.length > 0);
+				},
+			};
+
+			chimeObserverRef.current = observer;
+			av.addObserver(observer);
+
+			av.start();
+
+			if (isVideoOn) {
+				av.startLocalVideoTile();
+			}
+			if (!isAudioOn) {
+				av.realtimeMuteLocalAudio();
+			}
+
+			setIsCallActive(true);
+		} catch (e) {
+			console.error("Chime join failed:", e);
+			const msg =
+				e instanceof Error
+					? e.message
+					: e && typeof e === "object" && "message" in e
+						? String((e as { message: unknown }).message)
+						: "Could not join the visit";
+			showSnackBar({ message: msg, success: false });
+			await teardownChime();
+			setLobbyMediaKey((k) => k + 1);
+		} finally {
+			setJoining(false);
+		}
 	};
+
+	useEffect(() => {
+		return () => {
+			void (async () => {
+				if (meetingRef.current.chime_media_pipeline_id) {
+					try {
+						await stopMeetingRecording(meetingSlugRef.current);
+					} catch {
+						/* best-effort */
+					}
+				}
+				await teardownChime();
+				stopLobbyPreview();
+			})();
+		};
+	}, []);
 
 	return !isCallActive ? (
 		<MeetingLobby
@@ -251,6 +402,9 @@ export default function MeetingRoom({ meeting }: { meeting: Meeting }) {
 			isVideoOn={isVideoOn}
 			isAudioOn={isAudioOn}
 			isMeetingEnd={isMeetingEnd}
+			sessionLoading={sessionLoading}
+			sessionError={sessionError}
+			joinDisabled={!chimeSession || sessionLoading || !!sessionError || joining}
 			toggleVideo={() => setIsVideoOn((prev) => !prev)}
 			toggleAudio={() => setIsAudioOn((prev) => !prev)}
 			onResume={handleResume}
@@ -259,16 +413,10 @@ export default function MeetingRoom({ meeting }: { meeting: Meeting }) {
 			streamDevices={streamDevicesRef.current}
 			selectedDevices={selectedDevices}
 			onSelectDevice={(kind: MediaDeviceKind, device: MediaDeviceInfo["deviceId"]) => {
-				return setSelectedDevices((prev) => {
-					let newDevices = prev;
-
-					newDevices = {
-						...prev,
-						[kind]: device,
-					};
-
-					return newDevices;
-				});
+				setSelectedDevices((prev) => ({
+					...prev,
+					[kind]: device,
+				}));
 			}}
 		/>
 	) : (
@@ -277,37 +425,28 @@ export default function MeetingRoom({ meeting }: { meeting: Meeting }) {
 				<div className="flex-1 flex flex-col col-span-6 h-full">
 					<MediaArea
 						meeting={meeting}
-						isRecording={isRecording}
+						visitBeingRecorded={Boolean(meeting.chime_media_pipeline_id)}
 						isVideoOn={isVideoOn}
 						isAudioOn={isAudioOn}
 						isCallActive={isCallActive}
 						isScreenSharing={isScreenSharing}
-						stream={localStream}
-						remoteStream={remoteStream}
-						roomId={"11111-111-1111"}
+						hasRemoteVideo={hasRemoteVideo}
+						localVideoRef={localVideoRef}
+						remoteVideoRef={remoteVideoRef}
+						roomId={String(meeting.id ?? meeting.slug)}
 						className="flex flex-1"
 					/>
 					<div className="p-4 flex flex-row  items-end ">
 						<div className="flex items-center flex-1">
-							{/* <Button
-								onClick={() => handleEndCall()}
-								className={clsx(
-									"!rounded-full h-12 w-12  !p-0",
-									isCallActive
-										? "bg-error-500 hover:bg-error-600 text-white "
-										: "text-neutral-700 hover:text-error-600",
-								)}
-							>
-								<PhoneIcon className="h-6 w-6" />
-							</Button> */}
 							<MediaControls
 								isVideoOn={isVideoOn}
 								isAudioOn={isAudioOn}
-								isRecording={isRecording}
-								onEndCall={handleEndCall}
+								onEndCall={() => void handleEndCall()}
 								onToggleVideo={() => setIsVideoOn((prev) => !prev)}
 								onToggleAudio={() => setIsAudioOn((prev) => !prev)}
-								onToggleRecording={() => setIsRecording((prev) => !prev)}
+								isRecording={Boolean(meeting.chime_media_pipeline_id)}
+								recordingBusy={recordingBusy}
+								onRecordingClick={() => void handleRecordingClick()}
 							/>
 						</div>
 					</div>
