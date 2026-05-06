@@ -4,35 +4,21 @@ import { useModal } from "@/app/contexts/ModalContext";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import useAuth from "@/app/hooks/useAuth";
 import { PERMISSIONS } from "@/app/lib/constants";
-import { formatNumber } from "@/app/lib/number-format";
 import { revalidatePage } from "@/app/lib/revalidate";
 import { formatDate, formatDateToLocal, getLastLoginStatus } from "@/app/lib/utils";
 import type { ErrorModel } from "@/app/models/error_model";
 import type { PatientModel } from "@/app/models/patient_model";
-import type { InvitedSummaryModel, UserSummaryModel } from "@/app/models/user_summary_model";
-import {
-	deletePatient,
-	exportPatients,
-	getInvitedSummary,
-	getUserSummary,
-	sendInvite,
-} from "@/app/services/client_side/patients";
+import { deletePatient, exportPatients, sendInvite } from "@/app/services/client_side/patients";
 import type { ExportResponse } from "@/app/services/client_side/patients";
-import { IconClipboardCheck, IconMailFast, IconSend, IconUserPlus, IconUsersGroup } from "@tabler/icons-react";
+import { IconSend } from "@tabler/icons-react";
 import clsx from "clsx";
-import { endOfWeek, startOfWeek } from "date-fns";
-import { CalendarDays, Download, EllipsisIcon, MessageCircle, Send, Users } from "lucide-react";
+import { Download, EllipsisIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import AccessControl from "../access-control";
-import AccessLocked from "../access-locked";
-import UserDoughnutChart from "../dashboard/user-doughnut-chart";
-import UserLineChart from "../dashboard/user-line-chart";
 import Button from "../elements/Button";
-import Card from "../elements/Card";
 import DataTable, { type Column } from "../elements/DataTable";
 import Loader from "../elements/Loader";
 import ResponsiveActionMenu from "../elements/ResponsiveActionMenu";
@@ -80,8 +66,6 @@ export default function PatientListTable({
 	const [isPending, startTransition] = useTransition();
 	const [isExporting, setIsExporting] = useState(false);
 	const [searchInput, setSearchInput] = useState(search);
-	const [userSummary, setUserSummary] = useState<UserSummaryModel | null>(null);
-	const [invitedSummary, setInvitedSummary] = useState<InvitedSummaryModel | null>(null);
 
 	const updateParams = useCallback(
 		(updates: Record<string, string | undefined>) => {
@@ -132,23 +116,6 @@ export default function PatientListTable({
 		setSearchInput(search);
 	}, [search]);
 
-	const fetchUserSummary = async () => {
-		const params = `period=weekly&date_from=${formatDate(startOfWeek(new Date()))}&date_to=${formatDate(endOfWeek(new Date()))}`;
-		const response = await getUserSummary(params);
-		setUserSummary(response);
-	};
-
-	const fetchInvitedSummary = async () => {
-		const params = `period=weekly&date_from=${formatDate(startOfWeek(new Date()))}&date_to=${formatDate(endOfWeek(new Date()))}`;
-		const response = await getInvitedSummary(params);
-		setInvitedSummary(response);
-	};
-
-	useEffect(() => {
-		fetchUserSummary();
-		fetchInvitedSummary();
-	}, []);
-
 	const handleSendInvite = (patient: PatientModel) => {
 		modal.open({
 			type: "confirm",
@@ -158,7 +125,10 @@ export default function PatientListTable({
 				try {
 					await sendInvite(patient.id);
 					await revalidatePage("/patients");
-					showSnackBar({ message: "Invitation successfully sent.", success: true });
+					showSnackBar({
+						message: "Invitation successfully sent.",
+						success: true,
+					});
 					modal.closeAll();
 				} catch (error) {
 					const apiError = error as ErrorModel;
@@ -179,7 +149,10 @@ export default function PatientListTable({
 				try {
 					await deletePatient(patient.id);
 					await revalidatePage("/patients");
-					showSnackBar({ message: "Patient successfully deleted.", success: true });
+					showSnackBar({
+						message: "Patient successfully deleted.",
+						success: true,
+					});
 					modal.closeAll();
 				} catch (error) {
 					const apiError = error as ErrorModel;
@@ -208,10 +181,16 @@ export default function PatientListTable({
 			link.click();
 			link.remove();
 			window.URL.revokeObjectURL(blobUrl);
-			showSnackBar({ message: "Patients exported successfully.", success: true });
+			showSnackBar({
+				message: "Patients exported successfully.",
+				success: true,
+			});
 		} catch (error) {
 			const apiError = error as ErrorModel;
-			showSnackBar({ message: apiError?.msg || "Failed to export patients.", success: false });
+			showSnackBar({
+				message: apiError?.msg || "Failed to export patients.",
+				success: false,
+			});
 		} finally {
 			setIsExporting(false);
 		}
@@ -366,65 +345,6 @@ export default function PatientListTable({
 					)}
 				</div>
 			</div>
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4">
-				<div className="flex flex-col w-full">
-					<AccessControl required={[PERMISSIONS.STATS_USERS]} fallback={<AccessLocked className="h-[110px]" />}>
-						<Card className="">
-							<div className="flex flex-row items-start justify-between gap-2">
-								<div className="flex flex-col items-start">
-									<p className="text-xl font-bold text-neutral-900">Total</p>
-									<p className="text-lg font-semibold">{formatNumber(userSummary?.total_users ?? 0)}</p>
-								</div>
-								<div className="flex self-center items-center rounded-full bg-primary-500 p-2">
-									<IconUsersGroup size={32} className="text-white my-auto" />
-								</div>
-							</div>
-							<div className="flex flex-col items-start text-xs text-neutral-500">
-								<p>{formatNumber(userSummary?.total_users_by_type.premium ?? 0)} Premium</p>
-								<p>{formatNumber(userSummary?.total_users_by_type.free ?? 0)} Free</p>
-							</div>
-						</Card>
-					</AccessControl>
-				</div>
-				<div className="flex flex-col w-full">
-					<AccessControl required={[PERMISSIONS.STATS_DAILY_SIGNUPS]} fallback={<AccessLocked className="h-[110px]" />}>
-						<Card className="">
-							<div className="flex flex-row items-start justify-between gap-2">
-								<div className="flex flex-col items-start">
-									<p className="text-xl font-bold text-neutral-900">Daily Signups</p>
-									<p className="text-lg font-semibold">{formatNumber(userSummary?.unique_signups.total ?? 0)}</p>
-								</div>
-								<div className="flex self-center items-center rounded-full bg-primary-500 p-2">
-									<IconUserPlus size={32} className="text-white my-auto" />
-								</div>
-							</div>
-							<div className="flex flex-col items-start text-xs text-neutral-500">
-								<p>{formatNumber(userSummary?.unique_signups.premium ?? 0)} Premium</p>
-								<p>{formatNumber(userSummary?.unique_signups.free ?? 0)} Free</p>
-							</div>
-						</Card>
-					</AccessControl>
-				</div>
-				<div className="flex flex-col w-full">
-					<AccessControl required={[PERMISSIONS.STATS_INVITED]} fallback={<AccessLocked className="h-[110px]" />}>
-						<Card className="">
-							<div className="flex flex-row items-start justify-between gap-2">
-								<div className="flex flex-col items-start">
-									<p className="text-xl font-bold text-neutral-900">Invited</p>
-									<p className="text-lg font-semibold">{formatNumber(invitedSummary?.total_invites ?? 0)}</p>
-								</div>
-								<div className="flex self-center items-center rounded-full bg-primary-500 p-2">
-									<IconMailFast size={32} className="text-white my-auto" />
-								</div>
-							</div>
-							<div className="flex flex-col items-start text-xs text-neutral-500">
-								<p>{formatNumber(invitedSummary?.onboarded.total ?? 0)} Onboarded</p>
-								<p>{formatNumber(invitedSummary?.not_onboarded.total ?? 0)} Not Onboarded</p>
-							</div>
-						</Card>
-					</AccessControl>
-				</div>
-			</div>
 
 			<div className="">
 				{isPending ? (
@@ -437,7 +357,11 @@ export default function PatientListTable({
 							columns={columns}
 							data={patients}
 							emptyMessage={
-								!patients.length ? "No patients found" : !patients.length ? "No patients match your search" : undefined
+								!patients.length
+									? search || !["", "0"].includes(status_id) || !["", "0"].includes(type_id)
+										? "No patients match your search"
+										: "No patients found"
+									: undefined
 							}
 							getRowKey={(row) => row.id}
 							size="md"

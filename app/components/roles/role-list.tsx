@@ -1,25 +1,16 @@
 "use client";
 
-import Card from "@/app/components/elements/Card";
-import { useSnackBar } from "@/app/contexts/SnackBarContext";
-import { useEffect, useState } from "react";
-import { useInView } from "react-intersection-observer";
-import Loader from "../elements/Loader";
-import type { PaginationModel, List } from "@/app/models/global_model";
-import Image from "next/image";
-import ResponsiveActionMenu from "../elements/ResponsiveActionMenu";
-import { useRouter } from "next/navigation";
 import { useModal } from "@/app/contexts/ModalContext";
-import { revalidatePage } from "@/app/lib/revalidate";
-import type { ErrorModel } from "@/app/models/error_model";
-import { IconKey, IconLicense, IconLogin2, IconMail, IconSquarePlus, IconUserScan } from "@tabler/icons-react";
-import type { Account } from "@/app/models/accounts";
-import { formatDateToLocal } from "@/app/lib/utils";
-import { deleteAccount } from "@/app/services/client_side/accounts";
-import ChangePasswordModal from "../modals/change-password-modal";
+import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import { ROLES } from "@/app/lib/constants";
-import PermissionModal from "../modals/permission-modal";
+import type { ErrorModel } from "@/app/models/error_model";
 import { getRolePermissions } from "@/app/services/client_side/selections";
+import { IconLicense } from "@tabler/icons-react";
+import { EllipsisIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import DataTable, { type Column } from "../elements/DataTable";
+import ResponsiveActionMenu from "../elements/ResponsiveActionMenu";
+import PermissionModal from "../modals/permission-modal";
 
 export default function RoleList() {
 	const router = useRouter();
@@ -39,42 +30,68 @@ export default function RoleList() {
 			});
 		} catch (error) {
 			const apiError = error as ErrorModel;
+			showSnackBar({
+				message: apiError?.msg ?? "Failed to load permissions.",
+				success: false,
+			});
 		}
 	};
 
+	const roles = Object.keys(ROLES)
+		.filter((role) => ![ROLES.ADMIN, ROLES.USER].includes(ROLES[role as keyof typeof ROLES]))
+		.map((role) => ({
+			role,
+			roleId: ROLES[role as keyof typeof ROLES],
+		}));
+
+	const columns: Column<(typeof roles)[number]>[] = [
+		{
+			header: "Role",
+			accessor: (row) => <span className="font-medium text-neutral-900">{row.role}</span>,
+		},
+		{
+			header: "Actions",
+			accessor: (row) => (
+				<div className="flex justify-end">
+					<ResponsiveActionMenu
+						icon={
+							<EllipsisIcon
+								size={24}
+								className="border border-primary-500 bg-primary-500 rounded-full p-1 text-white font-bold hover:bg-primary-600"
+							/>
+						}
+						title={row.role}
+						customActions={[
+							{
+								label: "Permission",
+								icon: <IconLicense width={18} />,
+								onClick: async () => handleEditPermission(row.roleId),
+							},
+						]}
+					/>
+				</div>
+			),
+			className: "w-[80px]",
+		},
+	];
+
 	return (
-		<>
-			<div className="flex flex-wrap">
-				{Object.keys(ROLES)
-					.filter((role) => ![ROLES.ADMIN, ROLES.USER].includes(ROLES[role as keyof typeof ROLES]))
-					.map((role) => {
-						const roleId = ROLES[role as keyof typeof ROLES];
-						return (
-							<Card key={roleId} className="p-2 w-[351px] flex mx-auto sm:mx-0 sm:mr-7 mb-7 text-neutral-900">
-								<div className="!p-0 w-full flex">
-									<div className="flex flex-col space-y-2 flex-grow">
-										<div className="flex flex-col flex-grow">
-											<div className="flex items-center">
-												<p className="text-lg font-semibold mr-auto">{role}</p>
-												<ResponsiveActionMenu
-													title={role}
-													className="-mr-2"
-													customActions={[
-														{
-															label: "Permission",
-															icon: <IconLicense width={18} />,
-															onClick: async () => handleEditPermission(roleId),
-														},
-													]}
-												/>
-											</div>
-										</div>
-									</div>
-								</div>
-							</Card>
-						);
-					})}
+		<div className="space-y-4">
+			<div className="flex items-center justify-between flex-wrap gap-4">
+				<div className="flex flex-col gap-2">
+					<span className="text-lg font-semibold text-neutral-900">Roles</span>
+					<p className="text-sm text-neutral-500 max-w-[700px]">View roles and manage role permissions.</p>
+				</div>
 			</div>
-		</>
+			<DataTable
+				columns={columns}
+				data={roles}
+				getRowKey={(row) => row.roleId}
+				emptyMessage="No roles found."
+				page={1}
+				maxPage={1}
+				onPageChange={() => {}}
+			/>
+		</div>
 	);
 }
