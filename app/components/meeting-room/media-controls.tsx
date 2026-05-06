@@ -49,7 +49,6 @@ export default function MediaControls({
 				{showRecording && (
 					<Button
 						type="button"
-						isProcessing={recordingBusy}
 						disabled={recordingBusy}
 						onClick={onRecordingClick}
 						className={clsx(

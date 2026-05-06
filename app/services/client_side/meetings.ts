@@ -101,3 +101,8 @@ export const stopMeetingRecording = async (slugOrId: number | string): Promise<{
 	const url = `/meetings/${slugOrId}/recording/stop`;
 	return apiClient<{ msg: string }>({ url, method: "POST" });
 };
+
+export const requestMeetingTranscription = async (slugOrId: number | string): Promise<{ msg: string }> => {
+	const url = `/meetings/${slugOrId}/transcribe`;
+	return apiClient<{ msg: string }>({ url, method: "POST" });
+};
