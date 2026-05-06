@@ -28,6 +28,7 @@ export default function SearchCmp({ placeholder, className, onChange, value, par
 			} else {
 				params.delete(param);
 			}
+			params.delete("page");
 			replace(`${pathname}?${params.toString()}`);
 		}
 	}, 300);

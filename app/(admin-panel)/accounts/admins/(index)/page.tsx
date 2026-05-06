@@ -15,7 +15,7 @@ export default async function Page({
 	let admins: List<Account> | undefined;
 	try {
 		admins = await getAdminList({
-			page: "1",
+			page: searchParams?.page ?? "1",
 			page_items: searchParams?.page_items ?? `${PAGE_ITEMS}`,
 			role_id: `${ROLES.ADMIN}`,
 			search: searchParams?.search || "",
