@@ -15,7 +15,13 @@ import type {
 } from "@/app/models/meeting_model";
 import type { PfPlanModel } from "@/app/models/pfplan_model";
 import type { Selection } from "@/app/models/selection_model";
-import { completeMeeting, draftMeeting, generateSoapNotes, getMeeting } from "@/app/services/client_side/meetings";
+import {
+	completeMeeting,
+	draftMeeting,
+	generateSoapNotes,
+	getMeeting,
+	requestMeetingTranscription,
+} from "@/app/services/client_side/meetings";
 import { getPersonalizedPfPlan } from "@/app/services/client_side/patients";
 import { getPfPlans } from "@/app/services/client_side/pfplans";
 import { getSelections } from "@/app/services/client_side/selections";
@@ -48,7 +54,9 @@ export default function MeetingRoomSidePanel({
 	const { hasPermission } = useAuth();
 	const modalData = modal.getData();
 	const { showSnackBar } = useSnackBar();
-	const [transcription, setTranscription] = useState<Meeting["transcription"]>();
+	const [transcription, setTranscription] = useState<Meeting["transcription"]>(meeting.transcription);
+	const [transcriptionPending, setTranscriptionPending] = useState(meeting.transcription_pending ?? false);
+	const [transcribeBusy, setTranscribeBusy] = useState(false);
 	const [selections, setSelections] = useState<Selection>();
 	const [userPfPlan, setUserPfPlan] = useState<PfPlanModel | undefined>(modalData?.userPfPlan);
 	const [userPfPlans, setUserPfPlans] = useState<PfPlanModel[]>(modalData?.userPfPlans);
@@ -70,6 +78,45 @@ export default function MeetingRoomSidePanel({
 			},
 		},
 	});
+
+	useEffect(() => {
+		setTranscription(meeting.transcription);
+	}, [meeting.transcription]);
+
+	useEffect(() => {
+		setTranscriptionPending(meeting.transcription_pending ?? false);
+	}, [meeting.transcription_pending]);
+
+	const meetingKey = meeting.id ?? meeting.slug;
+	const hasTranscript = Boolean(transcription);
+	const generateTranscriptionDisabled = transcribeBusy || transcriptionPending;
+	const generateTranscriptionProcessing = transcribeBusy || (transcriptionPending && !hasTranscript);
+
+	const refreshTranscription = async () => {
+		try {
+			const response = await getMeeting(meetingKey);
+			setTranscription(response.transcription);
+			setTranscriptionPending(response.transcription_pending ?? false);
+		} catch (e) {
+			const error = e as ErrorModel;
+			console.error(error);
+		}
+	};
+
+	const handleRequestTranscription = async () => {
+		if (transcribeBusy || transcriptionPending) return;
+		setTranscribeBusy(true);
+		try {
+			const { msg } = await requestMeetingTranscription(meetingKey);
+			showSnackBar({ message: msg, success: true });
+			await refreshTranscription();
+		} catch (e) {
+			const error = e as ErrorModel;
+			showSnackBar({ message: error.msg, success: false });
+		} finally {
+			setTranscribeBusy(false);
+		}
+	};
 
 	useEffect(() => {
 		const fetchSelections = async () => {
@@ -245,15 +292,8 @@ export default function MeetingRoomSidePanel({
 						</TabsTrigger>
 						<TabsTrigger
 							className="w-full"
-							onClick={async () => {
-								try {
-									const response = await getMeeting(meeting.id!);
-
-									setTranscription(response.transcription);
-								} catch (e) {
-									const error = e as ErrorModel;
-									console.error(error);
-								}
+							onClick={() => {
+								void refreshTranscription();
 							}}
 							value="transcription"
 						>
@@ -572,34 +612,43 @@ export default function MeetingRoomSidePanel({
 						required={[PERMISSIONS.VISIT_TRANSCRIPTION_VIEW]}
 						fallback={<AccessLocked className="!h-full" rounded={false} />}
 					>
-						<div className="flex flex-col flex-wrap text-neutral-900 text-sm h-full">
-							{transcription ? (
-								<div className="flex flex-col flex-wrap space-y-3 py-5">
-									{[...(transcription?.provider_segments ?? []), ...(transcription?.patient_segments ?? [])]
-										.sort((a, b) => a.start - b.start)
-										.map((message, index) =>
-											message.text ? (
-												<div key={index} className="flex flex-row space-x-2 ">
-													<span className="font-semibold min-w-16 text-end capitalize">{message.speaker}:</span>
-													<p>{message.text}</p>
-												</div>
-											) : (
-												<Fragment key={index} />
-											),
-										)}
-								</div>
-							) : (
-								<>
-									<div className="flex flex-col w-full h-full">
-										<p className="text-xs text-neutral-500 text-center px-2 pt-3">
-											Chime visits are transcribed automatically after the session ends. Refresh this panel or reopen
-											the visit if nothing appears after a minute or two.
-										</p>
-										<div className="flex h-full justify-center items-center">
-											<p className="font-semibold">No transcription yet</p>
+						<div className="flex flex-col text-neutral-900 text-sm h-full min-h-0">
+							<div className="flex-1 overflow-y-auto min-h-0">
+								{transcription ? (
+									<div className="flex flex-col flex-wrap space-y-3 py-5">
+										{[...(transcription?.provider_segments ?? []), ...(transcription?.patient_segments ?? [])]
+											.sort((a, b) => a.start - b.start)
+											.map((message, index) =>
+												message.text ? (
+													<div key={index} className="flex flex-row space-x-2 ">
+														<span className="font-semibold min-w-16 text-end capitalize">{message.speaker}:</span>
+														<p>{message.text}</p>
+													</div>
+												) : (
+													<Fragment key={index} />
+												),
+											)}
+									</div>
+								) : (
+									<div className="flex flex-col w-full min-h-[120px]">
+										<div className="flex justify-center items-center py-8">
+											<p className="font-semibold text-neutral-600">
+												{transcriptionPending ? "Transcription in progress…" : "No transcript loaded yet"}
+											</p>
 										</div>
 									</div>
-								</>
+								)}
+							</div>
+							{hasPermission(PERMISSIONS.VISIT_TRANSCRIPTION_GENERATE) && (
+								<div className="flex flex-row items-center justify-center mt-3 mb-3 shrink-0">
+									<Button
+										type="button"
+										label="Generate Transcription"
+										onClick={handleRequestTranscription}
+										isProcessing={generateTranscriptionProcessing}
+										disabled={generateTranscriptionDisabled}
+									/>
+								</div>
 							)}
 						</div>
 					</AccessControl>

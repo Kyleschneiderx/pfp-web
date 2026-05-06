@@ -9,6 +9,7 @@ import Textarea from "@/app/components/elements/Textarea";
 import ToggleSwitch from "@/app/components/elements/ToggleSwitch";
 import UploadCmp from "@/app/components/elements/UploadCmp";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
+import useAuth from "@/app/hooks/useAuth";
 import { useWindowSizeCheck } from "@/app/hooks/useWindowSizeCheck";
 import {
 	CONFIRM_DELETE_DESCRIPTION,
@@ -17,39 +18,38 @@ import {
 	PERMISSIONS,
 	UPDATE_DESCRIPTION,
 } from "@/app/lib/constants";
+import { PAGE_ITEMS } from "@/app/lib/constants";
 import { revalidatePage } from "@/app/lib/revalidate";
 import { formatDate, onPhoneNumKeyDown } from "@/app/lib/utils";
+import { capitalizeFirstLetter, formatDateToLocal } from "@/app/lib/utils";
 import type { BladderDiaryEntryModel, BladderDiaryTimeSlot } from "@/app/models/bladder_diary_model";
 import type { BowelDiaryEntryModel, BowelDiaryTimeSlot } from "@/app/models/bowel_diary_model";
 import type { ErrorModel } from "@/app/models/error_model";
+import type { PaginationModel } from "@/app/models/global_model";
 import type { PatientModel, PatientSurveyModel, PfPlanProgressModel } from "@/app/models/patient_model";
+import type { PfPlanModel } from "@/app/models/pfplan_model";
 import type { UserToolsModel } from "@/app/models/user_tools_model";
 import type { ValidationErrorModel } from "@/app/models/validation_error_model";
 import { deletePatient, savePatient } from "@/app/services/client_side/patients";
+import { getPatientSurvey } from "@/app/services/client_side/patients";
 import { updateUserTools } from "@/app/services/client_side/user-tools";
+import clsx from "clsx";
+import { parseISO } from "date-fns";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import DataTable from "../elements/DataTable";
-import ProgressBar from "../elements/ProgressBar";
-import { validateForm } from "./validation";
-import { PfPlanListModal } from "./pf-plan-list.modal";
-import type { PfPlanModel } from "@/app/models/pfplan_model";
-import clsx from "clsx";
-import useAuth from "@/app/hooks/useAuth";
-import { FormSkeletons } from "../elements/FormSkeletons";
-import SelectCmp from "../elements/SelectCmp";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "../elements/Tabs";
-import { capitalizeFirstLetter, formatDateToLocal } from "@/app/lib/utils";
-import { parseISO } from "date-fns";
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "../elements/Accordion";
 import { useInView } from "react-intersection-observer";
-import { getPatientSurvey } from "@/app/services/client_side/patients";
-import type { PaginationModel } from "@/app/models/global_model";
-import { PAGE_ITEMS } from "@/app/lib/constants";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../elements/Accordion";
+import DataTable from "../elements/DataTable";
+import { FormSkeletons } from "../elements/FormSkeletons";
 import Loader from "../elements/Loader";
+import ProgressBar from "../elements/ProgressBar";
+import SelectCmp from "../elements/SelectCmp";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../elements/Tabs";
+import { PfPlanListModal } from "./pf-plan-list.modal";
+import { validateForm } from "./validation";
 
 const PatientSurveyModal = dynamic(() => import("@/app/components/patients/patient-survey-modal"), { ssr: false });
 
@@ -187,11 +187,17 @@ export default function PatientForm({
 				bladder_diary_enabled: enabled,
 				bowel_diary_enabled: bowelDiaryEnabled,
 			});
-			showSnackBar({ message: "Bladder diary setting updated.", success: true });
+			showSnackBar({
+				message: "Bladder diary setting updated.",
+				success: true,
+			});
 		} catch (error) {
 			setBladderDiaryEnabled(!enabled);
 			const apiError = error as ErrorModel;
-			showSnackBar({ message: apiError?.msg || "Failed to update.", success: false });
+			showSnackBar({
+				message: apiError?.msg || "Failed to update.",
+				success: false,
+			});
 		} finally {
 			setIsUpdatingTools(false);
 		}
@@ -211,7 +217,10 @@ export default function PatientForm({
 		} catch (error) {
 			setBowelDiaryEnabled(!enabled);
 			const apiError = error as ErrorModel;
-			showSnackBar({ message: apiError?.msg || "Failed to update.", success: false });
+			showSnackBar({
+				message: apiError?.msg || "Failed to update.",
+				success: false,
+			});
 		} finally {
 			setIsUpdatingTools(false);
 		}
@@ -612,12 +621,6 @@ export default function PatientForm({
 								</div>
 							)}
 						</div>
-						<div className="sm:hidden order-last flex flex-col w-full mt-4 space-y-3">
-							<Link href="/patients">
-								<Button label="Cancel" secondary className="w-full" />
-							</Link>
-							<Button label="Save" onClick={onSave} />
-						</div>
 					</div>
 				</TabsContent>
 
@@ -644,7 +647,9 @@ export default function PatientForm({
 															className="text-sm text-neutral-600 line-clamp-5"
 															title={personalizedPfPlan.description}
 															// biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
-															dangerouslySetInnerHTML={{ __html: personalizedPfPlan.description ?? "" }}
+															dangerouslySetInnerHTML={{
+																__html: personalizedPfPlan.description ?? "",
+															}}
 														/>
 													</div>
 												</div>
@@ -672,7 +677,9 @@ export default function PatientForm({
 													className="text-sm text-neutral-600 line-clamp-5"
 													title={pfPlanProgress.description}
 													// biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
-													dangerouslySetInnerHTML={{ __html: pfPlanProgress.description ?? "" }}
+													dangerouslySetInnerHTML={{
+														__html: pfPlanProgress.description ?? "",
+													}}
 												/>
 											</div>
 										</div>
@@ -719,7 +726,8 @@ export default function PatientForm({
 																<div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
 																	<span className="font-medium">{displayDate}</span>
 																	<span className="text-sm text-neutral-600 font-normal">
-																		{slots.length} time slot{slots.length !== 1 ? "s" : ""}
+																		{slots.length} time slot
+																		{slots.length !== 1 ? "s" : ""}
 																		{entry.pads_used != null && ` • Pads: ${entry.pads_used}`}
 																		{entry.diapers_used != null && ` • Diapers: ${entry.diapers_used}`}
 																	</span>
