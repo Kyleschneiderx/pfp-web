@@ -1,28 +1,27 @@
 "use client";
 
-import Card from "@/app/components/elements/Card";
-import { useSnackBar } from "@/app/contexts/SnackBarContext";
-import { useEffect, useState } from "react";
-import { useInView } from "react-intersection-observer";
-import Loader from "../elements/Loader";
-import type { PaginationModel, List } from "@/app/models/global_model";
-import Image from "next/image";
-import ResponsiveActionMenu from "../elements/ResponsiveActionMenu";
-import { useRouter } from "next/navigation";
 import { useModal } from "@/app/contexts/ModalContext";
+import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import { revalidatePage } from "@/app/lib/revalidate";
-import type { ErrorModel } from "@/app/models/error_model";
-import { IconKey, IconLogin2, IconMail, IconSquarePlus, IconUserScan } from "@tabler/icons-react";
-import type { Account } from "@/app/models/accounts";
 import { formatDateToLocal } from "@/app/lib/utils";
+import type { Account } from "@/app/models/accounts";
+import type { ErrorModel } from "@/app/models/error_model";
+import type { List } from "@/app/models/global_model";
 import { deleteAccount, reset2FA } from "@/app/services/client_side/accounts";
-import ChangePasswordModal from "../modals/change-password-modal";
-import DataList from "../data-list";
-import FilterList from "../elements/FilterList";
 import type { AccountsSearchQuery } from "@/app/services/server_side/accounts";
+import { IconKey, IconUserScan } from "@tabler/icons-react";
+import { EllipsisIcon } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useDebouncedCallback } from "use-debounce";
 import Button from "../elements/Button";
+import DataTable, { type Column } from "../elements/DataTable";
+import ResponsiveActionMenu from "../elements/ResponsiveActionMenu";
 import IconAddButton from "../elements/mobile/IconAddButton";
+import ChangePasswordModal from "../modals/change-password-modal";
+
 export default function AdminList({
 	data,
 	search,
@@ -31,55 +30,45 @@ export default function AdminList({
 	search?: AccountsSearchQuery;
 }) {
 	const router = useRouter();
+	const pathname = usePathname();
+	const searchParams = useSearchParams();
 	const modal = useModal();
-	const [admins, setAdmins] = useState<Account[]>();
-	const [pagination, setPagination] = useState<PaginationModel>();
-	const [ref, inView] = useInView();
 
 	const { showSnackBar } = useSnackBar();
 
+	const admins = data?.data ?? [];
+
+	const page = Number(search?.page ?? 1);
+	const maxPage = data?.max_page ?? 1;
+
+	const [searchInput, setSearchInput] = useState(search?.search ?? "");
+
 	useEffect(() => {
-		if (!data) return;
+		setSearchInput(search?.search ?? "");
+	}, [search?.search]);
 
-		const { data: list, ...metadata } = data;
-
-		if (metadata.page === 1) {
-			setAdmins(list);
-		} else {
-			setAdmins((prev) => [...(prev ?? []), ...list]);
+	const updateParams = (updates: Record<string, string | undefined>) => {
+		const params = new URLSearchParams(searchParams.toString());
+		for (const [key, value] of Object.entries(updates)) {
+			if (value) {
+				params.set(key, value);
+			} else {
+				params.delete(key);
+			}
 		}
+		params.delete("page");
+		router.replace(`${pathname}?${params.toString()}`);
+	};
 
-		setPagination(metadata);
-	}, [data]);
+	const handleSearch = useDebouncedCallback((term: string) => {
+		updateParams({ search: term });
+	}, 300);
 
-	// const loadMoreExercises = async () => {
-	// 	const next = page + 1;
-	// 	const { exerciseList } = await fetchExercises({
-	// 		page: next,
-	// 		name,
-	// 		sort,
-	// 		category_id,
-	// 		sets_from,
-	// 		sets_to,
-	// 		reps_from,
-	// 		reps_to,
-	// 	});
-	// 	if (exerciseList.length) {
-	// 		setPage(next);
-	// 		setExercises((prev: ExerciseModel[]) => [...(prev?.length ? prev : []), ...exerciseList]);
-	// 	}
-	// };
-
-	// useEffect(() => {
-	// 	if (inView && page < maxPage) {
-	// 		loadMoreExercises();
-	// 	}
-	// }, [inView]);
-
-	// useEffect(() => {
-	// 	setExercises(initialList);
-	// 	setPage(1);
-	// }, [sort, name, category_id, initialList]);
+	const onPageChange = (nextPage: number) => {
+		const params = new URLSearchParams(searchParams.toString());
+		params.set("page", String(nextPage));
+		router.replace(`${pathname}?${params.toString()}`);
+	};
 
 	const handleDelete = async (data: Account) => {
 		modal.open({
@@ -121,127 +110,114 @@ export default function AdminList({
 
 					await revalidatePage("/accounts/admins");
 
-					showSnackBar({ message: "2FA authentication reset successfully.", success: true });
+					showSnackBar({
+						message: "2FA authentication reset successfully.",
+						success: true,
+					});
 
 					modal.closeAll();
 				} catch (e) {
 					const error = e as ErrorModel;
-					console.log(error);
 					showSnackBar({ message: error.msg, success: false });
 				}
 			},
 		});
 	};
-	return (
-		<DataList
-			data={admins}
-			header={
-				<div className="flex items-center mb-8">
-					<FilterList
-						searchPlaceholder="Search admins"
-						searchParam="search"
-						searchValue={search?.search}
-						// onSearch={(string) => handleFilter("search", string)}
-						// sort={{
-						// 	label: "Sort",
-						// 	content: () => {
-						// 		return (
-						// 			<div className="flex flex-col space-y-3 p-3 text-sm font-semibold">
-						// 				<label className="flex items-center cursor-pointer">
-						// 					<input
-						// 						type="checkbox"
-						// 						checked={filterRef.current.sort?.includes("starts_at:DESC") ?? true}
-						// 						onChange={() => handleFilter("sort", ["starts_at:DESC"])}
-						// 						className="mr-2 cursor-pointer"
-						// 					/>
-						// 					Upcoming
-						// 				</label>
-						// 				<label className="flex items-center cursor-pointer">
-						// 					<input
-						// 						type="checkbox"
-						// 						checked={filterRef.current.sort?.includes("starts_at:ASC") ?? false}
-						// 						onChange={() => handleFilter("sort", ["starts_at:ASC"])}
-						// 						className="mr-2 cursor-pointer"
-						// 					/>
-						// 					Past
-						// 				</label>
-						// 			</div>
-						// 		);
-						// 	},
-						// }}
-						className="mr-4 sm:mr-0"
+
+	const columns: Column<Account>[] = [
+		{
+			header: "Admin",
+			accessor: (admin) => (
+				<Link
+					href={`/accounts/admins/${admin.id}/edit`}
+					className="flex items-center gap-3 min-w-[220px] hover:opacity-80 transition-opacity"
+				>
+					<Image
+						src={admin.user_profile?.photo || "/images/avatar.png"}
+						width={36}
+						height={36}
+						alt=""
+						quality={100}
+						className="w-9 h-9 rounded-full object-cover shrink-0"
 					/>
-					<Link href="/accounts/admins/create" className="ml-auto">
-						<Button label="Add Admin" showIcon className="hidden sm:flex" />
-						<IconAddButton className="sm:hidden" />
-					</Link>
-				</div>
-			}
-		>
-			<div className="flex flex-wrap">
-				{admins?.map((admin) => (
-					<Card key={admin.id} className="p-2 w-[351px] flex mx-auto sm:mx-0 sm:mr-7 mb-7 text-neutral-900">
-						<div className="!p-0 w-full flex">
-							<Image
-								src={admin.user_profile?.photo || "/images/avatar.png"}
-								width={50}
-								height={50}
-								alt="Profile pic"
-								quality={100}
-								className="self-start w-[50px] h-[50px] mr-3 shrink-0 rounded-full object-cover"
+					<div className="min-w-0">
+						<div className="font-medium text-primary-500 truncate">{admin.user_profile?.name}</div>
+						<div className="text-xs text-neutral-600 truncate">{admin.email}</div>
+					</div>
+				</Link>
+			),
+		},
+		{
+			header: "Last Login",
+			accessor: (admin) => (admin.last_login_at ? formatDateToLocal(new Date(admin.last_login_at)) : "—"),
+			className: "whitespace-nowrap",
+		},
+		{
+			header: "Created",
+			accessor: (admin) => (admin.created_at ? formatDateToLocal(new Date(admin.created_at)) : "—"),
+			className: "whitespace-nowrap",
+		},
+		{
+			header: "Actions",
+			accessor: (admin) => (
+				<div className="flex justify-end">
+					<ResponsiveActionMenu
+						icon={
+							<EllipsisIcon
+								size={24}
+								className="border border-primary-500 bg-primary-500 rounded-full p-1 text-white font-bold hover:bg-primary-600"
 							/>
-							<div className="flex flex-col space-y-2 flex-grow">
-								<div className="flex flex-col flex-grow">
-									<div className="flex items-center">
-										<p className="text-lg font-semibold mr-auto">{admin.user_profile.name}</p>
-										<ResponsiveActionMenu
-											title={admin.user_profile.name}
-											className="-mr-2"
-											onEdit={() => {
-												router.push(`/accounts/admins/${admin.id}/edit`);
-											}}
-											onDelete={() => handleDelete(admin)}
-											customActions={[
-												{
-													label: "Change Password",
-													icon: <IconKey width={18} />,
-													onClick: () => handleChangePassword(admin),
-												},
-												{
-													label: "Reset 2FA Authentication",
-													icon: <IconUserScan width={18} />,
-													onClick: () => handleReset2FA(admin),
-												},
-											]}
-										/>
-									</div>
-									<div className="flex items-center space-x-1 text-sm text-neutral-700">
-										<span className="">Last Login:</span>
-										<span>{formatDateToLocal(new Date(admin.last_login_at || ""))}</span>
-									</div>
-								</div>
-								<hr className="my-3" />
-								<div className="flex flex-col space-y-1 text-sm text-neutral-700">
-									<div className="flex items-center space-x-1">
-										<IconMail stroke={2} width={18} />
-										<span>{admin.email}</span>
-									</div>
-									<div className="flex items-center space-x-1">
-										<IconSquarePlus stroke={2} width={18} />
-										<span>{formatDateToLocal(new Date(admin.created_at || ""))}</span>
-									</div>
-								</div>
-							</div>
-						</div>
-					</Card>
-				))}
-			</div>
-			{pagination && pagination.page < pagination.max_page && (
-				<div ref={ref} className="flex justify-center mt-5">
-					<Loader />
-					<span>Loading...</span>
+						}
+						title={admin.user_profile?.name ?? "Actions"}
+						onEdit={() => router.push(`/accounts/admins/${admin.id}/edit`)}
+						onDelete={() => handleDelete(admin)}
+						customActions={[
+							{
+								label: "Change Password",
+								icon: <IconKey width={18} />,
+								onClick: () => handleChangePassword(admin),
+							},
+							{
+								label: "Reset 2FA Authentication",
+								icon: <IconUserScan width={18} />,
+								onClick: () => handleReset2FA(admin),
+							},
+						]}
+					/>
 				</div>
-			)}
-		</DataList>
+			),
+			className: "w-[80px]",
+		},
+	];
+
+	return (
+		<div className="space-y-4">
+			<div className="flex items-center justify-between flex-wrap gap-4">
+				<div className="flex flex-col gap-2">
+					<span className="text-lg font-semibold text-neutral-900">Admins</span>
+					<p className="text-sm text-neutral-500 max-w-[700px]">Manage administrator accounts and access.</p>
+				</div>
+				<Link href="/accounts/admins/create">
+					<Button label="Add Admin" showIcon className="hidden sm:flex" />
+					<IconAddButton className="sm:hidden" />
+				</Link>
+			</div>
+
+			<DataTable
+				columns={columns}
+				data={admins}
+				getRowKey={(row) => row.id ?? `${row.email}`}
+				emptyMessage={!admins.length ? (searchInput ? "No admins match your search" : "No admins found.") : undefined}
+				searchPlaceholder="Search admins..."
+				searchValue={searchInput}
+				onSearch={(v) => {
+					setSearchInput(v);
+					handleSearch(v);
+				}}
+				page={page}
+				maxPage={maxPage}
+				onPageChange={onPageChange}
+			/>
+		</div>
 	);
 }
