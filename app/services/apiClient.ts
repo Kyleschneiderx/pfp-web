@@ -1,6 +1,6 @@
-import axios, { AxiosRequestConfig, AxiosResponse, ResponseType } from "axios";
+import axios, { type AxiosRequestConfig, type AxiosResponse, type ResponseType } from "axios";
 import Cookies from "js-cookie";
-import { ErrorModel } from "../models/error_model";
+import type { ErrorModel } from "../models/error_model";
 
 interface Props {
 	url: string;
@@ -63,6 +63,7 @@ export const apiClient = async <T>({
 		} else if (error.response) {
 			const status = error.response.status;
 			apiError = error.response?.data?.error?.[0] || { msg: error.message };
+			apiError.code = status;
 
 			if (status === 401) {
 				console.warn("Unauthorized - possible invalid or expired token");

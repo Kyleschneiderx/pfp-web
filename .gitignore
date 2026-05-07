@@ -43,5 +43,7 @@ next-env.d.ts
 .cursor
 .codex
 .planning
+.project
 CLAUDE.md
+DESIGN.md
 docs

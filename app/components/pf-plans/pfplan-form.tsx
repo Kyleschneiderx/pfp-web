@@ -1,7 +1,9 @@
 "use client";
 
 import Button from "@/app/components/elements/Button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/elements/Tabs";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
+import useAuth from "@/app/hooks/useAuth";
 import {
 	CONFIRM_DELETE_DESCRIPTION,
 	CONFIRM_SAVE_DESCRIPTION,
@@ -11,39 +13,31 @@ import {
 } from "@/app/lib/constants";
 import { revalidatePage } from "@/app/lib/revalidate";
 import { getFileContentType } from "@/app/lib/utils";
-import type { EducationModel } from "@/app/models/education_model";
+import type { OptionsModel } from "@/app/models/common_model";
 import type { ErrorModel } from "@/app/models/error_model";
-import type { CategoryOptionsModel, PfPlanDailies, PfPlanExerciseModel, PfPlanModel } from "@/app/models/pfplan_model";
+import type { PatientModel } from "@/app/models/patient_model";
+import type { CategoryOptionsModel, PfPlanModel } from "@/app/models/pfplan_model";
 import type { ValidationErrorModel } from "@/app/models/validation_error_model";
+import { savePersonalizedPfPlan } from "@/app/services/client_side/patients";
 import { deletePfPlan, savePfPlan } from "@/app/services/client_side/pfplans";
-import { usePfPlanDailiesStore } from "@/app/store/store";
-import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import clsx from "clsx";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { notFound, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import ContentCategory from "../content-category";
 import Card from "../elements/Card";
+import { FormSkeletons } from "../elements/FormSkeletons";
+import InfoPopover from "../elements/InfoPopover";
 import Input from "../elements/Input";
+import SelectCmp from "../elements/SelectCmp";
 import StatusBadge from "../elements/StatusBadge";
-import UploadCmp from "../elements/UploadCmp";
-import MoveTaskIcon from "../icons/move_task_icon";
-import PencilIcon from "../icons/pencil_icon";
-import TrashbinIcon from "../icons/trashbin_icon";
-import AddDayPanel from "./add-day-panel";
-import { validateForm } from "./validation";
 import TipTapEditor from "../elements/TipTapEditor";
 import ToggleSwitch from "../elements/ToggleSwitch";
-import type { OptionsModel } from "@/app/models/common_model";
-import ContentCategory from "../content-category";
-import type { PatientModel } from "@/app/models/patient_model";
-import { savePersonalizedPfPlan } from "@/app/services/client_side/patients";
-import useAuth from "@/app/hooks/useAuth";
-import { FormSkeletons } from "../elements/FormSkeletons";
-import SelectCmp from "../elements/SelectCmp";
-import InfoPopover from "../elements/InfoPopover";
-import { IconCopy } from "@tabler/icons-react";
-import type { CustomForm } from "@/app/models/custom_form_model";
+import UploadCmp from "../elements/UploadCmp";
+import PencilIcon from "../icons/pencil_icon";
+import PfPlanDailiesTab from "./pfplan-dailies-tab";
+import { validateForm } from "./validation";
 
 const ConfirmModal = dynamic(() => import("@/app/components/elements/ConfirmModal"), { ssr: false });
 
@@ -58,8 +52,6 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 	const router = useRouter();
 	const { hasPermission, isLoaded } = useAuth();
 
-	const { days, removeDay, setDays, setSelectedDay, copyDay } = usePfPlanDailiesStore();
-
 	const [name, setName] = useState<string>("");
 	const [description, setDescription] = useState<string>("");
 	const [category, setCategory] = useState<CategoryOptionsModel[] | null>(null);
@@ -73,10 +65,9 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 
 	const [errors, setErrors] = useState<ValidationErrorModel[]>([]);
 	const [isProcessing, setIsProcessing] = useState<boolean>(false);
-	const [isSaved, setIsSaved] = useState<boolean>(false);
 	const [editInfo, setEditInfo] = useState<boolean>(action === "Create");
 
-	const [isPanelOpen, setIsPanelOpen] = useState(false);
+	const [activeTab, setActiveTab] = useState<"details" | "dailies">("details");
 	const [modalOpen, setModalOpen] = useState(false);
 	const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
@@ -96,47 +87,8 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 			setTrimester(pfPlan.trimester ?? undefined);
 			setIsCustom(pfPlan.is_custom ?? false);
 			setMediaUrl(pfPlan.media_url ?? "");
-			const dailies = pfPlan.pf_plan_dailies.map(
-				(item: {
-					id?: number;
-					name: string;
-					day: number;
-					contents: Record<string, any>[];
-					custom_forms?: CustomForm[];
-					requires_pfdi_update?: boolean;
-				}) => ({
-					id: item.id,
-					name: item.name,
-					day: item.day,
-					requires_pfdi_update: item.requires_pfdi_update ?? false,
-					custom_forms: item?.custom_forms ?? [],
-					contents: item.contents.map((el) => {
-						if (el.exercise) {
-							return {
-								id: el.id,
-								exercise_id: el.exercise.id,
-								sets: el.exercise.sets,
-								reps: el.exercise.reps,
-								hold: el.exercise.hold,
-								rest: el.exercise.rest,
-								exercise: el.exercise,
-							};
-						}
-
-						const education = el.education;
-						if (education) {
-							education.pfPlanDayContentId = el.id;
-						}
-						return education;
-					}),
-				}),
-			);
-			setDays(dailies);
 		}
-		return () => {
-			setDays([]);
-		};
-	}, [pfPlan]);
+	}, [pfPlan, action]);
 
 	const handleFileSelect = (file: File | null) => {
 		setPhoto(file);
@@ -144,29 +96,6 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 
 	const handleMediaSelect = (file: File | null) => {
 		setMediaUpload(file);
-	};
-
-	const togglePanel = () => {
-		setIsPanelOpen((prev) => !prev);
-	};
-
-	const onDragEnd = (result: any) => {
-		const { destination, source } = result;
-		if (!destination) return;
-
-		const updatedDays = [...days];
-		// Remove the dragged day from its original position
-		const [movedDays] = updatedDays.splice(source.index, 1);
-		// Insert the dragged day into its new position
-		updatedDays.splice(destination.index, 0, movedDays);
-		// Reassign the 'day' property (or id) for each day based on its new position
-		const reindexedDays = updatedDays.map((day, index) => ({
-			...day,
-			day: index + 1,
-		}));
-
-		// Replace the current days with the reindexed days
-		setDays(reindexedDays);
 	};
 
 	const isValid = () => {
@@ -177,7 +106,6 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 			photo:
 				photo ??
 				(action === "Edit" && ((patient && pfPlan?.user_id === patient.id) || !patient) ? pfPlan?.photo : undefined),
-			dayLength: days.length,
 		});
 		setErrors(validationErrors);
 		return validationErrors.length === 0;
@@ -218,35 +146,6 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 				const method = action === "Create" ? "POST" : "PUT";
 				const id = action === "Edit" ? pfPlan?.id : null;
 				const body = new FormData();
-				const dailiesPayload = days.map((item) => ({
-					daily_id: item.id,
-					name: item.name,
-					day: item.day,
-					requires_pfdi_update: item.requires_pfdi_update ?? false,
-					custom_form_ids: item?.custom_forms?.map((form) => form.id) ?? [],
-					contents: item.contents
-						.map((el) => {
-							if ("exercise" in el) {
-								const exercise = el as PfPlanExerciseModel;
-								const data = {
-									content_id: el.id,
-									exercise_id: exercise.exercise_id,
-									sets: exercise.sets,
-									reps: exercise.reps,
-									hold: exercise.hold,
-									rest: exercise.rest,
-								};
-								return data;
-							}
-
-							const education = el as EducationModel;
-							return {
-								content_id: education.pfPlanDayContentId,
-								education_id: education.id,
-							};
-						})
-						.filter(Boolean),
-				}));
 
 				body.append("name", name);
 				if (description) body.append("description", description);
@@ -267,9 +166,6 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 					} else {
 						body.append("media_upload", mediaUpload, mediaUpload.name);
 					}
-				}
-				if (dailiesPayload.length) {
-					body.append("dailies", JSON.stringify(dailiesPayload));
 				}
 
 				if (patient) {
@@ -298,7 +194,6 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 				});
 				setModalOpen(false);
 				clearData();
-				// setIsSaved(true);
 			} catch (error) {
 				const apiError = error as ErrorModel;
 				if (apiError.msg) {
@@ -339,33 +234,6 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 		}
 	};
 
-	const handleEditDay = (day: PfPlanDailies) => {
-		setSelectedDay(day);
-		setIsPanelOpen(true);
-	};
-
-	const handleCopyDay = (day: PfPlanDailies) => {
-		copyDay({
-			day: (days.length ?? 0) + 1,
-			name: `${day.name} - Copy`,
-			requires_pfdi_update: day.requires_pfdi_update ?? false,
-			contents: day.contents.map((content) => {
-				if ("exercise" in content) {
-					const { id, ...newContent } = content;
-
-					return { id: undefined, ...newContent };
-				}
-
-				return { ...content, pfPlanDayContentId: undefined };
-			}),
-		});
-	};
-
-	const handleEditorChange = (content: string) => {
-		setContent(content);
-		// setIsSaved(false);
-	};
-
 	const clearData = () => {
 		setName("");
 		setCategory(null);
@@ -375,8 +243,6 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 		setPhoto(null);
 		setMediaUrl("");
 		setMediaUpload(null);
-		setSelectedDay(null);
-		setDays([]);
 		setTrimester(undefined);
 	};
 
@@ -461,16 +327,14 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 				</div>
 				<div className="flex space-x-4 items-center mt-3">
 					{editInfo ? (
-						<>
-							<Input
-								type="text"
-								placeholder="Treatment name"
-								value={name}
-								invalid={false}
-								onChange={(e) => setName(e.target.value)}
-								className="sm:!w-[674px]"
-							/>
-						</>
+						<Input
+							type="text"
+							placeholder="Treatment name"
+							value={name}
+							invalid={false}
+							onChange={(e) => setName(e.target.value)}
+							className="sm:!w-[674px]"
+						/>
 					) : (
 						<>
 							<p className="text-xl sm:text-2xl font-semibold whitespace-nowrap overflow-hidden text-ellipsis">
@@ -483,173 +347,146 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 					)}
 				</div>
 			</div>
-			<div className="flex flex-col sm:flex-row mt-4">
-				<Card className="sm:w-[693px] min-h-[200px] sm:min-h-[300px] px-3 sm:px-5 sm:mr-5 mb-5 sm:mb-0">
-					<div className="flex justify-between">
-						<h1 className="text-2xl font-semibold">PF Plan</h1>
-						{days.length > 0 && !pfPlan?.is_archived && (
-							<Button label="Add Day" outlined onClick={togglePanel} className="!py-2 !px-4" />
-						)}
-					</div>
-					<DragDropContext onDragEnd={onDragEnd}>
-						<Droppable droppableId="ExerciseList">
-							{(provided) => (
-								<div className="space-y-4 mt-6" ref={provided.innerRef} {...provided.droppableProps}>
-									{days.map((item, index) => (
-										<Draggable key={`key${item.day}`} draggableId={item.day.toString()} index={index}>
-											{(provided, snapshot) => (
-												<div
-													ref={provided.innerRef}
-													{...provided.draggableProps}
-													{...provided.dragHandleProps}
-													className={clsx(
-														"flex items-center border rounded-md border-neutral-300 group p-3 sm:p-4",
-														snapshot.isDragging ? "drop-shadow-center !top-auto !left-auto bg-white" : "",
-													)}
-												>
-													<MoveTaskIcon className="hidden group-hover:inline-block mr-2" />
-													<div className="text-xl sm:text-[22px] font-medium whitespace-nowrap">Day {item.day} -</div>
-													<div className="ml-2 mr-3 text-[18px] font-semibold">{item.name}</div>
-													<div className="flex space-x-3 ml-auto">
-														<IconCopy size={24} className="text-primary-500" onClick={() => handleCopyDay(item)} />
-														<PencilIcon
-															onClick={(e) => {
-																e.stopPropagation();
-																handleEditDay(item);
-															}}
-														/>
-														<TrashbinIcon className="text-error-600 ml-auto" onClick={() => removeDay(item.day)} />
-													</div>
-												</div>
-											)}
-										</Draggable>
-									))}
-									{provided.placeholder}
+
+			<Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "details" | "dailies")} className="mt-6">
+				<TabsList>
+					<TabsTrigger value="details">Details</TabsTrigger>
+					<TabsTrigger
+						value="dailies"
+						disabled={action === "Create" || !pfPlan?.id}
+						className={clsx((action === "Create" || !pfPlan?.id) && "opacity-50 cursor-not-allowed")}
+					>
+						PF Plan Dailies
+					</TabsTrigger>
+				</TabsList>
+
+				<TabsContent value="details" className="mt-4">
+					<div className="flex flex-col sm:flex-row">
+						<Card className="sm:w-[693px] px-3 sm:px-5 sm:mr-5 mb-5 sm:mb-0">
+							<ContentCategory
+								className="z-[99]"
+								categories={category}
+								onChange={(e) => setCategory(e as OptionsModel[])}
+							/>
+							<div className="mt-4">
+								<div className="flex space-x-1 items-end mb-2">
+									<p className="font-medium">Trimester</p>
+									<InfoPopover side="right" className="!z-[99]">
+										<div className="text-sm text-neutral-700 max-w-xs flex flex-col space-y-1 !z-[99]">
+											<span className="font-semibold">Trimester</span>
+											<p className="text-xs">
+												A trimester marks one of the three stages of pregnancy. Selecting a trimester in the pelvic
+												floor plan lets the system match the appropriate plan to pregnant users during signup. Selecting
+												4th trimester will match the plan to users who are 36 weeks pregnant or later.
+											</p>
+										</div>
+									</InfoPopover>
 								</div>
+								<SelectCmp
+									options={Array.from({ length: 4 }, (_, index) => ({
+										label: `Trimester ${index + 1}`,
+										value: (index + 1).toString(),
+									}))}
+									isClearable={true}
+									value={
+										trimester
+											? {
+													label: `Trimester ${trimester}`,
+													value: trimester.toString(),
+												}
+											: undefined
+									}
+									onChange={(e) => setTrimester(e?.value ? Number(e?.value) : undefined)}
+								/>
+							</div>
+							<div className="mt-4">
+								<p className="font-medium mb-2">Description</p>
+								<TipTapEditor
+									placeholder="Create a description for your treatment plan"
+									content={description ?? undefined}
+									onChange={(value) => setDescription(value)}
+									editorClassName="!h-[200px]"
+								/>
+							</div>
+							<div className="mt-4">
+								<p className="font-medium mb-2">Content</p>
+								<TipTapEditor
+									placeholder="Enter the PF Plan's content here"
+									content={content ?? undefined}
+									onChange={(value) => setContent(value)}
+								/>
+							</div>
+						</Card>
+						<div>
+							<Card className="sm:w-[446px] h-fit">
+								<UploadCmp
+									label="Upload a Photo"
+									onFileSelect={handleFileSelect}
+									clearImagePreview={photo === null}
+									type="image"
+									recommendedText="405 x 225 pixels"
+									isEdit={action === "Edit"}
+									previewImage={patient ? patient.id === pfPlan?.user_id : true}
+									fileUrl={patient ? (patient.id === pfPlan?.user_id ? pfPlan?.photo : undefined) : pfPlan?.photo}
+								/>
+							</Card>
+							{action === "Edit" && !pfPlan?.is_archived && (
+								<Button
+									label="Delete"
+									outlined
+									className="hidden sm:block mt-5 ml-auto"
+									onClick={() => setDeleteModalOpen(true)}
+								/>
 							)}
-						</Droppable>
-					</DragDropContext>
-					{days.length === 0 && (
-						<div className="flex flex-col justify-center items-center text-center h-full sm:mt-0">
-							<p className="text-neutral-400 mb-3">
-								{pfPlan?.is_archived
-									? "No PF Plan Daily Content"
-									: "Add day from the Add Day Panel to begin creating your PF Plan"}
-							</p>
-							{!pfPlan?.is_archived && <Button label="Add Day" outlined onClick={togglePanel} />}
 						</div>
-					)}
-				</Card>
-				<div>
-					<Card className="sm:w-[446px] h-fit">
+					</div>
+
+					<Card className="sm:w-[694px] space-y-3 mt-5">
+						<p className="font-medium">Upload Video/Image or URL</p>
+						<hr />
+						<div>
+							<p className="font-medium mb-2">Video/Image URL</p>
+							<Input
+								type="text"
+								placeholder="www.yourvideolink.com"
+								value={mediaUrl}
+								onChange={(e) => setMediaUrl(e.target.value)}
+							/>
+						</div>
+						<p className="text-sm font-medium mb-2 text-center">OR</p>
 						<UploadCmp
-							label="Upload a Photo"
-							onFileSelect={handleFileSelect}
-							clearImagePreview={photo === null}
-							type="image"
-							recommendedText="405 x 225 pixels"
+							key="pfplan-media-upload"
+							label="Upload a video/image"
+							onFileSelect={handleMediaSelect}
+							clearImagePreview={mediaUpload === null}
+							type="image/video"
 							isEdit={action === "Edit"}
 							previewImage={patient ? patient.id === pfPlan?.user_id : true}
-							fileUrl={patient ? (patient.id === pfPlan?.user_id ? pfPlan?.photo : undefined) : pfPlan?.photo}
+							fileUrl={
+								patient
+									? patient.id === pfPlan?.user_id
+										? (pfPlan?.media_upload ?? undefined)
+										: undefined
+									: (pfPlan?.media_upload ?? undefined)
+							}
 						/>
 					</Card>
-					{action === "Edit" && !pfPlan?.is_archived && (
-						<Button
-							label="Delete"
-							outlined
-							className="hidden sm:block mt-5 ml-auto"
-							onClick={() => setDeleteModalOpen(true)}
-						/>
-					)}
-				</div>
-			</div>
-			<Card className="sm:w-[694px] mt-5 space-y-3">
-				<div>
-					<ContentCategory
-						className="z-[99]"
-						categories={category}
-						onChange={(e) => setCategory(e as OptionsModel[])}
-					/>
-				</div>
-				<div>
-					<div className="flex space-x-1 items-end mb-2">
-						<p className="font-medium">Trimester</p>
-						<InfoPopover side="right" className="!z-[99]">
-							<div className="text-sm text-neutral-700 max-w-xs flex flex-col space-y-1 !z-[99]">
-								<span className="font-semibold">Trimester</span>
-								<p className="text-xs">
-									A trimester marks one of the three stages of pregnancy. Selecting a trimester in the pelvic floor plan
-									lets the system match the appropriate plan to pregnant users during signup. Selecting 4th trimester
-									will match the plan to users who are 36 weeks pregnant or later.
-								</p>
-							</div>
-						</InfoPopover>
-					</div>
-					<SelectCmp
-						options={Array.from({ length: 4 }, (_, index) => ({
-							label: `Trimester ${index + 1}`,
-							value: (index + 1).toString(),
-						}))}
-						isClearable={true}
-						value={
-							trimester
-								? {
-										label: `Trimester ${trimester}`,
-										value: trimester.toString(),
-									}
+				</TabsContent>
+
+				<TabsContent value="dailies" className="mt-4">
+					<PfPlanDailiesTab
+						pfPlanId={pfPlan?.id ?? null}
+						isArchived={pfPlan?.is_archived ?? false}
+						readOnly={!!patient && pfPlan?.user_id !== patient.id}
+						readOnlyNotice={
+							patient && pfPlan?.user_id !== patient.id
+								? "This is the original PF Plan. Save it for this patient first to start customizing daily content."
 								: undefined
 						}
-						onChange={(e) => setTrimester(e?.value ? Number(e?.value) : undefined)}
 					/>
-				</div>
-				<div>
-					<p className="font-medium mb-2">Description</p>
-					<TipTapEditor
-						placeholder="Create a description for your treatment plan"
-						content={description ?? undefined}
-						onChange={(value) => setDescription(value)}
-						editorClassName="!h-[200px]"
-					/>
-				</div>
-				<div>
-					<p className="font-medium mb-2">Content</p>
-					<TipTapEditor
-						placeholder="Enter the PF Plan's content here"
-						content={content ?? undefined}
-						onChange={handleEditorChange}
-					/>
-				</div>
-			</Card>
-			<Card className="sm:w-[694px] space-y-3 mt-5">
-				<p className="font-medium">Upload Video/Image or URL</p>
-				<hr />
-				<div>
-					<p className="font-medium mb-2">Video/Image URL</p>
-					<Input
-						type="text"
-						placeholder="www.yourvideolink.com"
-						value={mediaUrl}
-						onChange={(e) => setMediaUrl(e.target.value)}
-					/>
-				</div>
-				<p className="text-sm font-medium mb-2 text-center">OR</p>
-				<UploadCmp
-					key="pfplan-media-upload"
-					label="Upload a video/image"
-					onFileSelect={handleMediaSelect}
-					clearImagePreview={mediaUpload === null}
-					type="image/video"
-					isEdit={action === "Edit"}
-					previewImage={patient ? patient.id === pfPlan?.user_id : true}
-					fileUrl={
-						patient
-							? patient.id === pfPlan?.user_id
-								? (pfPlan?.media_upload ?? undefined)
-								: undefined
-							: (pfPlan?.media_upload ?? undefined)
-					}
-				/>
-			</Card>
+				</TabsContent>
+			</Tabs>
+
 			<div className="sm:hidden order-last flex flex-col w-full mt-6 space-y-3">
 				<Link href="/contents/pf-plans">
 					<Button label="Cancel" secondary className="w-full" />
@@ -657,7 +494,6 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 				<Button label="Save as Draft" outlined onClick={onDraft} />
 				<Button label="Save & Publish" onClick={onPublish} />
 			</div>
-			<AddDayPanel isOpen={isPanelOpen} onClose={togglePanel} />
 
 			<ConfirmModal
 				title={`Are you sure you want to ${action === "Create" ? "create this PF Plan?" : "save this changes?"} `}

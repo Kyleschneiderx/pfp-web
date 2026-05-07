@@ -1,10 +1,12 @@
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
-import { EducationModel } from "@/app/models/education_model";
-import { ExerciseModel } from "@/app/models/exercise_model";
-import { PfPlanDailies, PfPlanExerciseModel } from "@/app/models/pfplan_model";
-import { ValidationErrorModel } from "@/app/models/validation_error_model";
-import { CustomForm } from "@/app/models/custom_form_model";
-import { OptionsModel } from "@/app/models/common_model";
+import type { OptionsModel } from "@/app/models/common_model";
+import type { CustomForm } from "@/app/models/custom_form_model";
+import type { EducationModel } from "@/app/models/education_model";
+import type { ErrorModel } from "@/app/models/error_model";
+import type { ExerciseModel } from "@/app/models/exercise_model";
+import type { PfPlanDailies, PfPlanExerciseModel } from "@/app/models/pfplan_model";
+import type { ValidationErrorModel } from "@/app/models/validation_error_model";
+import { getCustomForms } from "@/app/services/client_side/custom-forms";
 import { usePfPlanDailiesStore } from "@/app/store/store";
 import ArrowLeft from "@/public/svg/arrow-left.svg";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
@@ -17,21 +19,36 @@ import Button from "../elements/Button";
 import Card from "../elements/Card";
 import Input from "../elements/Input";
 import SelectCmp from "../elements/SelectCmp";
-import MoveTaskIcon from "../icons/move_task_icon";
 import Switch from "../elements/Switch";
+import MoveTaskIcon from "../icons/move_task_icon";
 import { validateDayForm } from "./add-day-validation";
-import { getCustomForms } from "@/app/services/client_side/custom-forms";
 
 const ExerciseEducationPanel = dynamic(() => import("./exercise-education-panel"), { ssr: false });
 
 interface Props {
 	isOpen: boolean;
 	onClose: () => void;
+	/**
+	 * When provided, the panel persists the day via this callback (API mode)
+	 * instead of writing to the local Zustand store. Resolves on success.
+	 */
+	onPersistDay?: (day: PfPlanDailies) => Promise<void>;
+	/** Override day number used when adding a new day. Defaults to local store length + 1. */
+	currentDayCount?: number;
+	/** Override list used for duplicate-name validation. Defaults to local store. */
+	daysForValidation?: PfPlanDailies[];
 }
 
-export default function AddDayPanel({ isOpen = false, onClose }: Props) {
+export default function AddDayPanel({
+	isOpen = false,
+	onClose,
+	onPersistDay,
+	currentDayCount: currentDayCountProp,
+	daysForValidation,
+}: Props) {
 	const { showSnackBar } = useSnackBar();
 	const { days, setDay, selectedDay, setSelectedDay } = usePfPlanDailiesStore();
+	const [isSaving, setIsSaving] = useState(false);
 	const [name, setName] = useState("");
 	const [isOpenSelectList, setIsOpenSelectList] = useState(false);
 	const [exercises, setExercises] = useState<PfPlanExerciseModel[]>([]);
@@ -45,8 +62,8 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
 	const [errors, setErrors] = useState<ValidationErrorModel[]>([]);
 
 	useEffect(() => {
-		setCurrentDayCount(days.length + 1);
-	}, [days]);
+		setCurrentDayCount(currentDayCountProp ?? days.length + 1);
+	}, [days, currentDayCountProp]);
 
 	useEffect(() => {
 		const fetchCustomForms = async () => {
@@ -140,7 +157,7 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
 		const validationErrors = validateDayForm({
 			name,
 			exercises: exercises,
-			days,
+			days: daysForValidation ?? days,
 			selectedDay,
 		});
 		setErrors(validationErrors);
@@ -154,27 +171,50 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
 		}
 	}, [errors]);
 
-	const onSave = () => {
-		if (isValid()) {
-			let contents: any = [...exercises];
-			if (selectedEducation) {
-				contents.unshift(selectedEducation);
-			}
-			const day: any = {
-				id: selectedDay?.id,
-				name: name,
-				day: selectedDay?.day || currentDayCount,
-				contents: contents,
-				requires_pfdi_update: requiresPfdiUpdate,
-				custom_forms: selectedCustomForms.length > 0 ? selectedCustomForms : undefined,
-			};
-			setDay(day);
-			clear();
-			showSnackBar({
-				message: `Day ${selectedDay?.day || currentDayCount} was successfully saved.`,
-				success: true,
-			});
+	const onSave = async () => {
+		if (!isValid() || isSaving) return;
+
+		const contents: any = [...exercises];
+		if (selectedEducation) {
+			contents.unshift(selectedEducation);
 		}
+		const dayNumber = selectedDay?.day || currentDayCount;
+		const day: PfPlanDailies = {
+			id: selectedDay?.id,
+			name: name,
+			day: dayNumber,
+			contents: contents,
+			requires_pfdi_update: requiresPfdiUpdate,
+			custom_forms: selectedCustomForms.length > 0 ? selectedCustomForms : undefined,
+		};
+
+		if (onPersistDay) {
+			try {
+				setIsSaving(true);
+				await onPersistDay(day);
+				clear();
+				showSnackBar({
+					message: `Day ${dayNumber} was successfully saved.`,
+					success: true,
+				});
+			} catch (error) {
+				const apiError = error as ErrorModel;
+				showSnackBar({
+					message: apiError?.msg ?? "Failed to save day.",
+					success: false,
+				});
+			} finally {
+				setIsSaving(false);
+			}
+			return;
+		}
+
+		setDay(day);
+		clear();
+		showSnackBar({
+			message: `Day ${dayNumber} was successfully saved.`,
+			success: true,
+		});
 	};
 
 	const clear = () => {
@@ -221,7 +261,7 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
 						/>
 						<p className="text-2xl font-semibold ml-2">Add Day</p>
 						<Button label="Cancel" secondary className="ml-auto mr-3" onClick={handleOnClose} />
-						<Button label="Save" onClick={onSave} />
+						<Button label="Save" onClick={onSave} isProcessing={isSaving} />
 					</div>
 					<Card className="px-3 sm:p-4">
 						<div className="flex items-center justify-center mb-4">
@@ -259,7 +299,7 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
 									}))}
 									options={customFormOptions}
 									onChange={(selected) => {
-										const selectedIds = (selected as OptionsModel[]).map((opt) => parseInt(opt.value));
+										const selectedIds = (selected as OptionsModel[]).map((opt) => Number.parseInt(opt.value));
 										const forms = selectedIds
 											.map((id) => {
 												const existing = selectedCustomForms.find((f) => f.id === id);
@@ -381,7 +421,9 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
 																				placeholder="0"
 																				value={item.sets}
 																				min={1}
-																				onChange={(e) => onChangeExercise(index, parseInt(e.target.value), "sets")}
+																				onChange={(e) =>
+																					onChangeExercise(index, Number.parseInt(e.target.value), "sets")
+																				}
 																				className={exerciseInputClass}
 																			/>
 																		</div>
@@ -392,7 +434,9 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
 																				placeholder="0"
 																				value={item.reps}
 																				min={1}
-																				onChange={(e) => onChangeExercise(index, parseInt(e.target.value), "reps")}
+																				onChange={(e) =>
+																					onChangeExercise(index, Number.parseInt(e.target.value), "reps")
+																				}
 																				className={exerciseInputClass}
 																			/>
 																		</div>
@@ -405,7 +449,9 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
 																				placeholder="0"
 																				value={item.hold}
 																				min={0}
-																				onChange={(e) => onChangeExercise(index, parseInt(e.target.value), "hold")}
+																				onChange={(e) =>
+																					onChangeExercise(index, Number.parseInt(e.target.value), "hold")
+																				}
 																				className={exerciseInputClass}
 																			/>
 																		</div>
@@ -416,7 +462,9 @@ export default function AddDayPanel({ isOpen = false, onClose }: Props) {
 																				placeholder="0"
 																				value={item.rest}
 																				min={1}
-																				onChange={(e) => onChangeExercise(index, parseInt(e.target.value), "rest")}
+																				onChange={(e) =>
+																					onChangeExercise(index, Number.parseInt(e.target.value), "rest")
+																				}
 																				className={exerciseInputClass}
 																			/>
 																		</div>
