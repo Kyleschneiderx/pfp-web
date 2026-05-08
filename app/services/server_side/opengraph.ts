@@ -71,6 +71,11 @@ export async function fetchOpengraphEducation(id: string): Promise<OpengraphPayl
 	return fetchOpengraph(`/opengraph/educations/${encodeURIComponent(id)}`);
 }
 
+export async function fetchOpengraphPfPlan(id: string): Promise<OpengraphPayload | null> {
+	if (!id) return null;
+	return fetchOpengraph(`/opengraph/pf-plans/${encodeURIComponent(id)}`);
+}
+
 export async function fetchOpengraphProvider(userId: string): Promise<OpengraphPayload | null> {
 	if (!userId) return null;
 	return fetchOpengraph(`/opengraph/providers/${encodeURIComponent(userId)}`);
