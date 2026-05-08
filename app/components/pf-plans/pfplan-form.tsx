@@ -262,7 +262,10 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 		<>
 			<div className="flex items-center mb-4 sm:mb-7">
 				<div>
-					<h1 className="text-2xl font-semibold">{patient ? patient.user_profile.name : action} PF Plan</h1>
+					<div className="flex items-center space-x-2">
+						<h1 className="text-2xl font-semibold">{patient ? patient.user_profile.name : action} PF Plan</h1>
+						<StatusBadge label={pfPlan ? pfPlan.status.value : "Draft"} />
+					</div>
 					<p className="text-sm text-neutral-600">
 						{action === "Create" ? CREATE_PFPLAN_DESCRIPTION : UPDATE_DESCRIPTION}
 					</p>
@@ -289,7 +292,7 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 				</div>
 			</div>
 			<hr />
-			<div className="mt-5 sm:mt-6 border-l-4 border-primary-500 pl-4">
+			{/* <div className="mt-5 sm:mt-6 border-l-4 border-primary-500 pl-4">
 				<div className="flex flex-row items-center justify-center sm:w-[674px]">
 					{!patient && (
 						<>
@@ -346,7 +349,7 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 						</>
 					)}
 				</div>
-			</div>
+			</div> */}
 
 			<Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "details" | "dailies")} className="mt-6">
 				<TabsList>
@@ -363,11 +366,26 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 				<TabsContent value="details" className="mt-4">
 					<div className="flex flex-col sm:flex-row">
 						<Card className="sm:w-[693px] px-3 sm:px-5 sm:mr-5 mb-5 sm:mb-0">
-							<ContentCategory
-								className="z-[99]"
-								categories={category}
-								onChange={(e) => setCategory(e as OptionsModel[])}
-							/>
+							<div className="">
+								<p className="font-medium mb-2">Name</p>
+								<Input
+									type="text"
+									placeholder="Treatment name"
+									value={name}
+									invalid={false}
+									onChange={(e) => setName(e.target.value)}
+									className="!w-full"
+									containerClassName="!w-auto"
+								/>
+							</div>
+							<div className="mt-4">
+								<ContentCategory
+									className="z-[99]"
+									categories={category}
+									onChange={(e) => setCategory(e as OptionsModel[])}
+								/>
+							</div>
+
 							<div className="mt-4">
 								<div className="flex space-x-1 items-end mb-2">
 									<p className="font-medium">Trimester</p>
