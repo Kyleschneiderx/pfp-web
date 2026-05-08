@@ -1,31 +1,31 @@
 "use client";
 
 import Card from "@/app/components/elements/Card";
+import { useModal } from "@/app/contexts/ModalContext";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
+import useAuth from "@/app/hooks/useAuth";
 import { PERMISSIONS } from "@/app/lib/constants";
 import { revalidatePage } from "@/app/lib/revalidate";
+import { stripHtml, toFormData } from "@/app/lib/utils";
 import type { ErrorModel } from "@/app/models/error_model";
 import type { PfPlanModel } from "@/app/models/pfplan_model";
 import { deletePfPlan, duplicatePfPlan, savePfPlan } from "@/app/services/client_side/pfplans";
+import { IconCopy, IconTransfer } from "@tabler/icons-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
+import CommonSort from "../common-sort";
+import DataList from "../data-list";
+import Button from "../elements/Button";
 import CardBanner from "../elements/CardBanner";
 import Loader from "../elements/Loader";
-import StatusBadge from "../elements/StatusBadge";
-import { fetchPfPlans } from "./action";
-import DataList from "../data-list";
-import SearchCmp from "../elements/SearchCmp";
-import CommonSort from "../common-sort";
-import Link from "next/link";
-import Button from "../elements/Button";
-import IconAddButton from "../elements/mobile/IconAddButton";
-import { useModal } from "@/app/contexts/ModalContext";
-import useAuth from "@/app/hooks/useAuth";
-import { useRouter } from "next/navigation";
-import { toFormData } from "@/app/lib/utils";
-import RenameModal from "../modals/rename-modal";
 import ResponsiveActionMenu from "../elements/ResponsiveActionMenu";
-import { IconCopy, IconTransfer } from "@tabler/icons-react";
+import SearchCmp from "../elements/SearchCmp";
+import StatusBadge from "../elements/StatusBadge";
+import IconAddButton from "../elements/mobile/IconAddButton";
+import RenameModal from "../modals/rename-modal";
+import { fetchPfPlans } from "./action";
 
 interface Props {
 	name: string;
@@ -132,7 +132,11 @@ export default function PfPlanList({ name, sort, initialList, maxPage }: Props) 
 						onSubmit={async ({ name }) => {
 							try {
 								const formData = toFormData({ name });
-								await savePfPlan({ method: "PUT", id: pfPlan!.id, body: formData });
+								await savePfPlan({
+									method: "PUT",
+									id: pfPlan!.id,
+									body: formData,
+								});
 								await revalidatePage("/contents/pf-plans");
 								showSnackBar({
 									message: "PF plan successfully renamed.",
@@ -212,12 +216,9 @@ export default function PfPlanList({ name, sort, initialList, maxPage }: Props) 
 							<p className="text-lg font-semibold leading-tight mt-[8px] mb-[6px]" title={pfplan.name}>
 								{pfplan.name}
 							</p>
-							<p
-								className="text-sm text-neutral-700 mt-1 line-clamp-5"
-								title={pfplan.description}
-								// biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
-								dangerouslySetInnerHTML={{ __html: pfplan.description ?? "" }}
-							/>
+							<p className="text-sm text-neutral-700 mt-1 line-clamp-5" title={stripHtml(pfplan.description)}>
+								{stripHtml(pfplan.description)}
+							</p>
 						</Card>
 					</div>
 				))}

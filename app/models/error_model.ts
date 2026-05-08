@@ -1,7 +1,8 @@
 export type ErrorModel = {
-  type?: string;
-  value?: string;
-  msg: string;
-  path?: string;
-  location?: string;
+	type?: string;
+	value?: string;
+	msg: string;
+	path?: string;
+	location?: string;
+	code?: number;
 };

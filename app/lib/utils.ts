@@ -1,5 +1,5 @@
 import { format, set } from "date-fns";
-import { convertToRaw, EditorState } from "draft-js";
+import { type EditorState, convertToRaw } from "draft-js";
 import draftToHtml from "draftjs-to-html";
 
 // return format: 1988-11-23
@@ -236,4 +236,22 @@ export const toFormData = (data: Record<string, any>) => {
 	}
 
 	return formData;
+};
+
+const HTML_ENTITIES: Record<string, string> = {
+	"&nbsp;": " ",
+	"&amp;": "&",
+	"&lt;": "<",
+	"&gt;": ">",
+	"&quot;": '"',
+	"&#39;": "'",
+};
+
+export const stripHtml = (html: string | null | undefined): string => {
+	if (!html) return "";
+	return html
+		.replace(/<[^>]*>/g, " ")
+		.replace(/&[a-z#0-9]+;/gi, (match) => HTML_ENTITIES[match] ?? " ")
+		.replace(/\s+/g, " ")
+		.trim();
 };
