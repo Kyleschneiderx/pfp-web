@@ -169,6 +169,9 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 				}
 
 				if (patient) {
+					if (pfPlan && pfPlan.user_id !== patient.id) {
+						body.append("reference_pf_plan_id", pfPlan.id.toString());
+					}
 					const personalizedPfPlanId = pfPlan?.user_id === patient.id ? id : undefined;
 					const personalizedPfPlan = await savePersonalizedPfPlan({
 						method: personalizedPfPlanId ? "PUT" : "POST",
@@ -448,7 +451,7 @@ export default function PfPlanForm({ action = "Create", pfPlan, patient }: Props
 									fileUrl={patient ? (patient.id === pfPlan?.user_id ? pfPlan?.photo : undefined) : pfPlan?.photo}
 								/>
 							</Card>
-							{action === "Edit" && !pfPlan?.is_archived && (
+							{action === "Edit" && !pfPlan?.is_archived && (!patient || pfPlan?.user_id === patient.id) && (
 								<Button
 									label="Delete"
 									outlined
