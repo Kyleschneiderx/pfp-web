@@ -131,6 +131,15 @@ export default function PfPlanDailiesTab({ pfPlanId, isArchived, readOnly = fals
 	const pfPlanIdRef = useRef<number | null>(pfPlanId);
 	const pageRef = useRef<number>(page);
 	const maxPageRef = useRef<number>(maxPage);
+	// Ref-stable snackbar handle so fetchPage / reload identities never change
+	// when SnackBarContext re-renders (it returns a fresh `showSnackBar` each
+	// render). Without this, mutating actions like save / copy would trigger
+	// the initial-load effect a second time and refetch the entire list.
+	const showSnackBarRef = useRef(showSnackBar);
+
+	useEffect(() => {
+		showSnackBarRef.current = showSnackBar;
+	}, [showSnackBar]);
 
 	useEffect(() => {
 		pfPlanIdRef.current = pfPlanId;
@@ -151,35 +160,32 @@ export default function PfPlanDailiesTab({ pfPlanId, isArchived, readOnly = fals
 		};
 	}, []);
 
-	const fetchPage = useCallback(
-		async (targetPage: number, replace: boolean) => {
-			if (!pfPlanIdRef.current) return;
-			if (loadingRef.current) return;
-			loadingRef.current = true;
-			setIsLoading(true);
-			try {
-				const response = await listPfPlanDailies(pfPlanIdRef.current, {
-					page: targetPage,
-					pageItems: PAGE_ITEMS,
-				});
-				const normalized = response.data.map(normalizeDaily);
-				setDailies((prev) => (replace ? normalized : [...prev, ...normalized]));
-				setPage(response.page);
-				setMaxPage(response.max_page);
-			} catch (error) {
-				const apiError = error as ErrorModel;
-				showSnackBar({
-					message: apiError?.msg ?? "Failed to load PF Plan Dailies.",
-					success: false,
-				});
-			} finally {
-				loadingRef.current = false;
-				setIsLoading(false);
-				setIsInitialLoad(false);
-			}
-		},
-		[showSnackBar],
-	);
+	const fetchPage = useCallback(async (targetPage: number, replace: boolean) => {
+		if (!pfPlanIdRef.current) return;
+		if (loadingRef.current) return;
+		loadingRef.current = true;
+		setIsLoading(true);
+		try {
+			const response = await listPfPlanDailies(pfPlanIdRef.current, {
+				page: targetPage,
+				pageItems: PAGE_ITEMS,
+			});
+			const normalized = response.data.map(normalizeDaily);
+			setDailies((prev) => (replace ? normalized : [...prev, ...normalized]));
+			setPage(response.page);
+			setMaxPage(response.max_page);
+		} catch (error) {
+			const apiError = error as ErrorModel;
+			showSnackBarRef.current({
+				message: apiError?.msg ?? "Failed to load PF Plan Dailies.",
+				success: false,
+			});
+		} finally {
+			loadingRef.current = false;
+			setIsLoading(false);
+			setIsInitialLoad(false);
+		}
+	}, []);
 
 	const reload = useCallback(async () => {
 		if (!pfPlanIdRef.current) return;
@@ -191,6 +197,18 @@ export default function PfPlanDailiesTab({ pfPlanId, isArchived, readOnly = fals
 		await fetchPage(1, true);
 	}, [fetchPage]);
 
+	// Refetches page 1 in the background without clearing the current list or
+	// flipping `isInitialLoad`, so the user keeps seeing the existing rows
+	// while the refresh happens. Used by mutations (e.g. delete) where the
+	// server may renumber `day` values across the rest of the list.
+	const softReload = useCallback(async () => {
+		if (!pfPlanIdRef.current) return;
+		setPage(1);
+		setMaxPage((prev) => Math.max(prev, 1));
+		lastFireScrollTopRef.current = Number.NEGATIVE_INFINITY;
+		await fetchPage(1, true);
+	}, [fetchPage]);
+
 	useEffect(() => {
 		if (!pfPlanId) {
 			setDailies([]);
@@ -198,7 +216,7 @@ export default function PfPlanDailiesTab({ pfPlanId, isArchived, readOnly = fals
 			return;
 		}
 		void reload();
-	}, [pfPlanId, reload]);
+	}, [pfPlanId]);
 
 	// Callback ref keeps a single persistent observer attached to whatever
 	// sentinel node is in the tree. IntersectionObserver only fires on
@@ -271,16 +289,27 @@ export default function PfPlanDailiesTab({ pfPlanId, isArchived, readOnly = fals
 		setIsPanelOpen(true);
 	};
 
+	// Merge a saved daily back into the local list so the UI stays hydrated
+	// without a full refetch. Existing rows (matched by `id`) are replaced in
+	// place; new rows are appended and the list is re-sorted by `day` in case
+	// the server adjusted day numbers.
+	const mergeSavedDaily = (saved: PfPlanDailies) => {
+		const normalized = normalizeDaily(saved);
+		setDailies((prev) => {
+			const exists = prev.some((d) => d.id === normalized.id);
+			const next = exists ? prev.map((d) => (d.id === normalized.id ? normalized : d)) : [...prev, normalized];
+			return next.sort((a, b) => a.day - b.day);
+		});
+	};
+
 	const handlePersistDay = async (day: PfPlanDailies): Promise<void> => {
 		if (!pfPlanIdRef.current) throw new Error("PF Plan must be saved before adding dailies.");
 		const input = buildDailyInput(day);
-		if (day.id) {
-			await updatePfPlanDaily(pfPlanIdRef.current, day.id, input);
-		} else {
-			await createPfPlanDaily(pfPlanIdRef.current, input);
-		}
+		const saved = day.id
+			? await updatePfPlanDaily(pfPlanIdRef.current, day.id, input)
+			: await createPfPlanDaily(pfPlanIdRef.current, input);
+		mergeSavedDaily(saved);
 		setIsPanelOpen(false);
-		await reload();
 	};
 
 	const handleCopyDay = async (day: PfPlanDailies) => {
@@ -303,9 +332,9 @@ export default function PfPlanDailiesTab({ pfPlanId, isArchived, readOnly = fals
 					return { ...education, pfPlanDayContentId: undefined };
 				}),
 			});
-			await createPfPlanDaily(pfPlanIdRef.current, input);
+			const saved = await createPfPlanDaily(pfPlanIdRef.current, input);
+			mergeSavedDaily(saved);
 			showSnackBar({ message: "Day copied successfully.", success: true });
-			await reload();
 		} catch (error) {
 			const apiError = error as ErrorModel;
 			showSnackBar({
@@ -319,10 +348,15 @@ export default function PfPlanDailiesTab({ pfPlanId, isArchived, readOnly = fals
 		if (!pfPlanIdRef.current || !dayToDelete?.id || isDeleting) return;
 		try {
 			setIsDeleting(true);
-			await deletePfPlanDaily(pfPlanIdRef.current, dayToDelete.id);
+			const deletedId = dayToDelete.id;
+			await deletePfPlanDaily(pfPlanIdRef.current, deletedId);
+			// Drop the row immediately so the list doesn't briefly show the deleted
+			// day, then refetch in the background to pick up server-side day
+			// renumbering without flashing the initial-load skeleton.
+			setDailies((prev) => prev.filter((d) => d.id !== deletedId));
 			showSnackBar({ message: "Day deleted successfully.", success: true });
 			setDayToDelete(null);
-			await reload();
+			await softReload();
 		} catch (error) {
 			const apiError = error as ErrorModel;
 			showSnackBar({
