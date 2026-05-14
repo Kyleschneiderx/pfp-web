@@ -1,7 +1,7 @@
 import {
 	buildCanonicalUrl,
 	defaultOgImageUrl,
-	fetchOpengraphEducation,
+	fetchOpengraphPfPlan,
 	resolveSiteOrigin,
 } from "@/app/services/server_side/opengraph";
 import type { Metadata } from "next";
@@ -22,7 +22,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 		return { title: fallbackTitle };
 	}
 
-	const og = await fetchOpengraphEducation(id);
+	const og = await fetchOpengraphPfPlan(id);
 	if (!og) {
 		const siteOrigin = await resolveSiteOrigin();
 		const canonicalUrl = new URL("/mobile-app/pf-plan", `${siteOrigin}/`);
