@@ -1,5 +1,14 @@
 "use client";
 
+import Color from "@tiptap/extension-color";
+import Image from "@tiptap/extension-image";
+import Link from "@tiptap/extension-link";
+import Placeholder from "@tiptap/extension-placeholder";
+import TextAlign from "@tiptap/extension-text-align";
+import TextStyle from "@tiptap/extension-text-style";
+import Underline from "@tiptap/extension-underline";
+import { type Editor, EditorContent, useEditor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
 import clsx from "clsx";
 import {
 	ALargeSmall,
@@ -25,21 +34,10 @@ import {
 	Strikethrough,
 	Underline as UnderlineIcon,
 } from "lucide-react";
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import { EditorContent, Editor, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Underline from "@tiptap/extension-underline";
-import Link from "@tiptap/extension-link";
-import Image from "@tiptap/extension-image";
-import Color from "@tiptap/extension-color";
-import TextStyle from "@tiptap/extension-text-style";
-import Placeholder from "@tiptap/extension-placeholder";
-import TextAlign from "@tiptap/extension-text-align";
+import type React from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-function debounce<T extends (...args: any[]) => void>(
-	callback: T,
-	delay?: number,
-): T {
+function debounce<T extends (...args: any[]) => void>(callback: T, delay?: number): T {
 	let timeout: NodeJS.Timeout;
 
 	return ((...args: any[]) => {
@@ -105,10 +103,7 @@ const TipTapToolbar = ({ editor, iconSize = 16 }: ToolbarProps) => {
 	const fontSizes = ["Default", "12px", "14px", "16px", "18px", "24px"];
 
 	const toolbarIconClass = (isActive: boolean) => {
-		return clsx(
-			isActive ? "text-black" : "text-neutral-500",
-			"cursor-pointer hover:text-black",
-		);
+		return clsx(isActive ? "text-black" : "text-neutral-500", "cursor-pointer hover:text-black");
 	};
 
 	const setLink = useCallback(() => {
@@ -165,50 +160,20 @@ const TipTapToolbar = ({ editor, iconSize = 16 }: ToolbarProps) => {
 	return (
 		<div className="flex bg-neutral-100 p-2 items-center flex-wrap">
 			<div className="flex justify-center items-center mr-8 my-1 space-x-3">
-				<span
-					onClick={() => editor.chain().focus().toggleBold().run()}
-					title="Bold"
-				>
-					<Bold
-						size={iconSize}
-						className={toolbarIconClass(editor.isActive("bold"))}
-					/>
+				<span onClick={() => editor.chain().focus().toggleBold().run()} title="Bold">
+					<Bold size={iconSize} className={toolbarIconClass(editor.isActive("bold"))} />
 				</span>
-				<span
-					onClick={() => editor.chain().focus().toggleItalic().run()}
-					title="Italic"
-				>
-					<Italic
-						size={iconSize}
-						className={toolbarIconClass(editor.isActive("italic"))}
-					/>
+				<span onClick={() => editor.chain().focus().toggleItalic().run()} title="Italic">
+					<Italic size={iconSize} className={toolbarIconClass(editor.isActive("italic"))} />
 				</span>
-				<span
-					onClick={() => editor.chain().focus().toggleStrike().run()}
-					title="Strikethrough"
-				>
-					<Strikethrough
-						size={iconSize}
-						className={toolbarIconClass(editor.isActive("strike"))}
-					/>
+				<span onClick={() => editor.chain().focus().toggleStrike().run()} title="Strikethrough">
+					<Strikethrough size={iconSize} className={toolbarIconClass(editor.isActive("strike"))} />
 				</span>
-				<span
-					onClick={() => editor.chain().focus().toggleUnderline().run()}
-					title="Underline"
-				>
-					<UnderlineIcon
-						size={iconSize}
-						className={toolbarIconClass(editor.isActive("underline"))}
-					/>
+				<span onClick={() => editor.chain().focus().toggleUnderline().run()} title="Underline">
+					<UnderlineIcon size={iconSize} className={toolbarIconClass(editor.isActive("underline"))} />
 				</span>
-				<span
-					onClick={() => editor.chain().focus().toggleBlockquote().run()}
-					title="Blockquote"
-				>
-					<Quote
-						size={iconSize}
-						className={toolbarIconClass(editor.isActive("blockquote"))}
-					/>
+				<span onClick={() => editor.chain().focus().toggleBlockquote().run()} title="Blockquote">
+					<Quote size={iconSize} className={toolbarIconClass(editor.isActive("blockquote"))} />
 				</span>
 			</div>
 			<div className="flex justify-center items-center mr-8 my-1 space-x-3">
@@ -234,8 +199,7 @@ const TipTapToolbar = ({ editor, iconSize = 16 }: ToolbarProps) => {
 									}}
 									className={clsx(
 										editor.getAttributes("textStyle").fontSize === size ||
-											(!editor.getAttributes("textStyle").fontSize &&
-												size === "Default")
+											(!editor.getAttributes("textStyle").fontSize && size === "Default")
 											? "bg-gray-200"
 											: "",
 										"px-2 py-2 text-xs cursor-pointer hover:bg-gray-200",
@@ -246,12 +210,7 @@ const TipTapToolbar = ({ editor, iconSize = 16 }: ToolbarProps) => {
 							))}
 						</div>
 					)}
-					<ALargeSmall
-						size={iconSize}
-						className={toolbarIconClass(
-							editor.getAttributes("textStyle").fontSize,
-						)}
-					/>
+					<ALargeSmall size={iconSize} className={toolbarIconClass(editor.getAttributes("textStyle").fontSize)} />
 				</span>
 				<span title="Text Color">
 					<input
@@ -262,67 +221,25 @@ const TipTapToolbar = ({ editor, iconSize = 16 }: ToolbarProps) => {
 						data-testid="setColor"
 					/>
 				</span>
-				<span
-					onClick={() => editor.chain().focus().setTextAlign("center").run()}
-					title="Align Center"
-				>
-					<AlignCenter
-						size={iconSize}
-						className={toolbarIconClass(
-							editor.isActive({ textAlign: "center" }),
-						)}
-					/>
+				<span onClick={() => editor.chain().focus().setTextAlign("center").run()} title="Align Center">
+					<AlignCenter size={iconSize} className={toolbarIconClass(editor.isActive({ textAlign: "center" }))} />
 				</span>
-				<span
-					onClick={() => editor.chain().focus().setTextAlign("justify").run()}
-					title="Align Justify"
-				>
-					<AlignJustify
-						size={iconSize}
-						className={toolbarIconClass(
-							editor.isActive({ textAlign: "justify" }),
-						)}
-					/>
+				<span onClick={() => editor.chain().focus().setTextAlign("justify").run()} title="Align Justify">
+					<AlignJustify size={iconSize} className={toolbarIconClass(editor.isActive({ textAlign: "justify" }))} />
 				</span>
-				<span
-					onClick={() => editor.chain().focus().setTextAlign("left").run()}
-					title="Align Left"
-				>
-					<AlignLeft
-						size={iconSize}
-						className={toolbarIconClass(editor.isActive({ textAlign: "left" }))}
-					/>
+				<span onClick={() => editor.chain().focus().setTextAlign("left").run()} title="Align Left">
+					<AlignLeft size={iconSize} className={toolbarIconClass(editor.isActive({ textAlign: "left" }))} />
 				</span>
-				<span
-					onClick={() => editor.chain().focus().setTextAlign("right").run()}
-					title="Align Right"
-				>
-					<AlignRight
-						size={iconSize}
-						className={toolbarIconClass(
-							editor.isActive({ textAlign: "right" }),
-						)}
-					/>
+				<span onClick={() => editor.chain().focus().setTextAlign("right").run()} title="Align Right">
+					<AlignRight size={iconSize} className={toolbarIconClass(editor.isActive({ textAlign: "right" }))} />
 				</span>
 			</div>
 			<div className="flex justify-center items-center mr-8 my-1 space-x-3">
-				<span
-					onClick={() => editor.chain().focus().toggleBulletList().run()}
-					title="Bullet List"
-				>
-					<List
-						size={iconSize}
-						className={toolbarIconClass(editor.isActive("bulletList"))}
-					/>
+				<span onClick={() => editor.chain().focus().toggleBulletList().run()} title="Bullet List">
+					<List size={iconSize} className={toolbarIconClass(editor.isActive("bulletList"))} />
 				</span>
-				<span
-					onClick={() => editor.chain().focus().toggleOrderedList().run()}
-					title="Ordered List"
-				>
-					<ListOrdered
-						size={iconSize}
-						className={toolbarIconClass(editor.isActive("orderedList"))}
-					/>
+				<span onClick={() => editor.chain().focus().toggleOrderedList().run()} title="Ordered List">
+					<ListOrdered size={iconSize} className={toolbarIconClass(editor.isActive("orderedList"))} />
 				</span>
 				<span
 					onClick={() => {
@@ -334,120 +251,43 @@ const TipTapToolbar = ({ editor, iconSize = 16 }: ToolbarProps) => {
 				>
 					<IndentIncrease
 						size={iconSize}
-						className={clsx(
-							!editor.can().sinkListItem("listItem")
-								? "text-neutral-300"
-								: toolbarIconClass(true),
-						)}
+						className={clsx(!editor.can().sinkListItem("listItem") ? "text-neutral-300" : toolbarIconClass(true))}
 					/>
 				</span>
-				<span
-					onClick={() => editor.chain().focus().liftListItem("listItem").run()}
-					title="Unindent List Item"
-				>
+				<span onClick={() => editor.chain().focus().liftListItem("listItem").run()} title="Unindent List Item">
 					<IndentDecrease
 						size={iconSize}
-						className={clsx(
-							!editor.can().liftListItem("listItem")
-								? "text-neutral-300"
-								: toolbarIconClass(true),
-						)}
+						className={clsx(!editor.can().liftListItem("listItem") ? "text-neutral-300" : toolbarIconClass(true))}
 					/>
 				</span>
 			</div>
 			<div className="flex justify-center items-center mr-8 my-1 space-x-3">
-				<span
-					onClick={() =>
-						editor.chain().focus().toggleHeading({ level: 1 }).run()
-					}
-					title="Heading 1"
-				>
-					<Heading1
-						size={iconSize}
-						className={toolbarIconClass(
-							editor.isActive("heading", { level: 1 }),
-						)}
-					/>
+				<span onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} title="Heading 1">
+					<Heading1 size={iconSize} className={toolbarIconClass(editor.isActive("heading", { level: 1 }))} />
 				</span>
-				<span
-					onClick={() =>
-						editor.chain().focus().toggleHeading({ level: 2 }).run()
-					}
-					title="Heading 2"
-				>
-					<Heading2
-						size={iconSize}
-						className={toolbarIconClass(
-							editor.isActive("heading", { level: 2 }),
-						)}
-					/>
+				<span onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} title="Heading 2">
+					<Heading2 size={iconSize} className={toolbarIconClass(editor.isActive("heading", { level: 2 }))} />
 				</span>
-				<span
-					onClick={() =>
-						editor.chain().focus().toggleHeading({ level: 3 }).run()
-					}
-					title="Heading 3"
-				>
-					<Heading3
-						size={iconSize}
-						className={toolbarIconClass(
-							editor.isActive("heading", { level: 3 }),
-						)}
-					/>
+				<span onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} title="Heading 3">
+					<Heading3 size={iconSize} className={toolbarIconClass(editor.isActive("heading", { level: 3 }))} />
 				</span>
-				<span
-					onClick={() =>
-						editor.chain().focus().toggleHeading({ level: 4 }).run()
-					}
-					title="Heading 4"
-				>
-					<Heading4
-						size={iconSize}
-						className={toolbarIconClass(
-							editor.isActive("heading", { level: 4 }),
-						)}
-					/>
+				<span onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()} title="Heading 4">
+					<Heading4 size={iconSize} className={toolbarIconClass(editor.isActive("heading", { level: 4 }))} />
 				</span>
-				<span
-					onClick={() =>
-						editor.chain().focus().toggleHeading({ level: 5 }).run()
-					}
-					title="Heading 5"
-				>
-					<Heading5
-						size={iconSize}
-						className={toolbarIconClass(
-							editor.isActive("heading", { level: 5 }),
-						)}
-					/>
+				<span onClick={() => editor.chain().focus().toggleHeading({ level: 5 }).run()} title="Heading 5">
+					<Heading5 size={iconSize} className={toolbarIconClass(editor.isActive("heading", { level: 5 }))} />
 				</span>
-				<span
-					onClick={() =>
-						editor.chain().focus().toggleHeading({ level: 6 }).run()
-					}
-					title="Heading 6"
-				>
-					<Heading6
-						size={iconSize}
-						className={toolbarIconClass(
-							editor.isActive("heading", { level: 6 }),
-						)}
-					/>
+				<span onClick={() => editor.chain().focus().toggleHeading({ level: 6 }).run()} title="Heading 6">
+					<Heading6 size={iconSize} className={toolbarIconClass(editor.isActive("heading", { level: 6 }))} />
 				</span>
 			</div>
 
 			<div className="flex justify-center items-center mr-8 my-1 space-x-3">
 				<span onClick={setLink} title="Link">
-					<Link2
-						size={iconSize}
-						className={toolbarIconClass(editor.isActive("link"))}
-					/>
+					<Link2 size={iconSize} className={toolbarIconClass(editor.isActive("link"))} />
 				</span>
 
-				<span
-					onClick={() => inputFileRef.current?.click()}
-					title="Insert Image"
-				>
+				<span onClick={() => inputFileRef.current?.click()} title="Insert Image">
 					<input
 						ref={inputFileRef}
 						type="file"
@@ -469,12 +309,7 @@ interface Props {
 	editorClassName?: string;
 }
 
-export default function TipTapEditor({
-	placeholder,
-	content,
-	onChange,
-	editorClassName,
-}: Props) {
+export default function TipTapEditor({ placeholder, content, onChange, editorClassName }: Props) {
 	const editor = useEditor({
 		extensions: [
 			StarterKit,
@@ -526,9 +361,7 @@ export default function TipTapEditor({
 			return;
 		}
 
-		const pos = content ? editor.state.selection.$head.pos : 1;
-		editor.commands.insertContent(content ?? "");
-		editor.commands.setTextSelection(pos);
+		editor.commands.setContent(content, false);
 	}, [content, editor]);
 
 	if (!editor) return <div>Loading editor...</div>;
