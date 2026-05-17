@@ -129,17 +129,21 @@ export default function WorkoutList({ name, sort, initialList, maxPage }: Props)
 	};
 
 	return (
-		<DataList data={workouts}>
-			<div className="flex items-center mb-8">
-				<SearchCmp placeholder="Search workouts" className="mr-4 sm:mr-0" />
-				<CommonSort field="name" />
-				{hasPermission(PERMISSIONS.WORKOUT_CREATE) && (
-					<Link href="/contents/workouts/create" className="ml-auto">
-						<Button label="Add Workout" showIcon className="hidden sm:flex" />
-						<IconAddButton className="sm:hidden" />
-					</Link>
-				)}
-			</div>
+		<DataList
+			data={workouts}
+			header={
+				<div className="flex items-center mb-8">
+					<SearchCmp placeholder="Search workouts" className="mr-4 sm:mr-0" />
+					<CommonSort field="name" />
+					{hasPermission(PERMISSIONS.WORKOUT_CREATE) && (
+						<Link href="/contents/workouts/create" className="ml-auto">
+							<Button label="Add Workout" showIcon className="hidden sm:flex" />
+							<IconAddButton className="sm:hidden" />
+						</Link>
+					)}
+				</div>
+			}
+		>
 			<div className="flex flex-wrap">
 				{workouts.map((workout) => (
 					<div key={workout.id} className="w-[351px] mx-auto sm:mx-0 sm:mr-7 mb-7 text-neutral-900">
