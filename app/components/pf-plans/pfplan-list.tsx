@@ -20,6 +20,7 @@ import DataList from "../data-list";
 import Button from "../elements/Button";
 import CardBanner from "../elements/CardBanner";
 import Loader from "../elements/Loader";
+import OwnershipTabs from "../elements/OwnershipTabs";
 import ResponsiveActionMenu from "../elements/ResponsiveActionMenu";
 import SearchCmp from "../elements/SearchCmp";
 import StatusBadge from "../elements/StatusBadge";
@@ -30,11 +31,12 @@ import { fetchPfPlans } from "./action";
 interface Props {
 	name: string;
 	sort: string;
+	ownership: string;
 	initialList: PfPlanModel[] | [];
 	maxPage: number;
 }
 
-export default function PfPlanList({ name, sort, initialList, maxPage }: Props) {
+export default function PfPlanList({ name, sort, ownership, initialList, maxPage }: Props) {
 	const modal = useModal();
 	const { hasPermission } = useAuth();
 	const router = useRouter();
@@ -51,6 +53,7 @@ export default function PfPlanList({ name, sort, initialList, maxPage }: Props) 
 			page: next,
 			name,
 			sort,
+			ownership,
 		});
 		if (pfPlanList.length) {
 			setPage(next);
@@ -67,7 +70,7 @@ export default function PfPlanList({ name, sort, initialList, maxPage }: Props) 
 	useEffect(() => {
 		setPfPlans(initialList);
 		setPage(1);
-	}, [sort, name, initialList]);
+	}, [sort, name, ownership, initialList]);
 
 	const handleDelete = async (pfPlan: PfPlanModel) => {
 		modal.open({
@@ -158,77 +161,81 @@ export default function PfPlanList({ name, sort, initialList, maxPage }: Props) 
 	};
 
 	return (
-		<DataList
-			data={pfPlans}
-			header={
-				<div className="flex items-center mb-8">
-					<SearchCmp placeholder="Search PF Plan" className="mr-4 sm:mr-0" />
-					<CommonSort field="name" />
-					{hasPermission(PERMISSIONS.PFPLAN_CREATE) && (
-						<Link href="/contents/pf-plans/create" className="ml-auto">
-							<Button label="Add Plan" showIcon className="hidden sm:flex" />
-							<IconAddButton className="sm:hidden" />
-						</Link>
-					)}
-				</div>
-			}
-		>
-			<div className="flex flex-wrap">
-				{pfPlans.map((pfplan) => (
-					<div key={pfplan.id} className="w-[351px] mx-auto sm:mx-0 sm:mr-7 mb-7 text-neutral-900">
-						<CardBanner url={pfplan.photo} />
-						<Card className="min-h-[202px] rounded-t-none py-4 px-5">
-							<div className="flex">
-								<StatusBadge label={pfplan.status.value} />
-								{hasPermission([PERMISSIONS.PFPLAN_EDIT, PERMISSIONS.PFPLAN_DELETE, PERMISSIONS.PFPLAN_DUPLICATE]) && (
-									<ResponsiveActionMenu
-										title={pfplan.name}
-										className="cursor-pointer ml-auto"
-										onEdit={
-											hasPermission(PERMISSIONS.PFPLAN_EDIT)
-												? () => router.push(`/contents/pf-plans/${pfplan.id}/edit`)
-												: undefined
-										}
-										onDelete={hasPermission(PERMISSIONS.PFPLAN_DELETE) ? () => handleDelete(pfplan) : undefined}
-										customActions={[
-											...(hasPermission(PERMISSIONS.PFPLAN_EDIT)
-												? [
-														{
-															label: "Rename",
-															icon: <IconTransfer size={16} />,
-															onClick: () => handleRename(pfplan),
-														},
-													]
-												: []),
-											...(hasPermission(PERMISSIONS.PFPLAN_DUPLICATE)
-												? [
-														{
-															label: "Duplicate",
-															icon: <IconCopy size={16} />,
-															onClick: () => handleDuplicate(pfplan),
-														},
-													]
-												: []),
-										]}
-									/>
-								)}
-							</div>
-							<p className="text-lg font-semibold leading-tight mt-[8px] mb-[6px]" title={pfplan.name}>
-								{pfplan.name}
-							</p>
-							<p className="text-sm text-neutral-700 mt-1 line-clamp-5" title={stripHtml(pfplan.description)}>
-								{stripHtml(pfplan.description)}
-							</p>
-						</Card>
-					</div>
-				))}
+		<>
+			<div className="flex items-center mb-3">
+				<SearchCmp placeholder="Search PF Plan" className="mr-4 sm:mr-0" />
+				<CommonSort field="name" />
+				{hasPermission(PERMISSIONS.PFPLAN_CREATE) && (
+					<Link href="/contents/pf-plans/create" className="ml-auto">
+						<Button label="Add Plan" showIcon className="hidden sm:flex" />
+						<IconAddButton className="sm:hidden" />
+					</Link>
+				)}
 			</div>
-			{page < maxPage && (
-				<div ref={ref} className="flex justify-center mt-5">
-					<Loader />
-					<span>Loading...</span>
-				</div>
-			)}
-		</DataList>
+			<OwnershipTabs>
+				<DataList data={pfPlans}>
+					<div className="flex flex-wrap">
+						{pfPlans.map((pfplan) => (
+							<div key={pfplan.id} className="w-[351px] mx-auto sm:mx-0 sm:mr-7 mb-7 text-neutral-900">
+								<CardBanner url={pfplan.photo} />
+								<Card className="min-h-[202px] rounded-t-none py-4 px-5">
+									<div className="flex">
+										<StatusBadge label={pfplan.status.value} />
+										{hasPermission([
+											PERMISSIONS.PFPLAN_EDIT,
+											PERMISSIONS.PFPLAN_DELETE,
+											PERMISSIONS.PFPLAN_DUPLICATE,
+										]) && (
+											<ResponsiveActionMenu
+												title={pfplan.name}
+												className="cursor-pointer ml-auto"
+												onEdit={
+													hasPermission(PERMISSIONS.PFPLAN_EDIT)
+														? () => router.push(`/contents/pf-plans/${pfplan.id}/edit`)
+														: undefined
+												}
+												onDelete={hasPermission(PERMISSIONS.PFPLAN_DELETE) ? () => handleDelete(pfplan) : undefined}
+												customActions={[
+													...(hasPermission(PERMISSIONS.PFPLAN_EDIT)
+														? [
+																{
+																	label: "Rename",
+																	icon: <IconTransfer size={16} />,
+																	onClick: () => handleRename(pfplan),
+																},
+															]
+														: []),
+													...(hasPermission(PERMISSIONS.PFPLAN_DUPLICATE)
+														? [
+																{
+																	label: "Duplicate",
+																	icon: <IconCopy size={16} />,
+																	onClick: () => handleDuplicate(pfplan),
+																},
+															]
+														: []),
+												]}
+											/>
+										)}
+									</div>
+									<p className="text-lg font-semibold leading-tight mt-[8px] mb-[6px]" title={pfplan.name}>
+										{pfplan.name}
+									</p>
+									<p className="text-sm text-neutral-700 mt-1 line-clamp-5" title={stripHtml(pfplan.description)}>
+										{stripHtml(pfplan.description)}
+									</p>
+								</Card>
+							</div>
+						))}
+					</div>
+					{page < maxPage && (
+						<div ref={ref} className="flex justify-center mt-5">
+							<Loader />
+							<span>Loading...</span>
+						</div>
+					)}
+				</DataList>
+			</OwnershipTabs>
+		</>
 	);
 }
