@@ -1,15 +1,30 @@
+import { ownershipToIsOwn } from "@/app/lib/ownership-filter";
+import type { CustomForm } from "@/app/models/custom_form_model";
 import type { DefaultSearchQuery, List } from "@/app/models/global_model";
 import { apiServerSide } from "../apiServerSide";
-import type { CustomForm } from "@/app/models/custom_form_model";
 
-export type CustomFormSearchQuery = DefaultSearchQuery;
+export type CustomFormSearchQuery = DefaultSearchQuery & {
+	ownership?: string;
+	is_own?: boolean;
+	search?: string;
+	filter_column?: string;
+};
 
 export const getCustomForms = async (params?: CustomFormSearchQuery): Promise<List<CustomForm>> => {
 	const url = "/custom-forms";
+	const isOwn = ownershipToIsOwn(params?.ownership);
+	const requestParams = { ...params };
+
+	delete requestParams.ownership;
+
+	if (isOwn !== undefined) {
+		requestParams.is_own = isOwn;
+	}
+
 	const data = await apiServerSide({
 		url,
 		method: "GET",
-		params,
+		params: requestParams,
 	});
 	return data as List<CustomForm>;
 };

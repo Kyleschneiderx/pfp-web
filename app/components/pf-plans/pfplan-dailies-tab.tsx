@@ -128,6 +128,8 @@ export default function PfPlanDailiesTab({ pfPlanId, isArchived, readOnly = fals
 	const scrollParentRef = useRef<HTMLElement | null>(null);
 	const lastFireScrollTopRef = useRef<number>(Number.NEGATIVE_INFINITY);
 	const loadingRef = useRef<boolean>(false);
+	const reorderInFlightRef = useRef<boolean>(false);
+	const showSnackBarRef = useRef(showSnackBar);
 	const pfPlanIdRef = useRef<number | null>(pfPlanId);
 	const pageRef = useRef<number>(page);
 	const maxPageRef = useRef<number>(maxPage);
@@ -136,6 +138,10 @@ export default function PfPlanDailiesTab({ pfPlanId, isArchived, readOnly = fals
 	// render). Without this, mutating actions like save / copy would trigger
 	// the initial-load effect a second time and refetch the entire list.
 	const showSnackBarRef = useRef(showSnackBar);
+
+	useEffect(() => {
+		showSnackBarRef.current = showSnackBar;
+	}, [showSnackBar]);
 
 	useEffect(() => {
 		showSnackBarRef.current = showSnackBar;
@@ -252,6 +258,7 @@ export default function PfPlanDailiesTab({ pfPlanId, isArchived, readOnly = fals
 					const entry = entries[0];
 					if (!entry?.isIntersecting) return;
 					if (loadingRef.current) return;
+					if (reorderInFlightRef.current) return;
 					if (!pfPlanIdRef.current) return;
 					if (pageRef.current >= maxPageRef.current) return;
 
@@ -368,7 +375,7 @@ export default function PfPlanDailiesTab({ pfPlanId, isArchived, readOnly = fals
 		}
 	};
 
-	const onDragEnd = async (result: any) => {
+	const onDragEnd = async (result: DropResult) => {
 		const { destination, source, draggableId } = result;
 		if (!destination || destination.index === source.index) return;
 		if (!pfPlanIdRef.current) return;
@@ -391,16 +398,19 @@ export default function PfPlanDailiesTab({ pfPlanId, isArchived, readOnly = fals
 			day: index + 1,
 		}));
 		setDailies(reindexed);
+		reorderInFlightRef.current = true;
 
 		try {
 			await reorderPfPlanDaily(pfPlanIdRef.current, dailyId, newDay);
 		} catch (error) {
 			setDailies(previous);
 			const apiError = error as ErrorModel;
-			showSnackBar({
+			showSnackBarRef.current({
 				message: apiError?.msg ?? "Failed to reorder day.",
 				success: false,
 			});
+		} finally {
+			reorderInFlightRef.current = false;
 		}
 	};
 

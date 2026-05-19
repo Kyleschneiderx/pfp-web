@@ -9,10 +9,12 @@ export default async function Page({
 		page: string;
 		name?: string;
 		sort?: string;
+		ownership?: string;
 	};
 }) {
 	const name = searchParams?.name || "";
 	const sort = searchParams?.sort || "name:ASC";
+	const ownership = searchParams?.ownership || "";
 
 	let workouts: WorkoutModel[] = [];
 	let maxPage = 0;
@@ -21,6 +23,7 @@ export default async function Page({
 		const { workoutList, max_page } = await fetchWorkouts({
 			name,
 			sort,
+			ownership,
 		});
 		workouts = workoutList;
 		maxPage = max_page;
@@ -30,7 +33,7 @@ export default async function Page({
 
 	return (
 		<>
-			<WorkoutList initialList={workouts} name={name} sort={sort} maxPage={maxPage} />
+			<WorkoutList initialList={workouts} name={name} sort={sort} ownership={ownership} maxPage={maxPage} />
 		</>
 	);
 }

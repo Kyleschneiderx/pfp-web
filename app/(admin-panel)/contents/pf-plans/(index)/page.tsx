@@ -9,10 +9,12 @@ export default async function Page({
 		page: string;
 		name?: string;
 		sort?: string;
+		ownership?: string;
 	};
 }) {
 	const name = searchParams?.name || "";
 	const sort = searchParams?.sort || "name:ASC";
+	const ownership = searchParams?.ownership || "";
 
 	let pfPlans: PfPlanModel[] = [];
 	let maxPage = 0;
@@ -21,6 +23,7 @@ export default async function Page({
 		const { pfPlanList, max_page } = await fetchPfPlans({
 			name,
 			sort,
+			ownership,
 		});
 		pfPlans = pfPlanList;
 		maxPage = max_page;
@@ -30,7 +33,7 @@ export default async function Page({
 
 	return (
 		<>
-			<PfPlanList initialList={pfPlans} name={name} sort={sort} maxPage={maxPage} />
+			<PfPlanList initialList={pfPlans} name={name} sort={sort} ownership={ownership} maxPage={maxPage} />
 		</>
 	);
 }
