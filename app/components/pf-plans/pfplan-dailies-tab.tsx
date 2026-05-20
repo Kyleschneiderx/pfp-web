@@ -129,14 +129,9 @@ export default function PfPlanDailiesTab({ pfPlanId, isArchived, readOnly = fals
 	const lastFireScrollTopRef = useRef<number>(Number.NEGATIVE_INFINITY);
 	const loadingRef = useRef<boolean>(false);
 	const reorderInFlightRef = useRef<boolean>(false);
-	const showSnackBarRef = useRef(showSnackBar);
 	const pfPlanIdRef = useRef<number | null>(pfPlanId);
 	const pageRef = useRef<number>(page);
 	const maxPageRef = useRef<number>(maxPage);
-
-	useEffect(() => {
-		showSnackBarRef.current = showSnackBar;
-	}, [showSnackBar]);
 
 	useEffect(() => {
 		pfPlanIdRef.current = pfPlanId;
@@ -157,32 +152,35 @@ export default function PfPlanDailiesTab({ pfPlanId, isArchived, readOnly = fals
 		};
 	}, []);
 
-	const fetchPage = useCallback(async (targetPage: number, replace: boolean) => {
-		if (!pfPlanIdRef.current) return;
-		if (loadingRef.current) return;
-		loadingRef.current = true;
-		setIsLoading(true);
-		try {
-			const response = await listPfPlanDailies(pfPlanIdRef.current, {
-				page: targetPage,
-				pageItems: PAGE_ITEMS,
-			});
-			const normalized = response.data.map(normalizeDaily);
-			setDailies((prev) => (replace ? normalized : [...prev, ...normalized]));
-			setPage(response.page);
-			setMaxPage(response.max_page);
-		} catch (error) {
-			const apiError = error as ErrorModel;
-			showSnackBarRef.current({
-				message: apiError?.msg ?? "Failed to load PF Plan Dailies.",
-				success: false,
-			});
-		} finally {
-			loadingRef.current = false;
-			setIsLoading(false);
-			setIsInitialLoad(false);
-		}
-	}, []);
+	const fetchPage = useCallback(
+		async (targetPage: number, replace: boolean) => {
+			if (!pfPlanIdRef.current) return;
+			if (loadingRef.current) return;
+			loadingRef.current = true;
+			setIsLoading(true);
+			try {
+				const response = await listPfPlanDailies(pfPlanIdRef.current, {
+					page: targetPage,
+					pageItems: PAGE_ITEMS,
+				});
+				const normalized = response.data.map(normalizeDaily);
+				setDailies((prev) => (replace ? normalized : [...prev, ...normalized]));
+				setPage(response.page);
+				setMaxPage(response.max_page);
+			} catch (error) {
+				const apiError = error as ErrorModel;
+				showSnackBar({
+					message: apiError?.msg ?? "Failed to load PF Plan Dailies.",
+					success: false,
+				});
+			} finally {
+				loadingRef.current = false;
+				setIsLoading(false);
+				setIsInitialLoad(false);
+			}
+		},
+		[showSnackBar],
+	);
 
 	const reload = useCallback(async () => {
 		if (!pfPlanIdRef.current) return;
@@ -368,7 +366,7 @@ export default function PfPlanDailiesTab({ pfPlanId, isArchived, readOnly = fals
 		} catch (error) {
 			setDailies(previous);
 			const apiError = error as ErrorModel;
-			showSnackBarRef.current({
+			showSnackBar({
 				message: apiError?.msg ?? "Failed to reorder day.",
 				success: false,
 			});
