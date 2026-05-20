@@ -1,23 +1,24 @@
 "use client";
 
+import { useModal } from "@/app/contexts/ModalContext";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
 import { revalidatePage } from "@/app/lib/revalidate";
 import { formatDateToLocal } from "@/app/lib/utils";
-import type { ErrorModel } from "@/app/models/error_model";
 import type { CustomForm } from "@/app/models/custom_form_model";
+import type { ErrorModel } from "@/app/models/error_model";
 import { deleteCustomForm } from "@/app/services/client_side/custom-forms";
+import { EllipsisIcon } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import { useModal } from "@/app/contexts/ModalContext";
 import Button from "../elements/Button";
 import DataTable, { type Column } from "../elements/DataTable";
 import Loader from "../elements/Loader";
+import OwnershipTabs from "../elements/OwnershipTabs";
 import Pagination from "../elements/Pagination";
 import ResponsiveActionMenu from "../elements/ResponsiveActionMenu";
 import IconAddButton from "../elements/mobile/IconAddButton";
-import Link from "next/link";
-import { EllipsisIcon } from "lucide-react";
 
 const SORT_FIELD_OPTIONS = [
 	{ label: "Created at", value: "created_at" },
@@ -46,6 +47,7 @@ export default function FormBuilderList({
 	sort,
 	search,
 	filterColumn,
+	ownership,
 }: {
 	initialList: CustomForm[];
 	initialPage: number;
@@ -53,6 +55,7 @@ export default function FormBuilderList({
 	sort: string;
 	search: string;
 	filterColumn: string;
+	ownership: string;
 }) {
 	const router = useRouter();
 	const pathname = usePathname();
@@ -104,7 +107,7 @@ export default function FormBuilderList({
 	useEffect(() => {
 		setForms(initialList);
 		setPage(initialPage);
-	}, [initialList, initialPage]);
+	}, [initialList, initialPage, ownership]);
 
 	useEffect(() => {
 		setSearchInput(search);
@@ -137,7 +140,10 @@ export default function FormBuilderList({
 					showSnackBar({ message: "Form removed.", success: true });
 				} catch (e) {
 					const error = e as ErrorModel;
-					showSnackBar({ message: error?.msg ?? "Delete failed", success: false });
+					showSnackBar({
+						message: error?.msg ?? "Delete failed",
+						success: false,
+					});
 				}
 			},
 		});
@@ -197,41 +203,43 @@ export default function FormBuilderList({
 				</Link>
 			</div>
 
-			<div className="">
-				{isPending ? (
-					<div className="flex justify-center py-16">
-						<Loader />
-					</div>
-				) : (
-					<>
-						<DataTable
-							columns={columns}
-							data={filteredForms}
-							getRowKey={(row) => row.id}
-							size="md"
-							emptyMessage={
-								!forms.length ? "No forms found" : !filteredForms.length ? "No forms match your search" : undefined
-							}
-							searchPlaceholder="Search forms..."
-							searchValue={searchInput}
-							onSearch={(v) => {
-								setSearchInput(v);
-								handleSearch(v);
-							}}
-							page={page}
-							maxPage={maxPage}
-							onPageChange={handlePageChange}
-							// filterOptions={FILTER_COLUMN_OPTIONS}
-							// filterValue={filterColumn}
-							// onFilter={handleFilterColumnChange}
-							// sortFieldOptions={SORT_FIELD_OPTIONS}
-							// sortField={sortField}
-							// sortDirection={sortDirection}
-							// onSort={handleSort}
-						/>
-					</>
-				)}
-			</div>
+			<OwnershipTabs>
+				<div className="">
+					{isPending ? (
+						<div className="flex justify-center py-16">
+							<Loader />
+						</div>
+					) : (
+						<>
+							<DataTable
+								columns={columns}
+								data={filteredForms}
+								getRowKey={(row) => row.id}
+								size="md"
+								emptyMessage={
+									!forms.length ? "No forms found" : !filteredForms.length ? "No forms match your search" : undefined
+								}
+								searchPlaceholder="Search forms..."
+								searchValue={searchInput}
+								onSearch={(v) => {
+									setSearchInput(v);
+									handleSearch(v);
+								}}
+								page={page}
+								maxPage={maxPage}
+								onPageChange={handlePageChange}
+								// filterOptions={FILTER_COLUMN_OPTIONS}
+								// filterValue={filterColumn}
+								// onFilter={handleFilterColumnChange}
+								// sortFieldOptions={SORT_FIELD_OPTIONS}
+								// sortField={sortField}
+								// sortDirection={sortDirection}
+								// onSort={handleSort}
+							/>
+						</>
+					)}
+				</div>
+			</OwnershipTabs>
 		</div>
 	);
 }

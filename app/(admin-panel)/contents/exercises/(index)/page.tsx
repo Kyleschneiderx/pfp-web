@@ -14,6 +14,7 @@ export default async function Page({
 		sets_to?: string;
 		reps_from?: string;
 		reps_to?: string;
+		ownership?: string;
 	};
 }) {
 	const name = searchParams?.name || "";
@@ -23,6 +24,7 @@ export default async function Page({
 	const sets_to = searchParams?.sets_to || "";
 	const reps_from = searchParams?.reps_from || "";
 	const reps_to = searchParams?.reps_to || "";
+	const ownership = searchParams?.ownership || "";
 
 	let exercises: ExerciseModel[] = [];
 	let maxPage = 0;
@@ -36,6 +38,7 @@ export default async function Page({
 			sets_to,
 			reps_from,
 			reps_to,
+			ownership,
 		});
 		exercises = exerciseList;
 		maxPage = max_page;
@@ -54,6 +57,7 @@ export default async function Page({
 				sets_to={sets_to}
 				reps_from={reps_from}
 				reps_to={reps_to}
+				ownership={ownership}
 				maxPage={maxPage}
 			/>
 		</>

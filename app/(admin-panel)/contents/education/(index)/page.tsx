@@ -9,10 +9,12 @@ export default async function Page({
 		page: string;
 		name?: string;
 		sort?: string;
+		ownership?: string;
 	};
 }) {
 	const name = searchParams?.name || "";
 	const sort = searchParams?.sort || "title:ASC";
+	const ownership = searchParams?.ownership || "";
 
 	let educations: EducationModel[] = [];
 	let maxPage = 0;
@@ -21,6 +23,7 @@ export default async function Page({
 		const { educationList, max_page } = await fetchEducations({
 			name,
 			sort,
+			ownership,
 		});
 		educations = educationList;
 		maxPage = max_page;
@@ -30,7 +33,7 @@ export default async function Page({
 
 	return (
 		<>
-			<EducationList initialList={educations} name={name} sort={sort} maxPage={maxPage} />
+			<EducationList initialList={educations} name={name} sort={sort} ownership={ownership} maxPage={maxPage} />
 		</>
 	);
 }
