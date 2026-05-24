@@ -113,7 +113,6 @@ export const NAVIGATIONS = [
 			},
 			{
 				title: "Form Builder",
-				permissions: [],
 				url: "/settings/form-builder",
 			},
 		],
