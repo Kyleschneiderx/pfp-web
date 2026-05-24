@@ -24,14 +24,24 @@ import { formatDate, onPhoneNumKeyDown } from "@/app/lib/utils";
 import { capitalizeFirstLetter, formatDateToLocal } from "@/app/lib/utils";
 import type { BladderDiaryEntryModel, BladderDiaryTimeSlot } from "@/app/models/bladder_diary_model";
 import type { BowelDiaryEntryModel, BowelDiaryTimeSlot } from "@/app/models/bowel_diary_model";
+import type { CustomFormField } from "@/app/models/custom_form_model";
 import type { ErrorModel } from "@/app/models/error_model";
 import type { PaginationModel } from "@/app/models/global_model";
-import type { PatientModel, PatientSurveyModel, PfPlanProgressModel } from "@/app/models/patient_model";
+import type {
+	PatientCustomFormAnswerModel,
+	PatientModel,
+	PatientSurveyModel,
+	PfPlanProgressModel,
+} from "@/app/models/patient_model";
 import type { PfPlanModel } from "@/app/models/pfplan_model";
 import type { UserToolsModel } from "@/app/models/user_tools_model";
 import type { ValidationErrorModel } from "@/app/models/validation_error_model";
-import { deletePatient, savePatient } from "@/app/services/client_side/patients";
-import { getPatientSurvey } from "@/app/services/client_side/patients";
+import {
+	deletePatient,
+	getPatientCustomForms,
+	getPatientSurvey,
+	savePatient,
+} from "@/app/services/client_side/patients";
 import { updateUserTools } from "@/app/services/client_side/user-tools";
 import clsx from "clsx";
 import { parseISO } from "date-fns";
@@ -94,6 +104,42 @@ const BOWEL_DIARY_COLUMNS: {
 		accessor: (row) => (row.accidents_leakage ? "Yes" : "—"),
 	},
 ];
+
+function getCustomFormFields(questions: PatientCustomFormAnswerModel["questions"]): CustomFormField[] {
+	return questions.schema?.fields ?? questions.fields ?? [];
+}
+
+function getCustomFormFieldAnswer(
+	answers: PatientCustomFormAnswerModel["answers"] | undefined,
+	fieldId: string,
+): string | string[] | boolean | undefined {
+	if (!answers) return undefined;
+
+	if (Array.isArray(answers)) {
+		return answers.find((item) => item.question_id === fieldId)?.answer;
+	}
+
+	return answers[fieldId];
+}
+
+function formatCustomFormAnswer(field: CustomFormField, answer: string | string[] | boolean | undefined): string {
+	if (answer === undefined || answer === null || answer === "") {
+		return "Not answered";
+	}
+
+	if (field.type === "Checkbox") {
+		if (typeof answer === "boolean") {
+			return answer ? "Yes" : "No";
+		}
+		if (Array.isArray(answer)) {
+			if (answer.length === 0) return "Not answered";
+			return answer.map((value) => field.options?.find((opt) => opt.value === value)?.label ?? value).join(", ");
+		}
+	}
+
+	const values = Array.isArray(answer) ? answer : [String(answer)];
+	return values.map((value) => field.options?.find((opt) => opt.value === value)?.label ?? String(value)).join(", ");
+}
 
 interface Props {
 	action: "Create" | "Edit";
@@ -172,6 +218,11 @@ export default function PatientForm({
 	const [isLoadingSurvey, setIsLoadingSurvey] = useState<boolean>(false);
 	const [surveyRef, surveyInView] = useInView();
 	const isLoadingRef = useRef(false);
+	const [patientCustomForms, setPatientCustomForms] = useState<PatientCustomFormAnswerModel[]>([]);
+	const [customFormsPagination, setCustomFormsPagination] = useState<PaginationModel | null>(null);
+	const [isLoadingCustomForms, setIsLoadingCustomForms] = useState<boolean>(false);
+	const [customFormsRef, customFormsInView] = useInView();
+	const customFormsLoadingRef = useRef(false);
 
 	const handleToggle = (label: string) => {
 		setUserType(label === "Free" ? 1 : 2);
@@ -304,6 +355,56 @@ export default function PatientForm({
 			loadSurveyData(surveyPagination.page + 1);
 		}
 	}, [surveyInView, surveyPagination, loadSurveyData]);
+
+	const loadCustomFormsData = useCallback(
+		async (page = 1) => {
+			if (!patient?.id || customFormsLoadingRef.current) return;
+
+			try {
+				customFormsLoadingRef.current = true;
+				setIsLoadingCustomForms(true);
+				const params = `page=${page}&page_items=${PAGE_ITEMS}`;
+				const response = await getPatientCustomForms(patient.id.toString(), params);
+				const { data, ...metadata } = response;
+
+				if (page === 1) {
+					setPatientCustomForms(data);
+				} else {
+					setPatientCustomForms((prev) => [...prev, ...data]);
+				}
+				setCustomFormsPagination(metadata);
+			} catch (error) {
+				const apiError = error as ErrorModel;
+				if (apiError?.msg) {
+					showSnackBar({ message: apiError.msg, success: false });
+				}
+			} finally {
+				customFormsLoadingRef.current = false;
+				setIsLoadingCustomForms(false);
+			}
+		},
+		[patient?.id, showSnackBar],
+	);
+
+	useEffect(() => {
+		if (action === "Edit" && patient?.id) {
+			loadCustomFormsData(1);
+		} else {
+			setPatientCustomForms([]);
+			setCustomFormsPagination(null);
+		}
+	}, [patient?.id, action, loadCustomFormsData]);
+
+	useEffect(() => {
+		if (
+			customFormsInView &&
+			customFormsPagination &&
+			customFormsPagination.page < customFormsPagination.max_page &&
+			!customFormsLoadingRef.current
+		) {
+			loadCustomFormsData(customFormsPagination.page + 1);
+		}
+	}, [customFormsInView, customFormsPagination, loadCustomFormsData]);
 
 	const handleFileSelect = (file: File | null) => {
 		setPhoto(file);
@@ -447,6 +548,13 @@ export default function PatientForm({
 						className={clsx(action === "Create" && "opacity-50 cursor-not-allowed")}
 					>
 						PFDI-20
+					</TabsTrigger>
+					<TabsTrigger
+						value="forms"
+						disabled={action === "Create"}
+						className={clsx(action === "Create" && "opacity-50 cursor-not-allowed")}
+					>
+						Forms
 					</TabsTrigger>
 				</TabsList>
 
@@ -892,6 +1000,90 @@ export default function PatientForm({
 						) : (
 							<div className="text-center py-8">
 								<p className="text-neutral-600">No PFDI-20 survey data available.</p>
+							</div>
+						)}
+					</div>
+				</TabsContent>
+
+				<TabsContent value="forms" className="mt-5">
+					<div className="w-full sm:max-w-2xl sm:p-5 z-10 rounded-lg sm:bg-white sm:drop-shadow-center">
+						{action === "Edit" ? (
+							<div>
+								<div className="mb-4">
+									<p className="font-medium text-lg mb-2">Custom Forms History</p>
+								</div>
+								{patientCustomForms.length > 0 ? (
+									<>
+										<Accordion type="single" collapsible className="w-full">
+											{patientCustomForms.map((formResponse, formIndex) => {
+												const dateStr = formResponse.updated_at || formResponse.created_at;
+												const displayDate = dateStr ? formatDateToLocal(parseISO(dateStr)) : "No Date";
+												const fields = getCustomFormFields(formResponse.questions);
+
+												return (
+													<AccordionItem key={formResponse.id || formIndex} value={`form-item-${formIndex}`}>
+														<AccordionTrigger className="text-left">
+															<div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+																<span className="font-medium">{displayDate}</span>
+																{formResponse.custom_form?.name && (
+																	<span className="text-sm text-neutral-600 font-normal">
+																		- {formResponse.custom_form.name}
+																	</span>
+																)}
+																{formResponse.pf_plan?.name && (
+																	<span className="text-sm text-neutral-600 font-normal">
+																		({formResponse.pf_plan.name})
+																	</span>
+																)}
+															</div>
+														</AccordionTrigger>
+														<AccordionContent>
+															<div className="space-y-4">
+																{fields.length > 0 ? (
+																	fields.map((field, fieldIndex) => (
+																		<div key={field.id || fieldIndex} className="pb-3 last:pb-0">
+																			<p className="font-medium mb-2">{field.label}</p>
+																			<div className="text-sm ml-4">
+																				<div className="flex flex-wrap gap-2">
+																					<span>Answer:</span>
+																					<span className="font-semibold">
+																						{formatCustomFormAnswer(
+																							field,
+																							getCustomFormFieldAnswer(formResponse.answers, field.id),
+																						)}
+																					</span>
+																				</div>
+																			</div>
+																		</div>
+																	))
+																) : (
+																	<p className="text-neutral-600">No questions available for this form.</p>
+																)}
+															</div>
+														</AccordionContent>
+													</AccordionItem>
+												);
+											})}
+										</Accordion>
+										{customFormsPagination && customFormsPagination.page < customFormsPagination.max_page && (
+											<div ref={customFormsRef} className="flex justify-center py-4">
+												{isLoadingCustomForms && <Loader />}
+											</div>
+										)}
+									</>
+								) : isLoadingCustomForms ? (
+									<div className="flex justify-center py-8">
+										<Loader />
+									</div>
+								) : (
+									<div className="text-center py-8">
+										<p className="text-neutral-600">No custom form submissions available.</p>
+									</div>
+								)}
+							</div>
+						) : (
+							<div className="text-center py-8">
+								<p className="text-neutral-600">No custom form submissions available.</p>
 							</div>
 						)}
 					</div>

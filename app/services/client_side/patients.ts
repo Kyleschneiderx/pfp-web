@@ -1,5 +1,10 @@
 import type { List } from "@/app/models/global_model";
-import type { PatientModel, PatientSurveyModel, PatientsResponse } from "@/app/models/patient_model";
+import type {
+	PatientCustomFormAnswerModel,
+	PatientModel,
+	PatientSurveyModel,
+	PatientsResponse,
+} from "@/app/models/patient_model";
 import type { PfPlanModel } from "@/app/models/pfplan_model";
 import type { InvitedSummaryModel, UserSummaryModel } from "@/app/models/user_summary_model";
 import type { UserVisitStatsModel } from "@/app/models/user_visit_stats";
@@ -108,6 +113,21 @@ export const exportPatients = async (params: string): Promise<ExportResponse> =>
 
 export const getPatientSurvey = async (id: string, params?: string): Promise<List<PatientSurveyModel>> => {
 	const url = `/users/${id}/survey${params ? `?${params}` : ""}`;
-	const data = await apiClient<List<PatientSurveyModel>>({ url: url, method: "GET" });
+	const data = await apiClient<List<PatientSurveyModel>>({
+		url: url,
+		method: "GET",
+	});
+	return data;
+};
+
+export const getPatientCustomForms = async (
+	id: string,
+	params?: string,
+): Promise<List<PatientCustomFormAnswerModel>> => {
+	const url = `/users/${id}/custom-forms${params ? `?${params}` : ""}`;
+	const data = await apiClient<List<PatientCustomFormAnswerModel>>({
+		url: url,
+		method: "GET",
+	});
 	return data;
 };

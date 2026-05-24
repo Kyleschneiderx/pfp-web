@@ -1,3 +1,5 @@
+import type { CustomFormField } from "@/app/models/custom_form_model";
+
 export interface PatientModel {
 	id: number;
 	email: string;
@@ -95,6 +97,34 @@ interface PfPlanInfo {
 }
 
 export type PatientSurveyModel = PatientSurveyResponseModel;
+
+export interface PatientCustomFormInfo {
+	id: number;
+	name: string;
+	identifier: string;
+	version: number;
+}
+
+export interface PatientCustomFormAnswerItem {
+	question_id: string;
+	answer: string;
+}
+
+export interface PatientCustomFormAnswerModel {
+	id: number;
+	user_id: number;
+	pf_plan_daily_id: number | null;
+	custom_form_id: number;
+	created_at: string;
+	updated_at: string;
+	questions: {
+		fields?: CustomFormField[];
+		schema?: { fields: CustomFormField[] };
+	};
+	answers: Record<string, string | string[] | boolean> | PatientCustomFormAnswerItem[];
+	custom_form?: PatientCustomFormInfo;
+	pf_plan?: PfPlanInfo;
+}
 
 export interface PfPlanProgressModel {
 	id: number;
