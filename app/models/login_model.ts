@@ -1,21 +1,10 @@
-import type { AccountPermission } from "./accounts";
+import type { Account, AccountPermission } from "./accounts";
 
 export type LoginModel = {
 	has_twofa?: boolean;
 	twofa_secret?: string;
 	qr_code?: string;
-	user: {
-		id: number;
-		email: string;
-		type_id: number;
-		account_type_id: number;
-		status_id: number;
-		last_login_at: string | null;
-		verified_at: string | null;
-		created_at: string;
-		updated_at: string;
-		user_profile: UserProfile;
-	};
+	user: Account;
 	permissions: AccountPermission[];
 	token: {
 		access: string;
@@ -24,10 +13,4 @@ export type LoginModel = {
 	};
 };
 
-interface UserProfile {
-	birthdate: string | null;
-	contact_number: string | null;
-	description: string | null;
-	name: string;
-	photo: string | null;
-}
+export type AuthProfileModel = Pick<LoginModel, "user" | "permissions">;

@@ -1,8 +1,8 @@
-import { LoginModel } from "@/app/models/login_model";
+import type { AuthProfileModel, LoginModel } from "@/app/models/login_model";
 import { apiClient } from "@/app/services/apiClient";
 
 export const login = async (email: string, password: string, code?: string, secret?: string): Promise<LoginModel> => {
-	const url = `/auths/login`;
+	const url = "/auths/login";
 	return apiClient<LoginModel>({
 		url: url,
 		method: "POST",
@@ -11,7 +11,7 @@ export const login = async (email: string, password: string, code?: string, secr
 };
 
 export const forgotPassword = async (email: string): Promise<{ msg: string }> => {
-	const url = `/forgot-password/admin`;
+	const url = "/forgot-password/admin";
 	return apiClient<{ msg: string }>({
 		url: url,
 		method: "POST",
@@ -20,7 +20,7 @@ export const forgotPassword = async (email: string): Promise<{ msg: string }> =>
 };
 
 export const resetPassword = async (password: string, token: string): Promise<{ msg: string }> => {
-	const url = `/forgot-password/reset`;
+	const url = "/forgot-password/reset";
 	return apiClient<{ msg: string }>({
 		url: url,
 		method: "POST",
@@ -28,9 +28,9 @@ export const resetPassword = async (password: string, token: string): Promise<{ 
 	});
 };
 
-export const syncAccount = async (): Promise<Omit<LoginModel, "token">> => {
+export const syncAccount = async (): Promise<AuthProfileModel> => {
 	const url = "/auths/profile";
-	const response = apiClient<Omit<LoginModel, "token">>({ url: url, method: "GET" });
+	const response = apiClient<AuthProfileModel>({ url: url, method: "GET" });
 
 	return response;
 };
