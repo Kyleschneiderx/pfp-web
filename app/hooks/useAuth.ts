@@ -40,6 +40,22 @@ export default function useAuth() {
 
 			localStorage.setItem("user", JSON.stringify(response.user));
 			localStorage.setItem("permissions", JSON.stringify(response.permissions));
+
+			const permissions = response.permissions?.map((p) => p.permission.key) ?? null;
+
+			setAuth({
+				user: response.user,
+				permissions,
+				isAdmin: response.user.roles.includes(ROLES.ADMIN),
+				isProvider: response.user.roles.includes(ROLES.PROVIDER),
+				sync,
+				hasPermission: (permission: string | string[]): boolean => {
+					if (response.user.roles.includes(ROLES.ADMIN)) return true;
+					if (!Array.isArray(permission)) return permissions?.includes(permission) ?? false;
+					return permission.some((p) => permissions?.includes(p) ?? false);
+				},
+				isLoaded: true,
+			});
 		} catch (e) {
 			const error = e as ErrorModel;
 			console.error(error);

@@ -2,7 +2,7 @@ import type { CalendarConnection } from "./accounts";
 
 export interface CalendarConnectionResponse {
 	connected: boolean;
-	calendar?: CalendarConnection | null;
+	providers?: CalendarConnection[] | null;
 	message?: string;
 }
 

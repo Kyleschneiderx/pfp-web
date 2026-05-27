@@ -115,6 +115,33 @@ export const updateAccountAddresses = async (id: number, addresses: Address[]): 
 	return response.data;
 };
 
+export const createAddress = async (id: number, address: Address): Promise<Address> => {
+	const url = `/accounts/${id}/addresses`;
+	const response = await apiClient<Address>({
+		url: url,
+		method: "POST",
+		body: address,
+	});
+
+	return response;
+};
+
+export const updateAddress = async (id: number, addressId: number, address: Address): Promise<Address> => {
+	const url = `/accounts/${id}/addresses/${addressId}`;
+	const response = await apiClient<Address>({
+		url: url,
+		method: "PUT",
+		body: address,
+	});
+
+	return response;
+};
+
+export const deleteAddress = async (id: number, addressId: number): Promise<{ msg: string }> => {
+	const url = `/accounts/${id}/addresses/${addressId}`;
+	return await apiClient<{ msg: string }>({ url: url, method: "DELETE" });
+};
+
 export const getAccountSettings = async (id: number): Promise<UserProfileSettings> => {
 	const url = `/accounts/${id}/settings`;
 	const response = await apiClient<{ data: UserProfileSettings }>({

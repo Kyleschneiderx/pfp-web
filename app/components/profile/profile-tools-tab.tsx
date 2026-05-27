@@ -38,24 +38,26 @@ function GoogleCalendarCard({
 				</div>
 				<div className="flex-1">
 					<div className="flex items-center justify-between gap-3">
-						<h3 className="font-medium text-neutral-900">Google Calendar</h3>
-						<div
-							className={clsx(
-								"inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium",
-								isConnected ? "bg-success-50 text-success-600" : "bg-neutral-100 text-neutral-600",
-							)}
-						>
-							{isConnected ? (
-								<>
-									<CheckCircle2 className="h-3.5 w-3.5" />
-									<span>Connected</span>
-								</>
-							) : (
-								<>
-									<XCircle className="h-3.5 w-3.5" />
-									<span>Not connected</span>
-								</>
-							)}
+						<div className="flex items-center gap-3">
+							<h3 className="font-medium text-neutral-900">Google Calendar</h3>
+							<div
+								className={clsx(
+									"inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium",
+									isConnected ? "bg-success-50 text-success-600" : "bg-neutral-100 text-neutral-600",
+								)}
+							>
+								{isConnected ? (
+									<>
+										<CheckCircle2 className="h-3.5 w-3.5" />
+										<span>Connected</span>
+									</>
+								) : (
+									<>
+										<XCircle className="h-3.5 w-3.5" />
+										<span>Not connected</span>
+									</>
+								)}
+							</div>
 						</div>
 					</div>
 					<p className="mt-1 text-sm text-neutral-600">
@@ -114,25 +116,23 @@ export function ProfileToolsTab({ account, onConnect, onDisconnect, connectionSt
 	};
 
 	return (
-		<div className="rounded-lg bg-white p-5 drop-shadow-center">
-			<div className="space-y-6">
-				<div>
-					<h2 className="text-lg font-semibold text-neutral-900">Tools & Integrations</h2>
-					<p className="mt-1 text-sm text-neutral-600">
-						Manage external tools and integrations to enhance your workflow.
-					</p>
-				</div>
+		<div className="space-y-6">
+			<div>
+				<h2 className="text-lg font-semibold text-neutral-900">Tools & Integrations</h2>
+				<p className="mt-1 text-sm text-neutral-600">
+					Manage external tools and integrations to enhance your workflow.
+				</p>
+			</div>
 
-				<div className="space-y-4">
-					<h3 className="text-sm font-medium text-neutral-800">Available Integrations</h3>
-					<GoogleCalendarCard
-						isConnected={isConnected}
-						email={connectedEmail}
-						isLoading={isLoading}
-						onConnect={handleConnect}
-						onDisconnect={handleDisconnect}
-					/>
-				</div>
+			<div className="space-y-4">
+				<h3 className="text-sm font-medium text-neutral-800">Available Integrations</h3>
+				<GoogleCalendarCard
+					isConnected={isConnected}
+					email={connectedEmail}
+					isLoading={isLoading}
+					onConnect={handleConnect}
+					onDisconnect={handleDisconnect}
+				/>
 			</div>
 		</div>
 	);
