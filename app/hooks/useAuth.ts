@@ -1,11 +1,11 @@
 import Cookies from "js-cookie";
-import { useLogout } from "./useLogout";
-import type { Account, AccountPermission } from "../models/accounts";
-import { ROLES } from "../lib/constants";
 import { useEffect, useState } from "react";
+import { ROLES } from "../lib/constants";
+import type { Account, AccountPermission } from "../models/accounts";
+import type { ErrorModel } from "../models/error_model";
 import { getAccountPermissions } from "../services/client_side/accounts";
 import { syncAccount } from "../services/client_side/auth";
-import type { ErrorModel } from "../models/error_model";
+import { useLogout } from "./useLogout";
 
 type Auth = {
 	user?: Account | null;
@@ -83,7 +83,15 @@ export default function useAuth() {
 			return permission.some((p) => parsedPermissions?.includes(p) ?? false);
 		};
 
-		setAuth({ user, permissions: parsedPermissions, isAdmin, isProvider, sync, hasPermission, isLoaded: true });
+		setAuth({
+			user,
+			permissions: parsedPermissions,
+			isAdmin,
+			isProvider,
+			sync,
+			hasPermission,
+			isLoaded: true,
+		});
 	}, []);
 
 	return auth;

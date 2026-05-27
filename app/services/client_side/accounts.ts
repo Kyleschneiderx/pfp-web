@@ -8,6 +8,11 @@ import type {
 	NearbyProviderSearchParams,
 	UserProfileSettings,
 } from "@/app/models/accounts";
+import type {
+	CalendarAuthResponse,
+	CalendarConnectionResponse,
+	CalendarDisconnectResponse,
+} from "@/app/models/calendar_model";
 import type { Schedule } from "@/app/models/schedules";
 import { apiClient } from "@/app/services/apiClient";
 
@@ -152,4 +157,45 @@ export const getAccountSchedule = async (id: number): Promise<Schedule> => {
 		method: "GET",
 	});
 	return data as Schedule;
+};
+
+export const getCalendarConnectionStatus = async (): Promise<CalendarConnectionResponse> => {
+	const url = "/calendar-connections/status";
+	const response = await apiClient<CalendarConnectionResponse>({
+		url: url,
+		method: "GET",
+	});
+
+	return response;
+};
+
+export const initiateGoogleCalendarAuth = async (): Promise<CalendarAuthResponse> => {
+	const url = "/calendar-connections/google/auth";
+	const response = await apiClient<CalendarAuthResponse>({
+		url: url,
+		method: "POST",
+	});
+
+	return response;
+};
+
+export const disconnectGoogleCalendar = async (): Promise<CalendarDisconnectResponse> => {
+	const url = "/calendar-connections/google";
+	const response = await apiClient<CalendarDisconnectResponse>({
+		url: url,
+		method: "DELETE",
+	});
+
+	return response;
+};
+
+export const handleGoogleCalendarCallback = async (code: string): Promise<CalendarConnectionResponse> => {
+	const url = "/calendar-connections/google/callback";
+	const response = await apiClient<CalendarConnectionResponse>({
+		url: url,
+		method: "GET",
+		params: { code },
+	});
+
+	return response;
 };
