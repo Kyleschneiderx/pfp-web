@@ -6,9 +6,9 @@ import { validateForm } from "@/app/components/login/validation";
 import TwoFactorAuthenticationModal from "@/app/components/modals/two-factor-authentication-modal";
 import { useModal } from "@/app/contexts/ModalContext";
 import { useSnackBar } from "@/app/contexts/SnackBarContext";
-import { ErrorModel } from "@/app/models/error_model";
-import { LoginModel } from "@/app/models/login_model";
-import { ValidationErrorModel } from "@/app/models/validation_error_model";
+import type { ErrorModel } from "@/app/models/error_model";
+import type { LoginModel } from "@/app/models/login_model";
+import type { ValidationErrorModel } from "@/app/models/validation_error_model";
 import { login } from "@/app/services/client_side/auth";
 import Cookies from "js-cookie";
 import Image from "next/image";
@@ -33,7 +33,7 @@ export default function Page() {
 	const setCookie = (name: string, value: string, expiresAt: number) => {
 		Cookies.set(name, value, {
 			expires: Math.ceil((expiresAt - Date.now() / 1000) / 3600) / 24,
-			sameSite: "Strict",
+			sameSite: "Lax",
 			secure: true, // enable this if the server is already https
 		});
 	};

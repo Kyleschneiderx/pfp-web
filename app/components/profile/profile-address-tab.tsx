@@ -7,7 +7,7 @@ import { type NominatimSearchResult, nominatimResultToAddress, searchNominatim }
 import type { Address, AdminFormSchema, ProviderFormSchema } from "@/app/models/accounts";
 import clsx from "clsx";
 import { ChevronDownIcon, PlusIcon, XIcon } from "lucide-react";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { type Control, Controller, type ControllerRenderProps, useWatch } from "react-hook-form";
 import { useDebouncedCallback } from "use-debounce";
 
@@ -58,11 +58,17 @@ function AddressCard({
 	address,
 	field,
 	onRemove,
+	onRemoveAddress,
+	onSave,
+	isSaving,
 }: {
 	index: number;
 	address: Address;
 	field: ControllerRenderProps<ProfileFormSchema, "addresses">;
 	onRemove: () => void;
+	onRemoveAddress?: () => void;
+	onSave?: () => void;
+	isSaving?: boolean;
 }) {
 	const { showSnackBar } = useSnackBar();
 	const [searchState, setSearchState] = useState<AddressSearchState>(defaultSearchState);
@@ -170,7 +176,7 @@ function AddressCard({
 				</button>
 				<Button
 					type="button"
-					onClick={onRemove}
+					onClick={onRemoveAddress ?? onRemove}
 					className="h-8 w-8 shrink-0 !p-0"
 					aria-label={`Remove address ${index + 1}`}
 				>
@@ -314,6 +320,10 @@ function AddressCard({
 							</p>
 						)}
 					</div>
+
+					<div className="flex justify-end pt-2">
+						<Button type="button" label="Save" onClick={onSave} disabled={isSaving} isProcessing={isSaving} />
+					</div>
 				</section>
 			)}
 		</div>
@@ -322,10 +332,12 @@ function AddressCard({
 
 export function ProfileAddressTab({
 	control,
-	footer,
+	onSaveAddress,
+	onRemoveAddress,
 }: {
 	control: Control<ProfileFormSchema>;
-	footer?: ReactNode;
+	onSaveAddress?: (index: number) => Promise<void>;
+	onRemoveAddress?: (index: number) => void;
 }) {
 	const addressKeysRef = useRef<string[]>([]);
 	const nextKeyRef = useRef(0);
@@ -356,9 +368,9 @@ export function ProfileAddressTab({
 		field.onChange(field.value?.filter((_, i) => i !== index) ?? []);
 	};
 
+
 	return (
-		<div className="rounded-lg bg-white p-5 drop-shadow-center">
-			<Controller
+		<Controller
 				name="addresses"
 				control={control}
 				render={({ field }) => {
@@ -406,16 +418,16 @@ export function ProfileAddressTab({
 											address={address}
 											field={field}
 											onRemove={() => handleRemoveAddress(field, index)}
+											onRemoveAddress={onRemoveAddress ? () => onRemoveAddress(index) : undefined}
+											onSave={onSaveAddress ? () => onSaveAddress(index) : undefined}
+											isSaving={false}
 										/>
 									))}
 								</div>
 							)}
-
-							{footer}
 						</div>
 					);
 				}}
 			/>
-		</div>
 	);
 }

@@ -1,11 +1,11 @@
 import Cookies from "js-cookie";
-import { useLogout } from "./useLogout";
-import type { Account, AccountPermission } from "../models/accounts";
-import { ROLES } from "../lib/constants";
 import { useEffect, useState } from "react";
+import { ROLES } from "../lib/constants";
+import type { Account, AccountPermission } from "../models/accounts";
+import type { ErrorModel } from "../models/error_model";
 import { getAccountPermissions } from "../services/client_side/accounts";
 import { syncAccount } from "../services/client_side/auth";
-import type { ErrorModel } from "../models/error_model";
+import { useLogout } from "./useLogout";
 
 type Auth = {
 	user?: Account | null;
@@ -20,7 +20,7 @@ type Auth = {
 const setCookie = (name: string, value: string, expiresAt: number) => {
 	Cookies.set(name, value, {
 		expires: Math.ceil((expiresAt - Date.now() / 1000) / 3600) / 24,
-		sameSite: "Strict",
+		sameSite: "Lax",
 		secure: true, // enable this if the server is already https
 	});
 };
@@ -40,6 +40,22 @@ export default function useAuth() {
 
 			localStorage.setItem("user", JSON.stringify(response.user));
 			localStorage.setItem("permissions", JSON.stringify(response.permissions));
+
+			const permissions = response.permissions?.map((p) => p.permission.key) ?? null;
+
+			setAuth({
+				user: response.user,
+				permissions,
+				isAdmin: response.user.roles.includes(ROLES.ADMIN),
+				isProvider: response.user.roles.includes(ROLES.PROVIDER),
+				sync,
+				hasPermission: (permission: string | string[]): boolean => {
+					if (response.user.roles.includes(ROLES.ADMIN)) return true;
+					if (!Array.isArray(permission)) return permissions?.includes(permission) ?? false;
+					return permission.some((p) => permissions?.includes(p) ?? false);
+				},
+				isLoaded: true,
+			});
 		} catch (e) {
 			const error = e as ErrorModel;
 			console.error(error);
@@ -83,7 +99,15 @@ export default function useAuth() {
 			return permission.some((p) => parsedPermissions?.includes(p) ?? false);
 		};
 
-		setAuth({ user, permissions: parsedPermissions, isAdmin, isProvider, sync, hasPermission, isLoaded: true });
+		setAuth({
+			user,
+			permissions: parsedPermissions,
+			isAdmin,
+			isProvider,
+			sync,
+			hasPermission,
+			isLoaded: true,
+		});
 	}, []);
 
 	return auth;

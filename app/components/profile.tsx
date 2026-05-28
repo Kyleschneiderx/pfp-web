@@ -16,24 +16,37 @@ import type {
 	Account,
 	Address,
 	AdminFormSchema,
+	CalendarConnection,
 	License,
 	ProviderFormSchema,
 	UserProfileSettings,
 } from "@/app/models/accounts";
 import type { OptionsModel } from "@/app/models/common_model";
 import type { ErrorModel } from "@/app/models/error_model";
-import { saveAccount, updateAccountAddresses, updateAccountSettings } from "@/app/services/client_side/accounts";
+import {
+	disconnectGoogleCalendar,
+	getCalendarConnectionStatus,
+	initiateGoogleCalendarAuth,
+	saveAccount,
+	updateAccountAddresses,
+	createAddress,
+	deleteAddress,
+	updateAddress,
+	updateAccountSettings,
+	syncCalendarMeetings,
+} from "@/app/services/client_side/accounts";
 import clsx from "clsx";
 import { PlusIcon, XIcon } from "lucide-react";
 import dynamic from "next/dynamic";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Controller, type ControllerRenderProps, useForm, useWatch } from "react-hook-form";
 import useAuth from "../hooks/useAuth";
 import Textarea from "./elements/Textarea";
 import { ProfileAddressTab } from "./profile/profile-address-tab";
+import { ProfileToolsTab } from "./profile/profile-tools-tab";
 
 type ProfileFormSchema = ProviderFormSchema & AdminFormSchema;
-type ProfileTabValue = "details" | "address" | "settings";
+type ProfileTabValue = "details" | "address" | "settings" | "tools";
 type TabSaveStatus = "idle" | "saving" | "saved" | "error";
 type TabSaveState = {
 	status: TabSaveStatus;
@@ -80,6 +93,7 @@ function cloneAddresses(addresses?: Address[] | null): Address[] {
 function getSettingsSnapshot(account?: Account | null): UserProfileSettings {
 	return {
 		in_person_visit: account?.settings?.in_person_visit ?? false,
+		calendar_enabled: account?.settings?.calendar_enabled ?? false,
 	};
 }
 
@@ -91,10 +105,6 @@ function getDetailsSnapshot(account?: Account | null): DetailsSnapshot {
 		npi: account?.user_profile.npi ?? "",
 		license: cloneLicenses(account?.user_profile.license),
 	};
-}
-
-function serializeAddresses(addresses: Address[]): string {
-	return JSON.stringify(cloneAddresses(addresses));
 }
 
 function getStatusMeta(dirty: boolean, state: TabSaveState) {
@@ -147,73 +157,54 @@ function TabTriggerLabel({
 	);
 }
 
-function TabActionRow({
-	dirty,
-	state,
-	onReset,
-	onSave,
-	isSaving,
-}: {
-	dirty: boolean;
-	state: TabSaveState;
-	onReset: () => void;
-	onSave: () => void;
-	isSaving: boolean;
-}) {
-	const status = getStatusMeta(dirty, state);
-
-	return (
-		<div className="flex flex-col gap-3 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-			<p className={clsx("text-sm", status.className)}>{status.label}</p>
-			<div className="flex flex-col gap-2 sm:flex-row">
-				<Button type="button" label="Reset" secondary onClick={onReset} disabled={!dirty || isSaving} />
-				<Button
-					type="button"
-					label="Save changes"
-					onClick={onSave}
-					disabled={!dirty || isSaving}
-					isProcessing={isSaving}
-				/>
-			</div>
-		</div>
-	);
-}
-
 function SettingsTabPanel({
 	checked,
 	onCheckedChange,
-	footer,
+	calendarChecked,
+	onCalendarCheckedChange,
 }: {
 	checked: boolean;
 	onCheckedChange: (checked: boolean) => void;
-	footer?: ReactNode;
+	calendarChecked: boolean;
+	onCalendarCheckedChange: (checked: boolean) => void;
 }) {
 	return (
-		<div className="rounded-lg bg-white p-5 drop-shadow-center">
-			<div className="space-y-5">
-				<div>
-					<h2 className="text-lg font-semibold text-neutral-900">Account settings</h2>
-					<p className="mt-1 text-sm text-neutral-600">Manage your account preferences and connected tools.</p>
-				</div>
+		<div className="space-y-5">
+			<div>
+				<h2 className="text-lg font-semibold text-neutral-900">Account settings</h2>
+				<p className="mt-1 text-sm text-neutral-600">Manage your account preferences and connected tools.</p>
+			</div>
 
-				<div className="rounded-lg border border-neutral-200 px-4 py-4">
-					<div className="flex items-start justify-between gap-4">
-						<div className="space-y-1 pr-4">
-							<p className="font-medium text-neutral-900">Offer in-person visits</p>
-							<p className="text-sm text-neutral-600">
-								Show whether patients may book or inquire about in-person appointments.
-							</p>
-						</div>
-						<Switch checked={checked} onCheckedChange={onCheckedChange} />
+			<div className="rounded-lg border border-neutral-200 px-4 py-4">
+				<div className="flex items-start justify-between gap-4">
+					<div className="space-y-1 pr-4">
+						<p className="font-medium text-neutral-900">Offer in-person visits</p>
+						<p className="text-sm text-neutral-600">
+							Show whether patients may book or inquire about in-person appointments.
+						</p>
 					</div>
-					<p className="mt-4 text-sm text-neutral-500">
-						{checked
-							? "In-person visits are enabled for your profile."
-							: "In-person visits are currently hidden from your profile."}
-					</p>
+					<Switch checked={checked} onCheckedChange={onCheckedChange} />
 				</div>
+				<p className="mt-4 text-sm text-neutral-500">
+					{checked
+						? "In-person visits are enabled for your profile."
+						: "In-person visits are currently hidden from your profile."}
+				</p>
+			</div>
 
-				{footer}
+			<div className="rounded-lg border border-neutral-200 px-4 py-4">
+				<div className="flex items-start justify-between gap-4">
+					<div className="space-y-1 pr-4">
+						<p className="font-medium text-neutral-900">Enable Calendar Sync</p>
+						<p className="text-sm text-neutral-600">
+							Allow calendar sync for appointments and sessions with connected calendars.
+						</p>
+					</div>
+					<Switch checked={calendarChecked} onCheckedChange={onCalendarCheckedChange} />
+				</div>
+				<p className="mt-4 text-sm text-neutral-500">
+					{calendarChecked ? "Calendar sync is enabled for your account." : "Calendar sync is currently disabled."}
+				</p>
 			</div>
 		</div>
 	);
@@ -221,7 +212,7 @@ function SettingsTabPanel({
 
 export default function ProfileForm({ account }: { account?: Account }) {
 	const { showSnackBar } = useSnackBar();
-	const { user, isAdmin } = useAuth();
+	const { user, isAdmin, sync: syncAuth } = useAuth();
 	const modal = useModal();
 	const modalData = modal.getData();
 	const { isMobile } = useWindowSizeCheck();
@@ -231,15 +222,13 @@ export default function ProfileForm({ account }: { account?: Account }) {
 	const [profileUser, setProfileUser] = useState<Account | null | undefined>(initialAccount);
 	const [formError, setFormError] = useState<ErrorModel>();
 	const [detailsIsSaving, setDetailsIsSaving] = useState(false);
-	const [addressSaveState, setAddressSaveState] = useState<TabSaveState>({
-		status: "idle",
-	});
-	const [settingsSaveState, setSettingsSaveState] = useState<TabSaveState>({
-		status: "idle",
-	});
+	const [addressSavingIndex, setAddressSavingIndex] = useState<number | null>(null);
 	const [savedDetails, setSavedDetails] = useState<DetailsSnapshot>(() => getDetailsSnapshot(initialAccount));
-	const [savedAddresses, setSavedAddresses] = useState<Address[]>(() => cloneAddresses(initialAccount?.addresses));
 	const [savedSettings, setSavedSettings] = useState<UserProfileSettings>(() => getSettingsSnapshot(initialAccount));
+	const [calendarConnection, setCalendarConnection] = useState<CalendarConnection | null | undefined>(
+		initialAccount?.tools?.google_calendar,
+	);
+	const [isLoadingConnection, setIsLoadingConnection] = useState(false);
 
 	const form = useForm<ProfileFormSchema>({
 		defaultValues: modalData?.data ?? {
@@ -254,6 +243,7 @@ export default function ProfileForm({ account }: { account?: Account }) {
 			photo: undefined,
 			addresses: cloneAddresses(initialAccount?.addresses),
 			in_person_visit: initialAccount?.settings?.in_person_visit ?? false,
+			calendar_enabled: initialAccount?.settings?.calendar_enabled ?? false,
 		},
 	});
 
@@ -264,10 +254,8 @@ export default function ProfileForm({ account }: { account?: Account }) {
 
 		setProfileUser(sourceAccount);
 		setSavedDetails(getDetailsSnapshot(sourceAccount));
-		setSavedAddresses(cloneAddresses(sourceAccount.addresses));
 		setSavedSettings(getSettingsSnapshot(sourceAccount));
-		setAddressSaveState({ status: "idle" });
-		setSettingsSaveState({ status: "idle" });
+		setCalendarConnection(sourceAccount?.tools?.google_calendar);
 		form.reset({
 			id: sourceAccount.id,
 			name: sourceAccount.user_profile.name || "",
@@ -280,6 +268,7 @@ export default function ProfileForm({ account }: { account?: Account }) {
 			photo: undefined,
 			addresses: cloneAddresses(sourceAccount.addresses),
 			in_person_visit: sourceAccount.settings?.in_person_visit ?? false,
+			calendar_enabled: sourceAccount.settings?.calendar_enabled ?? false,
 		});
 	}, [form, sourceAccount]);
 
@@ -290,9 +279,8 @@ export default function ProfileForm({ account }: { account?: Account }) {
 	const watchedLicense = useWatch({ control: form.control, name: "license" }) ?? [];
 	const watchedAddresses = useWatch({ control: form.control, name: "addresses" }) ?? [];
 	const watchedInPersonVisit = useWatch({ control: form.control, name: "in_person_visit" }) ?? false;
+	const watchedCalendarEnabled = useWatch({ control: form.control, name: "calendar_enabled" }) ?? false;
 	const watchedPhoto = useWatch({ control: form.control, name: "photo" });
-	const addressValueRef = useRef(serializeAddresses(watchedAddresses));
-	const settingsValueRef = useRef(watchedInPersonVisit);
 	const detailsValue = JSON.stringify({
 		email: watchedEmail,
 		name: watchedName,
@@ -307,33 +295,11 @@ export default function ProfileForm({ account }: { account?: Account }) {
 		npi: savedDetails.npi,
 		license: cloneLicenses(savedDetails.license),
 	});
-	const addressValue = serializeAddresses(watchedAddresses);
-	const savedAddressValue = serializeAddresses(savedAddresses);
-
 	const detailsDirty = detailsValue !== savedDetailsValue || Boolean(watchedPhoto);
-	const addressDirty = addressValue !== savedAddressValue;
-	const settingsDirty = watchedInPersonVisit !== savedSettings.in_person_visit;
+	const settingsDirty =
+		watchedInPersonVisit !== savedSettings.in_person_visit ||
+		watchedCalendarEnabled !== savedSettings.calendar_enabled;
 	const profileId = profileUser?.id ?? user?.id;
-
-	useEffect(() => {
-		if (
-			addressValueRef.current !== addressValue &&
-			(addressSaveState.status === "saved" || addressSaveState.status === "error")
-		) {
-			setAddressSaveState({ status: "idle" });
-		}
-		addressValueRef.current = addressValue;
-	}, [addressSaveState.status, addressValue]);
-
-	useEffect(() => {
-		if (
-			settingsValueRef.current !== watchedInPersonVisit &&
-			(settingsSaveState.status === "saved" || settingsSaveState.status === "error")
-		) {
-			setSettingsSaveState({ status: "idle" });
-		}
-		settingsValueRef.current = watchedInPersonVisit;
-	}, [settingsSaveState.status, watchedInPersonVisit]);
 
 	const updateStoredUser = (updater: (current: Account) => Account) => {
 		const currentUser = profileUser ?? user ?? account;
@@ -419,98 +385,171 @@ export default function ProfileForm({ account }: { account?: Account }) {
 		});
 	};
 
-	const handleSaveAddresses = async () => {
+	const handleSaveAddress = async (index: number) => {
+		if (!profileUser?.id) return;
+
+		try {
+			setAddressSavingIndex(index);
+			const addresses = form.getValues("addresses");
+			const address = addresses[index];
+
+			if (address.id) {
+				// Update existing address
+				const updated = await updateAddress(profileUser.id, address.id, address);
+				const next = [...addresses];
+				next[index] = updated;
+				form.setValue("addresses", next, { shouldDirty: true });
+				showSnackBar({ message: "Address updated.", success: true });
+				await syncAuth();
+			} else {
+				// Create new address
+				const created = await createAddress(profileUser.id, address);
+				const next = [...addresses];
+				next[index] = created;
+				form.setValue("addresses", next, { shouldDirty: true });
+				showSnackBar({ message: "Address added.", success: true });
+				await syncAuth();
+			}
+		} catch (e) {
+			const error = e as ErrorModel;
+			showSnackBar({ message: error.msg ?? "Could not save address.", success: false });
+		} finally {
+			setAddressSavingIndex(null);
+		}
+	};
+
+	const handleRemoveAddress = (index: number) => {
+		const addresses = form.getValues("addresses");
+		const address = addresses[index];
+
+		if (address.id != null) {
+			// Existing saved address: require confirmation before deleting from server
+			modal.open({
+				type: "confirm",
+				title: "Remove address",
+				message: "This will permanently delete the address from your profile. Are you sure you want to continue?",
+				confirmLabel: "Remove",
+				onConfirm: async (props) => {
+					if (!profileId) {
+						props.close();
+						return;
+					}
+
+					try {
+						await deleteAddress(profileId, address.id!);
+						const next = addresses.filter((_, i) => i !== index);
+						form.setValue("addresses", next, { shouldDirty: true });
+						showSnackBar({ message: "Address removed.", success: true });
+						await syncAuth();
+					} catch (e) {
+						const error = e as ErrorModel;
+						showSnackBar({ message: error.msg ?? "Could not remove address.", success: false });
+					} finally {
+						props.close();
+					}
+				},
+			});
+		} else {
+			// Newly added, unsaved address: remove immediately
+			const next = addresses.filter((_, i) => i !== index);
+			form.setValue("addresses", next, { shouldDirty: true });
+		}
+	};
+
+	const handleConnectCalendar = async () => {
 		if (!profileId) {
+			showSnackBar({
+				message: "User profile not found.",
+				success: false,
+			});
 			return;
 		}
 
 		try {
-			setAddressSaveState({ status: "saving" });
-			const nextAddresses = await updateAccountAddresses(profileId, cloneAddresses(form.getValues("addresses")));
-			const normalizedAddresses = cloneAddresses(nextAddresses);
-
-			form.setValue("addresses", normalizedAddresses, {
-				shouldDirty: false,
-			});
-			setSavedAddresses(normalizedAddresses);
-			updateStoredUser((current) => ({
-				...current,
-				addresses: normalizedAddresses,
-			}));
-			setAddressSaveState({
-				status: "saved",
-				message: "Address changes saved.",
-			});
-			showSnackBar({
-				message: "Addresses updated.",
-				success: true,
-			});
+			setIsLoadingConnection(true);
+			const response = await initiateGoogleCalendarAuth();
+			if (response.auth_url) {
+				window.location.href = response.auth_url;
+			} else {
+				showSnackBar({
+					message: "Failed to initiate Google Calendar authorization.",
+					success: false,
+				});
+			}
 		} catch (e) {
 			const error = e as ErrorModel;
-			setAddressSaveState({
-				status: "error",
-				message: error.msg ?? "Could not save address changes.",
-			});
 			showSnackBar({
-				message: error.msg ?? "Could not save address changes.",
+				message: error.msg ?? "Could not connect to Google Calendar.",
 				success: false,
 			});
+		} finally {
+			setIsLoadingConnection(false);
 		}
 	};
 
-	const handleResetAddresses = () => {
-		form.setValue("addresses", cloneAddresses(savedAddresses), {
-			shouldDirty: false,
-		});
-		setAddressSaveState({ status: "idle" });
-	};
-
-	const handleSaveSettings = async () => {
+	const handleDisconnectCalendar = async () => {
 		if (!profileId) {
+			showSnackBar({
+				message: "User profile not found.",
+				success: false,
+			});
 			return;
 		}
 
 		try {
-			setSettingsSaveState({ status: "saving" });
-			const nextSettings = await updateAccountSettings(profileId, {
-				in_person_visit: form.getValues("in_person_visit") ?? false,
-			});
-
-			form.setValue("in_person_visit", nextSettings.in_person_visit, {
-				shouldDirty: false,
-			});
-			setSavedSettings(nextSettings);
+			setIsLoadingConnection(true);
+			await disconnectGoogleCalendar();
+			setCalendarConnection(null);
 			updateStoredUser((current) => ({
 				...current,
-				settings: nextSettings,
+				tools: {
+					...current.tools,
+					google_calendar: null,
+				},
 			}));
-			setSettingsSaveState({
-				status: "saved",
-				message: "Settings changes saved.",
-			});
 			showSnackBar({
-				message: "Visit preferences updated.",
+				message: "Google Calendar disconnected successfully.",
 				success: true,
 			});
 		} catch (e) {
 			const error = e as ErrorModel;
-			setSettingsSaveState({
-				status: "error",
-				message: error.msg ?? "Could not save visit preferences.",
-			});
 			showSnackBar({
-				message: error.msg ?? "Could not save visit preferences.",
+				message: error.msg ?? "Could not disconnect Google Calendar.",
 				success: false,
 			});
+		} finally {
+			setIsLoadingConnection(false);
 		}
 	};
 
-	const handleResetSettings = () => {
-		form.setValue("in_person_visit", savedSettings.in_person_visit, {
-			shouldDirty: false,
-		});
-		setSettingsSaveState({ status: "idle" });
-	};
+	useEffect(() => {
+		const fetchCalendarStatus = async () => {
+			if (!profileId) return;
+
+			try {
+				setIsLoadingConnection(true);
+				const response = await getCalendarConnectionStatus();
+				if (response.providers?.length && response.providers.length > 0) {
+					setCalendarConnection(response.providers[0]);
+				} else if (response.connected) {
+					// Backend indicates connected but calendar details not returned
+					// Update state to reflect connection status with minimal data
+					setCalendarConnection({
+						provider: "google",
+						email: "",
+						connected: true,
+					});
+				}
+			} catch (e) {
+				// Silently fail - connection status is not critical
+				console.error("Failed to fetch calendar connection status:", e);
+			} finally {
+				setIsLoadingConnection(false);
+			}
+		};
+
+		fetchCalendarStatus();
+	}, [profileId]);
 
 	const handleRemoveLicense = (field: ControllerRenderProps<ProfileFormSchema, "license">, index: number) => {
 		field.onChange(field.value?.filter((v, i) => i !== index));
@@ -559,12 +598,11 @@ export default function ProfileForm({ account }: { account?: Account }) {
 			>
 				<TabsList>
 					<TabsTrigger value="details">Details</TabsTrigger>
-					<TabsTrigger value="address">
-						<TabTriggerLabel label="Address" isDirty={addressDirty} />
-					</TabsTrigger>
+					<TabsTrigger value="address">Address</TabsTrigger>
 					<TabsTrigger value="settings">
 						<TabTriggerLabel label="Settings" isDirty={settingsDirty} />
 					</TabsTrigger>
+					<TabsTrigger value="tools">Tools</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value="details" className="mt-5">
@@ -737,40 +775,103 @@ export default function ProfileForm({ account }: { account?: Account }) {
 				</TabsContent>
 
 				<TabsContent value="address" className="mt-5">
-					<ProfileAddressTab
-						control={form.control}
-						footer={
-							<TabActionRow
-								dirty={addressDirty}
-								state={addressSaveState}
-								onReset={handleResetAddresses}
-								onSave={handleSaveAddresses}
-								isSaving={addressSaveState.status === "saving"}
-							/>
-						}
-					/>
+					<div className="sm:w-[636px] sm:bg-white sm:p-5 sm:drop-shadow-center rounded-lg">
+						<ProfileAddressTab
+							control={form.control}
+							onSaveAddress={handleSaveAddress}
+							onRemoveAddress={handleRemoveAddress}
+						/>
+					</div>
 				</TabsContent>
 
 				<TabsContent value="settings" className="mt-5">
-					<Controller
-						name="in_person_visit"
-						control={form.control}
-						render={({ field }) => (
-							<SettingsTabPanel
-								checked={field.value ?? false}
-								onCheckedChange={field.onChange}
-								footer={
-									<TabActionRow
-										dirty={settingsDirty}
-										state={settingsSaveState}
-										onReset={handleResetSettings}
-										onSave={handleSaveSettings}
-										isSaving={settingsSaveState.status === "saving"}
-									/>
+					<div className="sm:w-[636px] sm:bg-white sm:p-5 sm:drop-shadow-center rounded-lg">
+						<SettingsTabPanel
+							checked={watchedInPersonVisit}
+							onCheckedChange={async (checked) => {
+								if (!profileId) return;
+								try {
+									const nextSettings = await updateAccountSettings(profileId, {
+										in_person_visit: checked,
+										calendar_enabled: form.getValues("calendar_enabled") ?? false,
+									});
+									form.setValue("in_person_visit", nextSettings.in_person_visit, { shouldDirty: false });
+									form.setValue("calendar_enabled", nextSettings.calendar_enabled ?? false, { shouldDirty: false });
+									setSavedSettings(nextSettings);
+									updateStoredUser((current) => ({
+										...current,
+										settings: nextSettings,
+										tools: { ...current.tools, calendar_enabled: nextSettings.calendar_enabled },
+									}));
+									showSnackBar({ message: "Settings updated.", success: true });
+								} catch (e) {
+									const error = e as ErrorModel;
+									showSnackBar({ message: error.msg ?? "Could not save settings.", success: false });
 								}
-							/>
-						)}
-					/>
+							}}
+							calendarChecked={watchedCalendarEnabled}
+							onCalendarCheckedChange={async (checked) => {
+								if (!profileId) return;
+								try {
+									const nextSettings = await updateAccountSettings(profileId, {
+										in_person_visit: form.getValues("in_person_visit") ?? false,
+										calendar_enabled: checked,
+									});
+									form.setValue("in_person_visit", nextSettings.in_person_visit, { shouldDirty: false });
+									form.setValue("calendar_enabled", nextSettings.calendar_enabled ?? false, { shouldDirty: false });
+									setSavedSettings(nextSettings);
+									updateStoredUser((current) => ({
+										...current,
+										settings: nextSettings,
+										tools: { ...current.tools, calendar_enabled: nextSettings.calendar_enabled },
+									}));
+									showSnackBar({ message: "Settings updated.", success: true });
+
+									if (checked && calendarConnection?.connected) {
+										modal.open({
+											type: "confirm",
+											title: "Sync Visits to Calendar",
+											message: "Would you like to sync your upcoming and incomplete visits to your connected Google Calendar?",
+											confirmLabel: "Sync Now",
+											onConfirm: async ({ close, toggleProcessing }) => {
+												toggleProcessing();
+												try {
+													const result = await syncCalendarMeetings();
+													showSnackBar({
+														message: `Synced ${result.synced} visit(s), updated ${result.updated} visit(s).`,
+														success: true,
+													});
+												} catch (e) {
+													const error = e as ErrorModel;
+													showSnackBar({ message: error.msg ?? "Could not sync visits.", success: false });
+												} finally {
+													close();
+												}
+											},
+										});
+									}
+								} catch (e) {
+									const error = e as ErrorModel;
+									showSnackBar({ message: error.msg ?? "Could not save settings.", success: false });
+								}
+							}}
+
+						/>
+					</div>
+				</TabsContent>
+
+				<TabsContent value="tools" className="mt-5">
+					<div className="sm:w-[636px] sm:bg-white sm:p-5 sm:drop-shadow-center rounded-lg">
+						<ProfileToolsTab
+							account={profileUser ?? undefined}
+							onConnect={handleConnectCalendar}
+							onDisconnect={handleDisconnectCalendar}
+							connectionStatus={{
+								isLoading: isLoadingConnection,
+								connection: calendarConnection,
+							}}
+						/>
+					</div>
 				</TabsContent>
 			</Tabs>
 			{activeTab === "details" && (

@@ -22,6 +22,23 @@ export type Address = {
 
 export type UserProfileSettings = {
 	in_person_visit: boolean;
+	calendar_enabled?: boolean;
+};
+
+export type CalendarConnection = {
+	id?: number;
+	user_id?: number;
+	provider: string;
+	email: string;
+	connected: boolean;
+	connected_at?: string | null;
+	created_at?: string;
+	updated_at?: string;
+};
+
+export type UserProfileTools = {
+	google_calendar?: CalendarConnection | null;
+	calendar_enabled?: boolean;
 };
 
 export type AccountAddressesPayload = {
@@ -55,6 +72,7 @@ export type Account = {
 	user_profile: UserProfile;
 	addresses?: Address[];
 	settings?: UserProfileSettings;
+	tools?: UserProfileTools;
 };
 
 export type NearbyProvider = Account & {
@@ -98,6 +116,8 @@ export type AdminFormSchema = {
 	role_id: number;
 	addresses: Address[];
 	in_person_visit: boolean;
+	calendar_enabled: boolean;
+	google_calendar_connected?: boolean;
 };
 
 export type ProviderFormSchema = {
@@ -112,4 +132,6 @@ export type ProviderFormSchema = {
 	role_id: number;
 	addresses: Address[];
 	in_person_visit: boolean;
+	calendar_enabled: boolean;
+	google_calendar_connected?: boolean;
 };
