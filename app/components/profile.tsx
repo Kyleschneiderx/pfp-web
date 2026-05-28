@@ -92,6 +92,7 @@ function cloneAddresses(addresses?: Address[] | null): Address[] {
 function getSettingsSnapshot(account?: Account | null): UserProfileSettings {
 	return {
 		in_person_visit: account?.settings?.in_person_visit ?? false,
+		calendar_enabled: account?.settings?.calendar_enabled ?? false,
 	};
 }
 
@@ -241,7 +242,7 @@ export default function ProfileForm({ account }: { account?: Account }) {
 			photo: undefined,
 			addresses: cloneAddresses(initialAccount?.addresses),
 			in_person_visit: initialAccount?.settings?.in_person_visit ?? false,
-			calendar_enabled: initialAccount?.tools?.calendar_enabled ?? false,
+			calendar_enabled: initialAccount?.settings?.calendar_enabled ?? false,
 		},
 	});
 
@@ -266,7 +267,7 @@ export default function ProfileForm({ account }: { account?: Account }) {
 			photo: undefined,
 			addresses: cloneAddresses(sourceAccount.addresses),
 			in_person_visit: sourceAccount.settings?.in_person_visit ?? false,
-			calendar_enabled: sourceAccount.tools?.calendar_enabled ?? false,
+			calendar_enabled: sourceAccount.settings?.calendar_enabled ?? false,
 		});
 	}, [form, sourceAccount]);
 
@@ -296,7 +297,7 @@ export default function ProfileForm({ account }: { account?: Account }) {
 	const detailsDirty = detailsValue !== savedDetailsValue || Boolean(watchedPhoto);
 	const settingsDirty =
 		watchedInPersonVisit !== savedSettings.in_person_visit ||
-		watchedCalendarEnabled !== (initialAccount?.tools?.calendar_enabled ?? false);
+		watchedCalendarEnabled !== savedSettings.calendar_enabled;
 	const profileId = profileUser?.id ?? user?.id;
 
 	const updateStoredUser = (updater: (current: Account) => Account) => {
@@ -785,7 +786,7 @@ export default function ProfileForm({ account }: { account?: Account }) {
 				<TabsContent value="settings" className="mt-5">
 					<div className="sm:w-[636px] sm:bg-white sm:p-5 sm:drop-shadow-center rounded-lg">
 						<SettingsTabPanel
-							checked={form.getValues("in_person_visit") ?? false}
+							checked={watchedInPersonVisit}
 							onCheckedChange={async (checked) => {
 								if (!profileId) return;
 								try {
@@ -807,7 +808,7 @@ export default function ProfileForm({ account }: { account?: Account }) {
 									showSnackBar({ message: error.msg ?? "Could not save settings.", success: false });
 								}
 							}}
-							calendarChecked={form.getValues("calendar_enabled") ?? false}
+							calendarChecked={watchedCalendarEnabled}
 							onCalendarCheckedChange={async (checked) => {
 								if (!profileId) return;
 								try {

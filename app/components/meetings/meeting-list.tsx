@@ -11,6 +11,8 @@ import type { ErrorModel } from "@/app/models/error_model";
 import type { List, PaginationModel } from "@/app/models/global_model";
 import type { Meeting } from "@/app/models/meeting_model";
 import type { VisitPaymentStatsModel } from "@/app/models/visit_payment_stats_model";
+import { getCalendarConnectionStatus, syncCalendarMeetings } from "@/app/services/client_side/accounts";
+import type { CalendarConnectionResponse } from "@/app/models/calendar_model";
 import { cancelMeeting, getVisitPaymentSummary } from "@/app/services/client_side/meetings";
 import type { MeetingsSearchQuery } from "@/app/services/server_side/meetings";
 import {
@@ -43,6 +45,7 @@ import {
 	ListIcon,
 	MailIcon,
 	NotepadTextIcon,
+	RefreshCwIcon,
 	StethoscopeIcon,
 	TextQuoteIcon,
 	UserIcon,
@@ -56,6 +59,7 @@ import { useDebouncedCallback } from "use-debounce";
 import AccessControl from "../access-control";
 import AccessLocked from "../access-locked";
 import DataList from "../data-list";
+import Tooltip from "../elements/Tooltip";
 import Badge from "../elements/Badge";
 import BigCalendar from "../elements/BigCalendar";
 import Button from "../elements/Button";
@@ -77,6 +81,21 @@ export default function MeetingList({
 }: { meetingList: List<Meeting>; searchParams?: MeetingsSearchQuery }) {
 	const modal = useModal();
 	const { hasPermission, isLoaded } = useAuth();
+	const [calendarReady, setCalendarReady] = useState(false);
+
+	useEffect(() => {
+		const fetchCalendarStatus = async () => {
+			try {
+				const response: CalendarConnectionResponse = await getCalendarConnectionStatus();
+				const connected =
+					(response.connected && response.providers?.length && response.providers.length > 0) || response.connected;
+				setCalendarReady(connected);
+			} catch {
+				setCalendarReady(false);
+			}
+		};
+		fetchCalendarStatus();
+	}, []);
 
 	if (isLoaded && !hasPermission(PERMISSIONS.VISIT_VIEW)) return notFound();
 
@@ -180,6 +199,31 @@ export default function MeetingList({
 		});
 	};
 
+	const handleSyncCalendar = async () => {
+		modal.open({
+			type: "confirm",
+			title: "Sync Visits to Calendar",
+			message: "This will sync all upcoming and incomplete visits to your Google Calendar. Continue?",
+			onConfirm: async ({ close, toggleProcessing }) => {
+				toggleProcessing();
+				try {
+					setIsSyncing(true);
+					const result = await syncCalendarMeetings();
+					showSnackBar({
+						message: `Synced ${result.synced} visit(s), updated ${result.updated} visit(s).`,
+						success: true,
+					});
+				} catch (e) {
+					const error = e as ErrorModel;
+					showSnackBar({ message: error.msg ?? "Could not sync visits.", success: false });
+				} finally {
+					setIsSyncing(false);
+					close();
+				}
+			},
+		});
+	};
+
 	const handleChangeTab = (value: string) => {
 		const params = new URLSearchParams(searchParams ?? {});
 		params.set("status_id", value);
@@ -187,6 +231,7 @@ export default function MeetingList({
 	};
 
 	const [statsLoading, setStatsLoading] = useState(true);
+	const [isSyncing, setIsSyncing] = useState(false);
 
 	const fetchVisitPaymentSummary = async () => {
 		const params = `period=weekly&date_from=${formatDate(startOfWeek(new Date()))}&date_to=${formatDate(endOfWeek(new Date()))}`;
@@ -282,17 +327,38 @@ export default function MeetingList({
 					// 					Past
 					// 				</label>
 					// 			</div>
-					// 		);
+					// 	);
 					// 	},
 					// }}
 					className="mr-4 sm:mr-0"
 				/>
 			</div>
 			<Tabs defaultValue={searchParams?.status_id ?? "6"} onValueChange={handleChangeTab}>
-				<TabsList className="mb-3">
-					<TabsTrigger value="6">Upcoming</TabsTrigger>
-					<TabsTrigger value="7">Incomplete</TabsTrigger>
-					<TabsTrigger value="8">History</TabsTrigger>
+				<TabsList className="mb-3 flex items-center justify-between">
+					<div className="flex space-x-1">
+						<TabsTrigger value="6">Upcoming</TabsTrigger>
+						<TabsTrigger value="7">Incomplete</TabsTrigger>
+						<TabsTrigger value="8">History</TabsTrigger>
+					</div>
+					{calendarReady && (
+						<Tooltip content="Sync to Calendar" side="top" align="end">
+							<button
+								type="button"
+								aria-label="Sync to Calendar"
+								onClick={handleSyncCalendar}
+								disabled={isSyncing}
+								className={clsx(
+									"flex justify-center items-center rounded-md font-medium whitespace-nowrap",
+									isSyncing
+										? "bg-neutral-300 cursor-default text-white"
+										: "bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-500",
+									"!py-2 !px-2",
+								)}
+							>
+								<RefreshCwIcon className={clsx("h-4 w-4", isSyncing && "animate-spin")} />
+							</button>
+						</Tooltip>
+					)}
 				</TabsList>
 				<TabsContent value={searchParams?.status_id ?? "6"}>
 					<DataList data={meetings}>

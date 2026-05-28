@@ -20,7 +20,7 @@ type Auth = {
 const setCookie = (name: string, value: string, expiresAt: number) => {
 	Cookies.set(name, value, {
 		expires: Math.ceil((expiresAt - Date.now() / 1000) / 3600) / 24,
-		sameSite: "Strict",
+		sameSite: "Lax",
 		secure: true, // enable this if the server is already https
 	});
 };

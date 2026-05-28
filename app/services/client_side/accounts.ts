@@ -12,6 +12,8 @@ import type {
 	CalendarAuthResponse,
 	CalendarConnectionResponse,
 	CalendarDisconnectResponse,
+	CalendarSyncResponse,
+	CalendarUnsyncResponse,
 } from "@/app/models/calendar_model";
 import type { Schedule } from "@/app/models/schedules";
 import { apiClient } from "@/app/services/apiClient";
@@ -222,6 +224,26 @@ export const handleGoogleCalendarCallback = async (code: string): Promise<Calend
 		url: url,
 		method: "GET",
 		params: { code },
+	});
+
+	return response;
+};
+
+export const syncCalendarMeetings = async (): Promise<CalendarSyncResponse> => {
+	const url = "/calendar-connections/sync";
+	const response = await apiClient<CalendarSyncResponse>({
+		url: url,
+		method: "POST",
+	});
+
+	return response;
+};
+
+export const unsyncCalendarMeetings = async (): Promise<CalendarUnsyncResponse> => {
+	const url = "/calendar-connections/unsync";
+	const response = await apiClient<CalendarUnsyncResponse>({
+		url: url,
+		method: "DELETE",
 	});
 
 	return response;
