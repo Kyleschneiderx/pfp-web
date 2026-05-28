@@ -33,6 +33,7 @@ import {
 	deleteAddress,
 	updateAddress,
 	updateAccountSettings,
+	syncCalendarMeetings,
 } from "@/app/services/client_side/accounts";
 import clsx from "clsx";
 import { PlusIcon, XIcon } from "lucide-react";
@@ -825,11 +826,36 @@ export default function ProfileForm({ account }: { account?: Account }) {
 										tools: { ...current.tools, calendar_enabled: nextSettings.calendar_enabled },
 									}));
 									showSnackBar({ message: "Settings updated.", success: true });
+
+									if (checked && calendarConnection?.connected) {
+										modal.open({
+											type: "confirm",
+											title: "Sync Visits to Calendar",
+											message: "Would you like to sync your upcoming and incomplete visits to your connected Google Calendar?",
+											confirmLabel: "Sync Now",
+											onConfirm: async ({ close, toggleProcessing }) => {
+												toggleProcessing();
+												try {
+													const result = await syncCalendarMeetings();
+													showSnackBar({
+														message: `Synced ${result.synced} visit(s), updated ${result.updated} visit(s).`,
+														success: true,
+													});
+												} catch (e) {
+													const error = e as ErrorModel;
+													showSnackBar({ message: error.msg ?? "Could not sync visits.", success: false });
+												} finally {
+													close();
+												}
+											},
+										});
+									}
 								} catch (e) {
 									const error = e as ErrorModel;
 									showSnackBar({ message: error.msg ?? "Could not save settings.", success: false });
 								}
 							}}
+
 						/>
 					</div>
 				</TabsContent>
