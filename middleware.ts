@@ -11,7 +11,7 @@ export function middleware(request: NextRequest) {
 	// Define the paths that don't require authentication
 	const publicPaths = ["/", "/login", "/forgot-password", "/reset-password"];
 
-	const publicPaths2 = ["/mobile-app", "/delete-account", "/privacy-policy", "/stripe"];
+	const publicPaths2 = ["/mobile-app", "/delete-account", "/privacy-policy", "/stripe", "/book"];
 
 	// Function to handle dynamic reset-password route
 	const isPublicPath = publicPaths.some((path) => normalizedPath === path || normalizedPath.startsWith(`${path}/`));
