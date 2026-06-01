@@ -23,6 +23,7 @@ import type {
 } from "@/app/models/accounts";
 import type { OptionsModel } from "@/app/models/common_model";
 import type { ErrorModel } from "@/app/models/error_model";
+import type { ProviderConnectStatus } from "@/app/models/provider_connect_model";
 import {
 	disconnectGoogleCalendar,
 	getCalendarConnectionStatus,
@@ -35,18 +36,26 @@ import {
 	updateAccountSettings,
 	syncCalendarMeetings,
 } from "@/app/services/client_side/accounts";
+import {
+	createConnectAccount,
+	createDashboardLink,
+	createOnboardingLink,
+	getConnectAccountStatus,
+} from "@/app/services/client_side/provider-connect";
 import clsx from "clsx";
 import { PlusIcon, XIcon } from "lucide-react";
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Controller, type ControllerRenderProps, useForm, useWatch } from "react-hook-form";
 import useAuth from "../hooks/useAuth";
 import Textarea from "./elements/Textarea";
 import { ProfileAddressTab } from "./profile/profile-address-tab";
+import { ProfileBillingTab } from "./profile/profile-billing-tab";
 import { ProfileToolsTab } from "./profile/profile-tools-tab";
 
 type ProfileFormSchema = ProviderFormSchema & AdminFormSchema;
-type ProfileTabValue = "details" | "address" | "settings" | "tools";
+type ProfileTabValue = "details" | "address" | "settings" | "tools" | "billing";
 type TabSaveStatus = "idle" | "saving" | "saved" | "error";
 type TabSaveState = {
 	status: TabSaveStatus;
@@ -212,13 +221,19 @@ function SettingsTabPanel({
 
 export default function ProfileForm({ account }: { account?: Account }) {
 	const { showSnackBar } = useSnackBar();
-	const { user, isAdmin, sync: syncAuth } = useAuth();
+	const { user, isAdmin, isProvider, sync: syncAuth } = useAuth();
 	const modal = useModal();
 	const modalData = modal.getData();
 	const { isMobile } = useWindowSizeCheck();
+	const searchParams = useSearchParams();
 	const sourceAccount = account ?? user;
 	const initialAccount = sourceAccount;
-	const [activeTab, setActiveTab] = useState<ProfileTabValue>("details");
+	const [activeTab, setActiveTab] = useState<ProfileTabValue>(
+		searchParams.get("tab") === "billing" ? "billing" : "details",
+	);
+	const [connectStatus, setConnectStatus] = useState<ProviderConnectStatus | null>(null);
+	const [isLoadingConnect, setIsLoadingConnect] = useState(false);
+	const [isConnectActionLoading, setIsConnectActionLoading] = useState(false);
 	const [profileUser, setProfileUser] = useState<Account | null | undefined>(initialAccount);
 	const [formError, setFormError] = useState<ErrorModel>();
 	const [detailsIsSaving, setDetailsIsSaving] = useState(false);
@@ -551,6 +566,76 @@ export default function ProfileForm({ account }: { account?: Account }) {
 		fetchCalendarStatus();
 	}, [profileId]);
 
+	const loadConnectStatus = async () => {
+		try {
+			setIsLoadingConnect(true);
+			const status = await getConnectAccountStatus();
+			setConnectStatus(status);
+		} catch (e) {
+			const error = e as ErrorModel;
+			// 404 simply means the provider has no connected account yet.
+			if (error?.code !== 404) {
+				console.error("Failed to fetch Stripe Connect status:", error);
+			}
+			setConnectStatus(null);
+		} finally {
+			setIsLoadingConnect(false);
+		}
+	};
+
+	// Load Connect status for providers (and refresh when returning from Stripe onboarding).
+	useEffect(() => {
+		if (!isProvider) return;
+		loadConnectStatus();
+	}, [isProvider]);
+
+	const buildStripeReturnUrls = () => {
+		const origin = typeof window !== "undefined" ? window.location.origin : "";
+		return {
+			return_url: `${origin}/profile?tab=billing`,
+			refresh_url: `${origin}/profile?tab=billing`,
+		};
+	};
+
+	const handleEnroll = async () => {
+		try {
+			setIsConnectActionLoading(true);
+			// Ensure a connected account exists, then send the provider to hosted onboarding.
+			await createConnectAccount();
+			const link = await createOnboardingLink(buildStripeReturnUrls());
+			window.location.href = link.url;
+		} catch (e) {
+			const error = e as ErrorModel;
+			showSnackBar({ message: error.msg ?? "Could not start Stripe enrollment.", success: false });
+			setIsConnectActionLoading(false);
+		}
+	};
+
+	const handleContinueOnboarding = async () => {
+		try {
+			setIsConnectActionLoading(true);
+			const link = await createOnboardingLink(buildStripeReturnUrls());
+			window.location.href = link.url;
+		} catch (e) {
+			const error = e as ErrorModel;
+			showSnackBar({ message: error.msg ?? "Could not resume Stripe onboarding.", success: false });
+			setIsConnectActionLoading(false);
+		}
+	};
+
+	const handleOpenDashboard = async () => {
+		try {
+			setIsConnectActionLoading(true);
+			const link = await createDashboardLink();
+			window.open(link.url, "_blank", "noopener,noreferrer");
+		} catch (e) {
+			const error = e as ErrorModel;
+			showSnackBar({ message: error.msg ?? "Could not open the Stripe dashboard.", success: false });
+		} finally {
+			setIsConnectActionLoading(false);
+		}
+	};
+
 	const handleRemoveLicense = (field: ControllerRenderProps<ProfileFormSchema, "license">, index: number) => {
 		field.onChange(field.value?.filter((v, i) => i !== index));
 	};
@@ -603,6 +688,7 @@ export default function ProfileForm({ account }: { account?: Account }) {
 						<TabTriggerLabel label="Settings" isDirty={settingsDirty} />
 					</TabsTrigger>
 					<TabsTrigger value="tools">Tools</TabsTrigger>
+					<TabsTrigger value="billing">Billing</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value="details" className="mt-5">
@@ -870,6 +956,20 @@ export default function ProfileForm({ account }: { account?: Account }) {
 								isLoading: isLoadingConnection,
 								connection: calendarConnection,
 							}}
+						/>
+					</div>
+				</TabsContent>
+
+				<TabsContent value="billing" className="mt-5">
+					<div className="sm:w-[636px] sm:bg-white sm:p-5 sm:drop-shadow-center rounded-lg">
+						<ProfileBillingTab
+							isProvider={isProvider}
+							isLoading={isLoadingConnect}
+							isActionLoading={isConnectActionLoading}
+							status={connectStatus}
+							onEnroll={handleEnroll}
+							onContinueOnboarding={handleContinueOnboarding}
+							onOpenDashboard={handleOpenDashboard}
 						/>
 					</div>
 				</TabsContent>

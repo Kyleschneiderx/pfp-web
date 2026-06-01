@@ -10,6 +10,8 @@ interface Props {
 	retryCount?: number;
 	mobileToken?: string;
 	responseType?: ResponseType;
+	/** Override the default base URL (which targets `/api/admin`) — e.g. to reach `/api/v1` routes. */
+	baseUrl?: string;
 }
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
@@ -23,11 +25,12 @@ export const apiClient = async <T>({
 	retryCount = MAX_RETRIES,
 	mobileToken,
 	responseType,
+	baseUrl,
 }: Props): Promise<T> => {
 	const token = Cookies.get("token");
 
 	const config: AxiosRequestConfig = {
-		url: `${BASE_URL}${url}`,
+		url: `${baseUrl ?? BASE_URL}${url}`,
 		method,
 		headers: {
 			...(mobileToken ? { Authorization: `Bearer ${mobileToken}` } : token && { Authorization: `Bearer ${token}` }),
